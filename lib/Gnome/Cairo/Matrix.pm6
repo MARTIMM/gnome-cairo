@@ -26,7 +26,7 @@ also is Gnome::N::TopLevelClassSupport;
 =begin pod
 =end pod
 
-our class cairo_matrix_t is repr('CStruct') {
+our class cairo_matrix_t is repr('CStruct') is export {
   has num64 $.xx;
   has num64 $.yx;
   has num64 $.xy;

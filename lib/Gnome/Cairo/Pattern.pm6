@@ -16,7 +16,7 @@ use Gnome::N::NativeLib;
 use Gnome::N::N-GObject;
 use Gnome::N::TopLevelClassSupport;
 
-#use Gnome::Cairo::Enums;
+use Gnome::Cairo::Matrix;
 
 unit class Gnome::Cairo::Pattern:auth<github:MARTIMM>;
 also is Gnome::N::TopLevelClassSupport;
