@@ -13,7 +13,7 @@ use NativeCall;
 
 use Gnome::N::X;
 use Gnome::N::NativeLib;
-use Gnome::N::N-GObject;
+#use Gnome::N::N-GObject;
 use Gnome::N::TopLevelClassSupport;
 
 use Gnome::Cairo::Enums;
@@ -136,7 +136,7 @@ method _fallback ( $native-sub is copy --> Callable ) {
 }
 
 #-------------------------------------------------------------------------------
-#TM:0::
+#TM:0:cairo_path_destroy:
 =begin pod
 =end pod
 

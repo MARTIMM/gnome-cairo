@@ -13,7 +13,7 @@ use NativeCall;
 
 use Gnome::N::X;
 use Gnome::N::NativeLib;
-use Gnome::N::N-GObject;
+#use Gnome::N::N-GObject;
 use Gnome::N::TopLevelClassSupport;
 
 use Gnome::Cairo::Matrix;
@@ -28,6 +28,7 @@ also is Gnome::N::TopLevelClassSupport;
 
 class cairo_pattern_t
   is repr('CPointer')
+  is export
   { }
 
 #-------------------------------------------------------------------------------

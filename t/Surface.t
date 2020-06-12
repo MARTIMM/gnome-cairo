@@ -1,6 +1,6 @@
 use v6;
 use lib '../gnome-native/lib';
-use NativeCall;
+#use NativeCall;
 use Test;
 
 use Gnome::Cairo::Surface;
