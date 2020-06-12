@@ -1,25 +1,42 @@
-#TL:1:Gnome::Cairo::Surface:
-use v6;
-use NativeCall;
+#TL:1:Gnome::Cairo::Matrix:
 
-# Hijacked project Cairo of Timo
+use v6;
+#-------------------------------------------------------------------------------
+=begin pod
+
+=head1 Gnome::Cairo::Matrix
+
+=end pod
+
+#-------------------------------------------------------------------------------
+use NativeCall;
 
 use Gnome::N::X;
 use Gnome::N::NativeLib;
 use Gnome::N::N-GObject;
 use Gnome::N::TopLevelClassSupport;
 
-#-------------------------------------------------------------------------------
-unit class Gnome::Cairo::Surface:auth<github:MARTIMM>;
+#use Gnome::Cairo::Enums;
+
+unit class Gnome::Cairo::Matrix:auth<github:MARTIMM>;
 also is Gnome::N::TopLevelClassSupport;
 
 #-------------------------------------------------------------------------------
-class cairo_surface_t
-  is repr('CPointer')
-  is export
-  { }
+#TT:0::
+=begin pod
+=end pod
+
+our class cairo_matrix_t is repr('CStruct') {
+  has num64 $.xx;
+  has num64 $.yx;
+  has num64 $.xy;
+  has num64 $.yy;
+  has num64 $.x0;
+  has num64 $.y0;
+}
 
 #-------------------------------------------------------------------------------
+#TM:0::
 submethod BUILD ( *%options ) {
 
   # prevent creating wrong native-objects
@@ -81,8 +98,8 @@ submethod BUILD ( *%options ) {
 method _fallback ( $native-sub is copy --> Callable ) {
 
   my Callable $s;
-  try { $s = &::("cairo_surface_$native-sub"); };
-  try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'cairo_surface' /;
+  try { $s = &::("cairo_matrix_$native-sub"); };
+  try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'cairo_matrix_' /;
 
 #  self.set-class-name-of-sub('Cairo');
   $s = callsame unless ?$s;
@@ -95,7 +112,10 @@ method _fallback ( $native-sub is copy --> Callable ) {
 =begin pod
 =end pod
 
-sub cairo_surface_status ( --> uint32 )
+sub init (
+  cairo_matrix_t $matrix,
+  num64 $xx, num64 $yx, num64 $xy, num64 $yy, num64 $x0, num64 $y0
+)
   is native(&cairo-lib)
   {*}
 
@@ -104,101 +124,43 @@ sub cairo_surface_status ( --> uint32 )
 =begin pod
 =end pod
 
-sub cairo_surface_write_to_png ( Str $filename --> int32 )
+sub cairo_matrix_scale ( cairo_matrix_t $matrix, num64 $sx, num64 $sy )
   is native(&cairo-lib)
   {*}
 
-#`{{
 #-------------------------------------------------------------------------------
 #TM:0::
 =begin pod
 =end pod
 
-sub cairo_surface_write_to_png_stream(
-  &write-func (StreamClosure, Pointer[uint8], uint32 --> int32),
-  StreamClosure
-  --> int32
+sub cairo_matrix_translate ( cairo_matrix_t $matrix, num64 $tx, num64 $ty )
+  is native(&cairo-lib)
+  {*}
+
+#-------------------------------------------------------------------------------
+#TM:0::
+=begin pod
+=end pod
+
+sub cairo_matrix_rotate ( cairo_matrix_t $matrix, cairo_matrix_t $b )
+  is native(&cairo-lib)
+  {*}
+
+#-------------------------------------------------------------------------------
+#TM:0::
+=begin pod
+=end pod
+
+sub cairo_matrix_invert ( cairo_matrix_t $matrix )
+  is native(&cairo-lib)
+  {*}
+
+#-------------------------------------------------------------------------------
+#TM:0::
+=begin pod
+=end pod
+
+sub cairo_matrix_multiply (
+  cairo_matrix_t $matrix, cairo_matrix_t $a, cairo_matrix_t $b
 ) is native(&cairo-lib)
-  {*}
-}}
-
-#-------------------------------------------------------------------------------
-#TM:0::
-=begin pod
-=end pod
-
-sub cairo_surface_reference ( --> cairo_surface_t )
-  is native(&cairo-lib)
-  {*}
-
-#-------------------------------------------------------------------------------
-#TM:0::
-=begin pod
-=end pod
-
-sub cairo_surface_show_page ( )
-  is native(&cairo-lib)
-  {*}
-
-#-------------------------------------------------------------------------------
-#TM:0::
-=begin pod
-=end pod
-
-sub cairo_surface_flush ( )
-  is native(&cairo-lib)
-  {*}
-
-#-------------------------------------------------------------------------------
-#TM:0::
-=begin pod
-=end pod
-
-sub cairo_surface_finish ( )
-  is native(&cairo-lib)
-  {*}
-
-#-------------------------------------------------------------------------------
-#TM:0::
-=begin pod
-=end pod
-
-sub cairo_surface_destroy ( )
-  is native(&cairo-lib)
-  {*}
-
-#-------------------------------------------------------------------------------
-#TM:0::
-=begin pod
-=end pod
-
-sub cairo_surface_get_image_data ( --> OpaquePointer )
-  is native(&cairo-lib)
-  {*}
-
-#-------------------------------------------------------------------------------
-#TM:0::
-=begin pod
-=end pod
-
-sub cairo_surface_get_image_stride ( --> int32 )
-  is native(&cairo-lib)
-  {*}
-
-#-------------------------------------------------------------------------------
-#TM:0::
-=begin pod
-=end pod
-
-sub cairo_surface_get_image_width ( --> int32 )
-  is native(&cairo-lib)
-  {*}
-
-#-------------------------------------------------------------------------------
-#TM:0::
-=begin pod
-=end pod
-
-sub cairo_surface_get_image_height ( --> int32 )
-  is native(&cairo-lib)
   {*}

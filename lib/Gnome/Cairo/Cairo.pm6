@@ -9,6 +9,8 @@ use Gnome::N::N-GObject;
 use Gnome::N::TopLevelClassSupport;
 
 use Gnome::Cairo::Surface;
+use Gnome::Cairo::Path;
+use Gnome::Cairo::Pattern;
 
 #-------------------------------------------------------------------------------
 unit class Gnome::Cairo::Cairo:auth<github:MARTIMM>;

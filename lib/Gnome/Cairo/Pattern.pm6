@@ -1,25 +1,37 @@
-#TL:1:Gnome::Cairo::Surface:
-use v6;
-use NativeCall;
+#TL:1:Gnome::Cairo::Pattern:
 
-# Hijacked project Cairo of Timo
+use v6;
+#-------------------------------------------------------------------------------
+=begin pod
+
+=head1 Gnome::Cairo::Pattern
+
+=end pod
+
+#-------------------------------------------------------------------------------
+use NativeCall;
 
 use Gnome::N::X;
 use Gnome::N::NativeLib;
 use Gnome::N::N-GObject;
 use Gnome::N::TopLevelClassSupport;
 
-#-------------------------------------------------------------------------------
-unit class Gnome::Cairo::Surface:auth<github:MARTIMM>;
+#use Gnome::Cairo::Enums;
+
+unit class Gnome::Cairo::Pattern:auth<github:MARTIMM>;
 also is Gnome::N::TopLevelClassSupport;
 
 #-------------------------------------------------------------------------------
-class cairo_surface_t
+#TT:0::
+=begin pod
+=end pod
+
+class cairo_pattern_t
   is repr('CPointer')
-  is export
   { }
 
 #-------------------------------------------------------------------------------
+#TM:0::
 submethod BUILD ( *%options ) {
 
   # prevent creating wrong native-objects
@@ -81,8 +93,8 @@ submethod BUILD ( *%options ) {
 method _fallback ( $native-sub is copy --> Callable ) {
 
   my Callable $s;
-  try { $s = &::("cairo_surface_$native-sub"); };
-  try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'cairo_surface' /;
+  try { $s = &::("cairo_pattern_$native-sub"); };
+  try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'cairo_pattern_' /;
 
 #  self.set-class-name-of-sub('Cairo');
   $s = callsame unless ?$s;
@@ -95,7 +107,7 @@ method _fallback ( $native-sub is copy --> Callable ) {
 =begin pod
 =end pod
 
-sub cairo_surface_status ( --> uint32 )
+sub cairo_pattern_destroy ( )
   is native(&cairo-lib)
   {*}
 
@@ -104,101 +116,56 @@ sub cairo_surface_status ( --> uint32 )
 =begin pod
 =end pod
 
-sub cairo_surface_write_to_png ( Str $filename --> int32 )
+sub cairo_pattern_get_extend ( )
+  returns int32
   is native(&cairo-lib)
   {*}
 
-#`{{
 #-------------------------------------------------------------------------------
 #TM:0::
 =begin pod
 =end pod
 
-sub cairo_surface_write_to_png_stream(
-  &write-func (StreamClosure, Pointer[uint8], uint32 --> int32),
-  StreamClosure
+sub cairo_pattern_set_extend ( uint32 $extend )
+  is native(&cairo-lib)
+  {*}
+
+#-------------------------------------------------------------------------------
+#TM:0::
+=begin pod
+=end pod
+
+sub cairo_pattern_set_matrix ( cairo_matrix_t $matrix )
+  is native(&cairo-lib)
+  {*}
+
+#-------------------------------------------------------------------------------
+#TM:0::
+=begin pod
+=end pod
+
+sub cairo_pattern_get_matrix ( cairo_matrix_t $matrix )
+  is native(&cairo-lib)
+  {*}
+
+#-------------------------------------------------------------------------------
+#TM:0::
+=begin pod
+=end pod
+
+sub cairo_pattern_add_color_stop_rgb (
+  num64 $offset, num64 $r, num64 $g, num64 $b
   --> int32
 ) is native(&cairo-lib)
   {*}
-}}
 
 #-------------------------------------------------------------------------------
 #TM:0::
 =begin pod
 =end pod
 
-sub cairo_surface_reference ( --> cairo_surface_t )
-  is native(&cairo-lib)
-  {*}
-
-#-------------------------------------------------------------------------------
-#TM:0::
-=begin pod
-=end pod
-
-sub cairo_surface_show_page ( )
-  is native(&cairo-lib)
-  {*}
-
-#-------------------------------------------------------------------------------
-#TM:0::
-=begin pod
-=end pod
-
-sub cairo_surface_flush ( )
-  is native(&cairo-lib)
-  {*}
-
-#-------------------------------------------------------------------------------
-#TM:0::
-=begin pod
-=end pod
-
-sub cairo_surface_finish ( )
-  is native(&cairo-lib)
-  {*}
-
-#-------------------------------------------------------------------------------
-#TM:0::
-=begin pod
-=end pod
-
-sub cairo_surface_destroy ( )
-  is native(&cairo-lib)
-  {*}
-
-#-------------------------------------------------------------------------------
-#TM:0::
-=begin pod
-=end pod
-
-sub cairo_surface_get_image_data ( --> OpaquePointer )
-  is native(&cairo-lib)
-  {*}
-
-#-------------------------------------------------------------------------------
-#TM:0::
-=begin pod
-=end pod
-
-sub cairo_surface_get_image_stride ( --> int32 )
-  is native(&cairo-lib)
-  {*}
-
-#-------------------------------------------------------------------------------
-#TM:0::
-=begin pod
-=end pod
-
-sub cairo_surface_get_image_width ( --> int32 )
-  is native(&cairo-lib)
-  {*}
-
-#-------------------------------------------------------------------------------
-#TM:0::
-=begin pod
-=end pod
-
-sub cairo_surface_get_image_height ( --> int32 )
-  is native(&cairo-lib)
+sub cairo_pattern_add_color_stop_rgba (
+  num64 $offset, num64 $r, num64 $g, num64 $b, num64 $a
+  --> int32
+) is native(&cairo-lib)
   {*}

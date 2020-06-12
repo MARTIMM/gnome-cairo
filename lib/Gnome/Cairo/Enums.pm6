@@ -1,6 +1,6 @@
 use v6;
 
-unit Gnome::Cairo::Enums;
+unit class Gnome::Cairo::Enums;
 
 enum cairo_status_t is export <
     CAIRO_STATUS_SUCCESS

@@ -1,4 +1,4 @@
-#TL:0:Gnome::Cairo::Path:
+#TL:1:Gnome::Cairo::Path:
 
 use v6;
 #-------------------------------------------------------------------------------
@@ -16,24 +16,37 @@ use Gnome::N::NativeLib;
 use Gnome::N::N-GObject;
 use Gnome::N::TopLevelClassSupport;
 
+use Gnome::Cairo::Enums;
+
 #-------------------------------------------------------------------------------
 unit class Gnome::Cairo::Path:auth<github:MARTIMM>;
 also is Gnome::N::TopLevelClassSupport;
 
 #-------------------------------------------------------------------------------
+our class cairo_path_data_header_t is repr('CStruct') {
+  has uint32 $.type;
+  has int32 $.length;
+}
+
+our class cairo_path_data_point_t is repr('CStruct') {
+  has num64 $.x is rw;
+  has num64 $.y is rw;
+}
+
+our class cairo_path_data_t is repr('CUnion') is export {
+  HAS cairo_path_data_header_t $.header;
+  HAS cairo_path_data_point_t $.point;
+
+  method data-type { PathDataTypes( self.header.type ) }
+  method length    { self.header.length                }
+  method x is rw   { self.point.x                      }
+  method y is rw   { self.point.y                      }
+}
+
 class cairo_path_t is repr('CStruct') is export {
-  has uint32                     $.status;   # cairo_path_data_type_t
+  has uint32 $.status;   # cairo_path_data_type_t
   has Pointer[cairo_path_data_t] $.data;
-  has int32                      $.num_data;
-
-  sub path_destroy(cairo_path_t)
-    is symbol('cairo_path_destroy')
-    is native($cairolib)
-    {*}
-
-  method destroy {
-    path_destroy(self);
-  }
+  has int32 $.num_data;
 }
 
 #-------------------------------------------------------------------------------
@@ -64,6 +77,7 @@ submethod BUILD ( *%options ) {
     elsif %options<native-object>:exists or %options<widget>:exists { }
     elsif %options<build-id>:exists { }
 
+#`{{
     else {
       my $no;
       # if ? %options<> {
@@ -93,11 +107,12 @@ submethod BUILD ( *%options ) {
 
       # create default object
       else {
-        $no = _gtk_drawing_area_new;
+#        $no = _gtk_drawing_area_new;
       }
 
       self.set-native-object($no);
     }
+}}
 
     # only after creating the native-object, the gtype is known
 #    self.set-class-info('GtkDrawingArea');
@@ -121,3 +136,14 @@ method _fallback ( $native-sub is copy --> Callable ) {
 }
 
 #-------------------------------------------------------------------------------
+#TM:0::
+=begin pod
+=end pod
+
+sub cairo_path_destroy ( cairo_path_t )
+  is native(&cairo-lib)
+  {*}
+
+#  method destroy {
+#    path_destroy(self);
+#  }
