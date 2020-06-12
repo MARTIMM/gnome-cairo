@@ -5,7 +5,7 @@ use NativeCall;
 
 use Gnome::N::X;
 use Gnome::N::NativeLib;
-use Gnome::N::N-GObject;
+#use Gnome::N::N-GObject;
 use Gnome::N::TopLevelClassSupport;
 
 use Gnome::Cairo::Surface;
@@ -13,7 +13,7 @@ use Gnome::Cairo::Path;
 use Gnome::Cairo::Pattern;
 
 #-------------------------------------------------------------------------------
-unit class Gnome::Cairo::Cairo:auth<github:MARTIMM>;
+unit class Gnome::Cairo:auth<github:MARTIMM>;
 also is Gnome::N::TopLevelClassSupport;
 
 #-------------------------------------------------------------------------------
@@ -39,14 +39,14 @@ submethod BUILD ( *%options ) {
 
     else {
       my $no;
-      # if ? %options<> {
-      #   $no = %options<>;
-      #   $no .= get-native-object-no-reffing
-      #     if $no.^can('get-native-object-no-reffing');
-      #   $no = ...($no);
-      # }
+      if ? %options<target> {
+        $no = %options<target>;
+        $no .= get-native-object-no-reffing
+          if $no.^can('get-native-object-no-reffing');
+        $no = _cairo_create($no);
+      }
 
-      # use this when the module is not made inheritable
+      #`{{ use this when the module is not made inheritable
       # check if there are unknown options
       if %options.elems {
         die X::Gnome.new(
@@ -56,6 +56,7 @@ submethod BUILD ( *%options ) {
           )
         );
       }
+      }}
 
       #`{{ when there are no defaults use this
       # check if there are any options
@@ -92,11 +93,21 @@ method _fallback ( $native-sub is copy --> Callable ) {
 }
 
 #-------------------------------------------------------------------------------
+#TM:0:_cairo_create:
+=begin pod
+=end pod
+
+sub _cairo_create ( cairo_surface_t $surface --> cairo_t )
+  is native(&cairo-lib)
+  is symbol('cairo_create')
+  {*}
+
+#-------------------------------------------------------------------------------
 #TM:0::
 =begin pod
 =end pod
 
-sub cairo_destroy
+sub cairo_destroy ( )
   is native(&cairo-lib)
   {*}
 
@@ -141,7 +152,7 @@ sub cairo_append_path ( cairo_path_t $path --> cairo_path_t )
 =begin pod
 =end pod
 
-sub cairo_push_group
+sub cairo_push_group ( )
   is native(&cairo-lib)
   {*}
 
@@ -159,7 +170,7 @@ sub cairo_pop_group ( --> cairo_pattern_t )
 =begin pod
 =end pod
 
-sub cairo_pop_group_to_source
+sub cairo_pop_group_to_source ( )
   is native(&cairo-lib)
   {*}
 
@@ -168,7 +179,7 @@ sub cairo_pop_group_to_source
 =begin pod
 =end pod
 
-sub cairo_get_current_point(num64 $x is rw, num64 $y is rw)
+sub cairo_get_current_point ( num64 $x is rw, num64 $y is rw )
   is native(&cairo-lib)
   {*}
 
@@ -177,7 +188,7 @@ sub cairo_get_current_point(num64 $x is rw, num64 $y is rw)
 =begin pod
 =end pod
 
-sub cairo_line_to(num64 $x, num64 $y)
+sub cairo_line_to ( num64 $x, num64 $y )
   is native(&cairo-lib)
   {*}
 
@@ -186,7 +197,7 @@ sub cairo_line_to(num64 $x, num64 $y)
 =begin pod
 =end pod
 
-sub cairo_move_to(num64 $x, num64 $y)
+sub cairo_move_to ( num64 $x, num64 $y )
   is native(&cairo-lib)
   {*}
 
@@ -195,7 +206,17 @@ sub cairo_move_to(num64 $x, num64 $y)
 =begin pod
 =end pod
 
-sub cairo_curve_to(num64 $x1, num64 $y1, num64 $x2, num64 $y2, num64 $x3, num64 $y3)
+sub cairo_curve_to (
+  num64 $x1, num64 $y1, num64 $x2, num64 $y2, num64 $x3, num64 $y3
+) is native(&cairo-lib)
+  {*}
+
+#-------------------------------------------------------------------------------
+#TM:0::
+=begin pod
+=end pod
+
+sub cairo_rel_line_to ( num64 $x, num64 $y )
   is native(&cairo-lib)
   {*}
 
@@ -204,7 +225,7 @@ sub cairo_curve_to(num64 $x1, num64 $y1, num64 $x2, num64 $y2, num64 $x3, num64 
 =begin pod
 =end pod
 
-sub cairo_rel_line_to(num64 $x, num64 $y)
+sub cairo_rel_move_to ( num64 $x, num64 $y )
   is native(&cairo-lib)
   {*}
 
@@ -213,7 +234,37 @@ sub cairo_rel_line_to(num64 $x, num64 $y)
 =begin pod
 =end pod
 
-sub cairo_rel_move_to(num64 $x, num64 $y)
+sub cairo_rel_curve_to (
+ num64 $x1, num64 $y1, num64 $x2, num64 $y2, num64 $x3, num64 $y3
+) is native(&cairo-lib)
+  {*}
+
+#-------------------------------------------------------------------------------
+#TM:0::
+=begin pod
+=end pod
+
+sub cairo_arc (
+  num64 $xc, num64 $yc, num64 $radius, num64 $angle1, num64 $angle2
+) is native(&cairo-lib)
+  {*}
+
+#-------------------------------------------------------------------------------
+#TM:0::
+=begin pod
+=end pod
+
+sub cairo_arc_negative (
+  num64 $xc, num64 $yc, num64 $radius, num64 $angle1, num64 $angle2
+) is native(&cairo-lib)
+  {*}
+
+#-------------------------------------------------------------------------------
+#TM:0::
+=begin pod
+=end pod
+
+sub cairo_close_path ( )
   is native(&cairo-lib)
   {*}
 
@@ -222,7 +273,7 @@ sub cairo_rel_move_to(num64 $x, num64 $y)
 =begin pod
 =end pod
 
-sub cairo_rel_curve_to(num64 $x1, num64 $y1, num64 $x2, num64 $y2, num64 $x3, num64 $y3)
+sub cairo_new_path ( )
   is native(&cairo-lib)
   {*}
 
@@ -231,7 +282,7 @@ sub cairo_rel_curve_to(num64 $x1, num64 $y1, num64 $x2, num64 $y2, num64 $x3, nu
 =begin pod
 =end pod
 
-sub cairo_arc(num64 $xc, num64 $yc, num64 $radius, num64 $angle1, num64 $angle2)
+sub cairo_rectangle ( num64 $x, num64 $y, num64 $w, num64 $h )
   is native(&cairo-lib)
   {*}
 
@@ -240,7 +291,7 @@ sub cairo_arc(num64 $xc, num64 $yc, num64 $radius, num64 $angle1, num64 $angle2)
 =begin pod
 =end pod
 
-sub cairo_arc_negative(num64 $xc, num64 $yc, num64 $radius, num64 $angle1, num64 $angle2)
+sub cairo_set_source_rgb ( num64 $r, num64 $g, num64 $b )
   is native(&cairo-lib)
   {*}
 
@@ -249,17 +300,7 @@ sub cairo_arc_negative(num64 $xc, num64 $yc, num64 $radius, num64 $angle1, num64
 =begin pod
 =end pod
 
-sub cairo_close_path
-  is native(&cairo-lib)
-  is symbol('cairo_close_path')
-  {*}
-
-#-------------------------------------------------------------------------------
-#TM:0::
-=begin pod
-=end pod
-
-sub cairo_new_path
+sub cairo_set_source_rgba ( num64 $r, num64 $g, num64 $b, num64 $a )
   is native(&cairo-lib)
   {*}
 
@@ -268,7 +309,7 @@ sub cairo_new_path
 =begin pod
 =end pod
 
-sub cairo_rectangle(num64 $x, num64 $y, num64 $w, num64 $h)
+sub cairo_set_source ( cairo_pattern_t $pat )
   is native(&cairo-lib)
   {*}
 
@@ -277,34 +318,7 @@ sub cairo_rectangle(num64 $x, num64 $y, num64 $w, num64 $h)
 =begin pod
 =end pod
 
-sub cairo_set_source_rgb(num64 $r, num64 $g, num64 $b)
-  is native(&cairo-lib)
-  {*}
-
-#-------------------------------------------------------------------------------
-#TM:0::
-=begin pod
-=end pod
-
-sub cairo_set_source_rgba(num64 $r, num64 $g, num64 $b, num64 $a)
-  is native(&cairo-lib)
-  {*}
-
-#-------------------------------------------------------------------------------
-#TM:0::
-=begin pod
-=end pod
-
-sub cairo_set_source(cairo_pattern_t $pat)
-  is native(&cairo-lib)
-  {*}
-
-#-------------------------------------------------------------------------------
-#TM:0::
-=begin pod
-=end pod
-
-sub cairo_set_line_cap(int32 $cap)
+sub cairo_set_line_cap ( int32 $cap )
   is native(&cairo-lib)
   {*}
 
@@ -331,7 +345,7 @@ sub cairo_set_line_join ( int32 $join )
 =begin pod
 =end pod
 
-sub cairo_get_line_join ( -> int32 )
+sub cairo_get_line_join ( --> int32 )
   is native(&cairo-lib)
   {*}
 
