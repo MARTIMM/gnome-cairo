@@ -11,6 +11,7 @@ use Gnome::N::TopLevelClassSupport;
 use Gnome::Cairo::Surface;
 use Gnome::Cairo::Path;
 use Gnome::Cairo::Pattern;
+use Gnome::Cairo::Matrix;
 
 #-------------------------------------------------------------------------------
 unit class Gnome::Cairo:auth<github:MARTIMM>;

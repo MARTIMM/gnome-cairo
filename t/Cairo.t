@@ -1,9 +1,9 @@
 use v6;
-#use lib '../gnome-native/lib';
-use NativeCall;
+use lib '../gnome-native/lib';
+#use NativeCall;
 use Test;
 
-use Gnome::Cairo::Cairo;
+use Gnome::Cairo;
 #use Gnome::Gtk3::Enums;
 
 use Gnome::N::X;
