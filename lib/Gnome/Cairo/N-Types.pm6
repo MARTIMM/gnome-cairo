@@ -68,6 +68,15 @@ class cairo_font_face_t
   { }
 
 #-------------------------------------------------------------------------------
+=begin pod
+=end pod
+#TT:0:cairo_font_options_t
+class cairo_font_options_t
+  is repr('CPointer')
+  is export
+  { }
+
+#-------------------------------------------------------------------------------
 # below defs are from https://www.cairographics.org/manual/cairo-Types.html
 =begin pod
 =head2 cairo_user_data_key_t
