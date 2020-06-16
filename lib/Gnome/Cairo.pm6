@@ -1450,6 +1450,7 @@ sub cairo_select_font_face ( cairo_t $cr, Str $family, int32 $slant, int32 $weig
   is native(&cairo-lib)
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:cairo_font_extents:
 =begin pod
@@ -1466,6 +1467,7 @@ Gets the font extents for the currently selected font.
 sub cairo_font_extents ( cairo_t $cr, cairo_font_extents_t $extents --> void )
   is native(&cairo-lib)
   { * }
+}}
 
 #-------------------------------------------------------------------------------
 #TM:0:cairo_set_font_face:
