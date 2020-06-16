@@ -314,7 +314,7 @@ sub get-type( Str:D $declaration is copy --> List ) {
 #        const \s* char \s* '*'* \s* ||
 #        char \s* '*'* \s* ||
         const \s* <alnum>+ \s* '*'* \s* ||
-        unsigned \s+ int \s* ||
+        unsigned \s+ [ int || long ] \s* ||
         <alnum>+ \s* '*'* \s* ||
         <alnum>+ \s*
     ]
@@ -361,7 +361,6 @@ sub get-type( Str:D $declaration is copy --> List ) {
   my Bool $type-is-class = $type eq $no-type-name;
 
   $type = 'int32' if $type ~~ m/ cairo_bool_t /;
-  $type = 'int64' if $type ~~ m/ long /;
   $type = 'num32' if $type ~~ m/ real /;
   $type = 'num64' if $type ~~ m/ double /;
 
@@ -424,12 +423,14 @@ sub get-type( Str:D $declaration is copy --> List ) {
 
   # convert to perl types
   my Str $raku-type = $type;
-  $raku-type = 'UInt' if $raku-type ~~ m:s/ unsigned\s+int /;
+  $raku-type = 'UInt' if $raku-type ~~ m:s/ unsigned [int || long]/;
   $raku-type = 'Int' if $raku-type ~~ m:s/ int32 || int64 || int /;
   $raku-type = 'Num' if $raku-type ~~ m:s/ num32 || num64 /;
 
   $type = 'int32' if $type ~~ m:s/ unsigned int /;
+  $type = 'int64' if $type ~~ m:s/ unsigned long /;
   $type = 'int32' if $type ~~ m:s/ int /;
+  $type = 'int64' if $type ~~ m:s/ long /;
 
 #`{{
   #$raku-type ~~ s/ 'gchar' \s+ '*' /Str/;
