@@ -143,6 +143,10 @@ sub get-subroutines( Str:D $include-content, Str:D $source-content ) {
     # defines are also caught when () are used but defs are not subs -> skip
     next if $declaration ~~ m/ '#define' /;
 
+    # sometime there is extra doc for the routine which must be removed
+    # this ends up in the declaration
+    $declaration ~~ s/ '/*' .*? '*/' //;
+
 #next unless $declaration ~~ m:s/ const gchar \* /;
     # skip constants and subs with variable argument lists
 #    next if $declaration ~~ m/ 'G_GNUC_CONST' /;
@@ -179,7 +183,7 @@ sub get-subroutines( Str:D $include-content, Str:D $source-content ) {
     $declaration ~~ s/ $sub-name \s* //;
 
     # remove any brackets, and other stuff left before arguments are processed
-    $declaration ~~ s:g/ <[();]> || 'void' //;
+    $declaration ~~ s:g/ <[();]> //;
 
     # get subroutine documentation from c source
 #    ( $sub-doc, $items-src-doc) = get-sub-doc( $sub-name, $source-content);
@@ -305,17 +309,17 @@ sub get-type( Str:D $declaration is copy --> List ) {
 
   # process types from arg lists, inconsequent use of gchar/char
   $declaration ~~ m/ \s*
-    $<type> = [ [
-        const \s* char \s* '*'* \s* ||
-        char \s* '*'* \s* ||
+    $<type> = [ ^^
+#        void \s* '*' \s* ||
+#        const \s* char \s* '*'* \s* ||
+#        char \s* '*'* \s* ||
         const \s* <alnum>+ \s* '*'* \s* ||
         unsigned \s+ int \s* ||
         <alnum>+ \s* '*'* \s* ||
         <alnum>+ \s*
-      ]
     ]
   /;
-#note "type found: ", $/.Str;
+#note "type found: $declaration ---> ", $/.Str;
 
 
   #[ [const]? \s* <alnum>+ \s* \*? ]*
@@ -324,8 +328,9 @@ sub get-type( Str:D $declaration is copy --> List ) {
   my Str $type = ~($<type> // '');
   $declaration ~~ s/ $type //;
 
-  # drop the const if any
+  # drop the const if any and rename the void pointer
   $type ~~ s:g/ const //;
+  $type ~~ s:g/ void \s* '*' \s* /OpaquePointer /;
 
   # convert a pointer char type
   if $type ~~ m/ char \s* '*' / {
@@ -343,9 +348,9 @@ sub get-type( Str:D $declaration is copy --> List ) {
   }
 }}
 
-#note "Type: $type";
+#note "\nType: $type";
   # cleanup
-  $type ~~ s:g/ ['void' || '*'] //;
+  $type ~~ s:g/ '*' //;
   $type ~~ s/ \s+ / /;
   $type ~~ s/ \s+ $//;
   $type ~~ s/^ \s+ //;
@@ -423,7 +428,8 @@ sub get-type( Str:D $declaration is copy --> List ) {
   $raku-type = 'Int' if $raku-type ~~ m:s/ int32 || int64 || int /;
   $raku-type = 'Num' if $raku-type ~~ m:s/ num32 || num64 /;
 
-  $type = 'int32' if $type ~~ m:s/ unsigned\s+int /;
+  $type = 'int32' if $type ~~ m:s/ unsigned int /;
+  $type = 'int32' if $type ~~ m:s/ int /;
 
 #`{{
   #$raku-type ~~ s/ 'gchar' \s+ '*' /Str/;
@@ -1847,17 +1853,14 @@ sub cleanup-source-doc ( Str:D $text is copy --> Str ) {
 
   # remove property and signal line
   $text ~~ s/ ^^ \s+ '*' \s+ $lib-class-name ':'+ .*? \n //;
-#  $text ~~ s/ ^^ \s+ '*' \s+ $lib-class-name ':' .*? \n //;
 
   $text ~~ s/ ^^ '/**' .*? \n //;                       # Doc start
   $text ~~ s/ \s* '*/' .* $ //;                         # Doc end
   $text ~~ s/ 'Since:' \s* \d+\.\d+ //;                 # Since: version
-#  $text ~~ s/ ^^ \s+ '*' \s+ Deprecated: .*? \n //;    # Deprecated: version
-#  $text ~~ s/ ^^ \s+ '*' \s+ Stability: .*? \n //;     # Stability: status
   $text ~~ s:g/ ^^ \s+ '*' ' '? (.*?) $$ /$/[0]/;       # Leading star
   $text ~~ s:g/ ^^ \s+ '*' \s* \n //;                   # Leading star on Empty line
 #  $text ~~ s:g/ ^^ \s* \n //;
-  $text ~~ s:g/ \n / /;
+  $text ~~ s:g/ \n <!before <[\n]>> / /;
 
   $text ~~ s:g/ '<firstterm>' /I</;
   $text ~~ s:g/ '</firstterm>' />/;
@@ -1865,11 +1868,17 @@ sub cleanup-source-doc ( Str:D $text is copy --> Str ) {
   $text ~~ s:g/ '</emphasis>' />/;
   $text ~~ s:g/ '<function>' /C</;
   $text ~~ s:g/ '</function>' />/;
+  $text ~~ s:g/ '<informalexample>' / /;
+  $text ~~ s:g/ '</informalexample>' / /;
+  $text ~~ s:g/ '<programlisting>' /\n\n/;
+  $text ~~ s:g/ '</programlisting>' /\n\n/;
+  $text ~~ s:g/ '<screen>' /\n\n/;
+  $text ~~ s:g/ '</screen>' /\n\n/;
 
   # keep a space, otherwise other subs will change it
   $text ~~ s:g/ '<!--' .*? '-->' / /;
-  $text ~~ s:g/ '/*' .*? '*/' / /;
-  $text ~~ s:g/ \s+ / /;
+#  $text ~~ s:g/ '/*' .*? '*/' / /;
+#  $text ~~ s:g/ \s+ / /;
   $text
 }
 
