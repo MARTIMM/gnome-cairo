@@ -273,7 +273,7 @@ sub cairo_scaled_font_set_user_data ( cairo_scaled_font_t $scaled_font, cairo_us
   { * }
 }}
 
-#`{{
+
 #-------------------------------------------------------------------------------
 #TM:0:cairo_scaled_font_extents:
 =begin pod
@@ -290,7 +290,7 @@ Gets the metrics for a B<cairo_scaled_font_t>.
 sub cairo_scaled_font_extents ( cairo_scaled_font_t $scaled_font, cairo_font_extents_t $extents --> void )
   is native(&cairo-lib)
   { * }
-}}
+
 
 #-------------------------------------------------------------------------------
 #TM:0:cairo_scaled_font_text_extents:
@@ -309,6 +309,7 @@ Gets the extents for a string of text. The extents describe a user-space rectang
 sub cairo_scaled_font_text_extents ( cairo_scaled_font_t $scaled_font, Str $utf8, cairo_text_extents_t $extents --> void )
   is native(&cairo-lib)
   { * }
+
 
 #-------------------------------------------------------------------------------
 #TM:0:cairo_scaled_font_glyph_extents:
