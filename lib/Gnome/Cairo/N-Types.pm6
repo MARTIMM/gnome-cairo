@@ -60,7 +60,9 @@ class cairo_path_t
 
 #-------------------------------------------------------------------------------
 =begin pod
+=head2 cairo_font_face_t
 =end pod
+
 #TT:0:cairo_font_face_t
 class cairo_font_face_t
   is repr('CPointer')
@@ -69,7 +71,9 @@ class cairo_font_face_t
 
 #-------------------------------------------------------------------------------
 =begin pod
+=head2 cairo_font_options_t
 =end pod
+
 #TT:0:cairo_font_options_t
 class cairo_font_options_t
   is repr('CPointer')
@@ -78,9 +82,33 @@ class cairo_font_options_t
 
 #-------------------------------------------------------------------------------
 =begin pod
+=head2
 =end pod
+
 #TT:0:cairo_scaled_font_t
 class cairo_scaled_font_t
+  is repr('CPointer')
+  is export
+  { }
+
+#-------------------------------------------------------------------------------
+=begin pod
+=head2 cairo_font_extents_t
+=end pod
+
+#TT:0:cairo_font_extents_t
+class cairo_font_extents_t
+  is repr('CPointer')
+  is export
+  { }
+
+#-------------------------------------------------------------------------------
+=begin pod
+=head2 cairo_text_extents_t
+=end pod
+
+#TT:0:cairo_text_extents_t
+class cairo_text_extents_t
   is repr('CPointer')
   is export
   { }
@@ -162,7 +190,50 @@ class cairo_rectangle_list_t is repr('CStruct') {
   has int32 $.num_rectangles;
 }
 
+#-------------------------------------------------------------------------------
+# https://www.cairographics.org/manual/cairo-text.html
+=begin pod
+=head2 cairo_glyph_t
 
+The cairo_glyph_t structure holds information about a single glyph when drawing or measuring text. A font is (in simple terms) a collection of shapes used to draw text. A glyph is one of these shapes. There can be multiple glyphs for a single character (alternates to be used in different contexts, for example), or a glyph can be a ligature of multiple characters. Cairo doesn't expose any way of converting input text into glyphs, so in order to use the Cairo interfaces that take arrays of glyphs, you must directly access the appropriate underlying font system.
+
+Note that the offsets given by x and y are not cumulative. When drawing or measuring text, each glyph is individually positioned with respect to the overall origin
+
+=item int64 $.index; glyph index in the font. The exact interpretation of the glyph index depends on the font technology being used.
+
+=item num64 $.x; the offset in the X direction between the origin used for drawing or measuring the string and the origin of this glyph.
+
+=item num64 $.y; the offset in the Y direction between the origin used for drawing or measuring the string and the origin of this glyph.
+
+=end pod
+
+#TT:0:cairo_glyph_t
+class cairo_glyph_t is repr('CStruct') {
+  has int64 $.index;
+  has num64 $.x;
+  has num64 $.y;
+}
+
+#-------------------------------------------------------------------------------
+=begin pod
+=head2 cairo_text_cluster_t
+
+The cairo_text_cluster_t structure holds information about a single text cluster. A text cluster is a minimal mapping of some glyphs corresponding to some UTF-8 text.
+
+For a cluster to be valid, both num_bytes and num_glyphs should be non-negative, and at least one should be non-zero. Note that clusters with zero glyphs are not as well supported as normal clusters. For example, PDF rendering applications typically ignore those clusters when PDF text is being selected.
+
+See C<cairo_show_text_glyphs()> for how clusters are used in advanced text operations.
+
+=item int32 $.num_bytes; the number of bytes of UTF-8 text covered by cluster
+=item int32 $.num_glyphs; the number of glyphs covered by cluster
+
+=end pod
+
+#TT:0:cairo_text_cluster_t
+class cairo_text_cluster_t is repr('CStruct') {
+  has int32 $.num_bytes;
+  has int32 $.num_glyphs;
+}
 
 
 =finish
