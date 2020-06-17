@@ -50,9 +50,16 @@ also is Gnome::N::TopLevelClassSupport;
 
 =head3 new()
 
-Create a new Pattern object.
+Creates a new B<cairo_pattern_t> corresponding to an opaque color. The color components are floating point numbers in the range 0 to 1. If the values passed in are outside that range, they will be clamped. Return value: the newly created B<cairo_pattern_t> if successful, or an error pattern in case of no memory. The caller owns the returned object and should call C<cairo_pattern_destroy()> when finished with it. This function will always return a valid pointer, but if an error occurred the pattern status will be set to an error. To inspect the status of a pattern use C<cairo_pattern_status()>.
 
-  multi method new ( )
+A translucent colored pattern is created when also an alpha value is defined.
+
+  multi method new ( :$red, :$green, :$blue, :$alpha? )
+
+
+Create a new B<cairo_pattern_t> for the given surface. The caller owns the returned object and should call C<cairo_pattern_destroy()> when finished with it. This function will always return a valid pointer, but if an error occurred the pattern status will be set to an error. To inspect the status of a pattern use C<cairo_pattern_status()>.
+
+  multi method new ( cairo_surface_t :$surface )
 
 =begin comment
 Create a Pattern object using a native object from elsewhere. See also B<Gnome::N::TopLevelClassSupport>.
@@ -83,12 +90,33 @@ submethod BUILD ( *%options ) {
 
     else {
       my $no;
-      # if ? %options<> {
-      #   $no = %options<>;
-      #   $no .= get-native-object-no-reffing
-      #     if $no.^can('get-native-object-no-reffing');
-      #   $no = ...($no);
-      # }
+      if %options<red>:exists and
+         %options<green>:exists and
+         %options<blue>:exists and
+         %options<alpha>:exists {
+
+        $no = _cairo_pattern_create_rgba(
+          %options<red>.Num, %options<green>.Num, %options<blue>.Num,
+          %options<alpha>.Num
+        );
+      }
+
+      elsif %options<red>:exists and
+         %options<green>:exists and
+         %options<blue>:exists {
+
+        $no = _cairo_pattern_create_rgb(
+          %options<red>.Num, %options<green>.Num, %options<blue>.Num
+        );
+      }
+
+      elsif %options<surface>:exists {
+        $no = %options<surface>;
+        $no .= get-native-object-no-reffing
+          if $no.^can('get-native-object-no-reffing');
+        $no = _cairo_pattern_create_for_surface($no);
+      }
+
 
       #`{{ use this when the module is not made inheritable
       # check if there are unknown options
@@ -102,12 +130,12 @@ submethod BUILD ( *%options ) {
       }
       }}
 
-      #`{{ when there are no defaults use this
+#      #`{{ when there are no defaults use this
       # check if there are any options
       elsif %options.elems == 0 {
         die X::Gnome.new(:message('No options specified ' ~ self.^name));
       }
-      }}
+#      }}
 
       #`{{ when there are defaults use this instead
       # create default object
@@ -137,7 +165,8 @@ method _fallback ( $native-sub is copy --> Callable ) {
 
 
 #-------------------------------------------------------------------------------
-#TM:0:cairo_pattern_create_rgb:
+#TM:0:_cairo_pattern_create_rgb:
+#`{{
 =begin pod
 =head2 [cairo_pattern_] create_rgb
 
@@ -150,17 +179,20 @@ Creates a new B<cairo_pattern_t> corresponding to an opaque color.  The color co
 =item Num $blue; green component of the color
 
 =end pod
-
-sub cairo_pattern_create_rgb ( num64 $red, num64 $green, num64 $blue --> cairo_pattern_t )
-  is native(&cairo-lib)
+}}
+sub _cairo_pattern_create_rgb (
+  num64 $red, num64 $green, num64 $blue --> cairo_pattern_t
+) is native(&cairo-lib)
+  is symbol('cairo_pattern_create_rgb')
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:cairo_pattern_create_rgba:
+#TM:0:_cairo_pattern_create_rgba:
+#`{{
 =begin pod
 =head2 [cairo_pattern_] create_rgba
 
-Creates a new B<cairo_pattern_t> corresponding to a translucent color. The color components are floating point numbers in the range 0 to 1.  If the values passed in are outside that range, they will be clamped.  Return value: the newly created B<cairo_pattern_t> if successful, or an error pattern in case of no memory.  The caller owns the returned object and should call C<cairo_pattern_destroy()> when finished with it.  This function will always return a valid pointer, but if an error occurred the pattern status will be set to an error.  To inspect the status of a pattern use C<cairo_pattern_status()>.
+Creates a new B<cairo_pattern_t> corresponding to a translucent color. The color components are floating point numbers in the range 0 to 1.  If the values passed in are outside that range, they will be clamped.  Return value: the newly created B<cairo_pattern_t> if successful, or an error pattern in case of no memory.  The caller owns the returned object and should call C<cairo_pattern_destroy()> when finished with it.  This function will always return a valid pointer, but if an error occurred the pattern status will be set to an error. To inspect the status of a pattern use C<cairo_pattern_status()>.
 
   method cairo_pattern_create_rgba ( Num $red, Num $green, Num $blue, Num $alpha --> cairo_pattern_t )
 
@@ -170,13 +202,17 @@ Creates a new B<cairo_pattern_t> corresponding to a translucent color. The color
 =item Num $alpha; blue component of the color
 
 =end pod
+}}
 
-sub cairo_pattern_create_rgba ( num64 $red, num64 $green, num64 $blue, num64 $alpha --> cairo_pattern_t )
-  is native(&cairo-lib)
+sub _cairo_pattern_create_rgba (
+  num64 $red, num64 $green, num64 $blue, num64 $alpha --> cairo_pattern_t
+) is native(&cairo-lib)
+  is symbol('cairo_pattern_create_rgba')
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:cairo_pattern_create_for_surface:
+#TM:0:_cairo_pattern_create_for_surface:
+#`{{
 =begin pod
 =head2 [cairo_pattern_] create_for_surface
 
@@ -187,9 +223,11 @@ Create a new B<cairo_pattern_t> for the given surface.  Return value: the newly 
 =item cairo_surface_t $surface;  cairo_pattern_create_for_surface:
 
 =end pod
+}}
 
-sub cairo_pattern_create_for_surface ( cairo_surface_t $surface --> cairo_pattern_t )
+sub _cairo_pattern_create_for_surface ( cairo_surface_t $surface --> cairo_pattern_t )
   is native(&cairo-lib)
+  is symbol('cairo_pattern_create_for_surface')
   { * }
 
 #-------------------------------------------------------------------------------
