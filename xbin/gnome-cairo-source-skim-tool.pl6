@@ -314,7 +314,7 @@ sub get-type( Str:D $declaration is copy --> List ) {
 #        const \s* char \s* '*'* \s* ||
 #        char \s* '*'* \s* ||
         const \s* <alnum>+ \s* '*'* \s* ||
-        unsigned \s+ [ int || long ] \s* ||
+        unsigned \s+ [ int || long || char ] \s* '*'* ||
         <alnum>+ \s* '*'* \s* ||
         <alnum>+ \s*
     ]
@@ -333,13 +333,12 @@ sub get-type( Str:D $declaration is copy --> List ) {
   $type ~~ s:g/ void \s* '*' \s* /OpaquePointer /;
 
   # convert a pointer char type
-  if $type ~~ m/ char \s* '*' / {
-    $type ~~ s/ char \s* '*' / Str /;
+  $type ~~ s/ [unsigned]? \s+ char \s* '*' /Str/ if $type ~~ m/ char \s* '*' /;
 
-    # if there is still another pointer, make a CArray
-    $type = "CArray[$type]" if $type ~~ m/ '*' /;
-    $type ~~ s:g/ \s* //;
-  }
+  # if there is still another pointer, make a CArray
+#  $type = "CArray[$type]" if $type ~~ m/ '*' /;
+#  $type ~~ s:g/ '*' //;
+#  $type ~~ s:g/ \s+ //;
 
 #`{{
   if $declaration ~~ m/ ^ '...' / {
@@ -350,7 +349,7 @@ sub get-type( Str:D $declaration is copy --> List ) {
 
 #note "\nType: $type";
   # cleanup
-  $type ~~ s:g/ '*' //;
+#  $type ~~ s:g/ '*' //;
   $type ~~ s/ \s+ / /;
   $type ~~ s/ \s+ $//;
   $type ~~ s/^ \s+ //;
@@ -423,14 +422,18 @@ sub get-type( Str:D $declaration is copy --> List ) {
 
   # convert to perl types
   my Str $raku-type = $type;
-  $raku-type = 'UInt' if $raku-type ~~ m:s/ unsigned [int || long]/;
+  $raku-type = 'UInt' if $raku-type ~~ m:s/ unsigned [int || long ]/;
   $raku-type = 'Int' if $raku-type ~~ m:s/ int32 || int64 || int /;
   $raku-type = 'Num' if $raku-type ~~ m:s/ num32 || num64 /;
 
-  $type = 'int32' if $type ~~ m:s/ unsigned int /;
-  $type = 'int64' if $type ~~ m:s/ unsigned long /;
-  $type = 'int32' if $type ~~ m:s/ int /;
-  $type = 'int64' if $type ~~ m:s/ long /;
+#  $type = 'CArray[int8]' if $type ~~ m/ [unsigned]? \s+ char \s* '*' \s* /;
+  $type = 'CArray[int32]' if $type ~~ m/ [unsigned]? \s+ int \s* '*' \s* /;
+  $type = 'CArray[int64]' if $type ~~ m/ [unsigned]? \s+ long \s* '*' \s* /;
+  $type = 'int8' if $type ~~ m:s/ [unsigned]? char /;
+  $type = 'int32' if $type ~~ m:s/ [unsigned]? int /;
+  $type = 'int64' if $type ~~ m:s/ [unsigned]? long /;
+#  $type = 'int32' if $type ~~ m:s/ int /;
+#  $type = 'int64' if $type ~~ m:s/ long /;
 
 #`{{
   #$raku-type ~~ s/ 'gchar' \s+ '*' /Str/;
