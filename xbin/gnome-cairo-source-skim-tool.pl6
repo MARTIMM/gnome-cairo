@@ -237,7 +237,7 @@ sub get-subroutines( Str:D $include-content, Str:D $source-content ) {
     my Str $pod-doc-return = '';
     my Str $pod-returns = '';
     my Str $returns = '';
-    if ?$return-type {
+    if ?$return-type and $return-type !~~ m/ void / {
       $pod-returns = " --> $raku-return-type";
       $returns = "--> $return-type";
     }
@@ -747,16 +747,6 @@ sub substitute-in-template (
 
         multi method new ( )
 
-      =begin comment
-      Create a RAKU-CLASS-NAME object using a native object from elsewhere. See also B<Gnome::N::TopLevelClassSupport>.
-
-        multi method new ( N-GObject :$native-object! )
-
-      Create a RAKU-CLASS-NAME object using a native object returned from a builder. See also B<Gnome::GObject::Object>.
-
-        multi method new ( Str :$build-id! )
-      =end comment
-
       =end pod
 
       #TM:0:new():
@@ -811,6 +801,9 @@ sub substitute-in-template (
 
             self.set-native-object($no);
           }
+
+          # only after creating the native-object
+          self.set-class-info('LIBCLASSNAME');
         }
       }
 
@@ -823,6 +816,7 @@ sub substitute-in-template (
         try { $s = &::("cairo_$native-sub"); } unless ?$s;
         try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'cairo_' /;
 
+        self.set-class-name-of-sub('LIBCLASSNAME');
         $s = callsame unless ?$s;
 
         $s;
