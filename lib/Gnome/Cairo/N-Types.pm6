@@ -114,6 +114,17 @@ class cairo_text_extents_t
   { }
 
 #-------------------------------------------------------------------------------
+=begin pod
+=head2 cairo_device_t
+=end pod
+
+#TT:0:cairo_device_t
+class cairo_device_t
+  is repr('CPointer')
+  is export
+  { }
+
+#-------------------------------------------------------------------------------
 # below defs are from https://www.cairographics.org/manual/cairo-Types.html
 =begin pod
 =head2 cairo_user_data_key_t

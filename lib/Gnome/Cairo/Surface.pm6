@@ -12,7 +12,7 @@ Base class for surfaces
 
 =head1 Description
 
-B<cairo_surface_t> is the abstract type representing all different drawing targets that cairo can render to. The actual drawings are performed using a cairo I<context>. A cairo surface is created by using I<backend>-specific constructors, typically of the form C<cairo_B<backend>_surface_create( )>. Most surface types allow accessing the surface without using Cairo functions. If you do this, keep in mind that it is mandatory that you call C<cairo_surface_flush()> before reading from or writing to the surface and that you must use C<cairo_surface_mark_dirty()> after modifying it. <example> <title>Directly modifying an image surface</title> <programlisting> void modify_image_surface (cairo_surface_t *surface) { unsigned char *data; int width, height, stride; // flush to ensure all writing to the image was done cairo_surface_flush (surface); // modify the image data = cairo_image_surface_get_data (surface); width = cairo_image_surface_get_width (surface); height = cairo_image_surface_get_height (surface); stride = cairo_image_surface_get_stride (surface); modify_image_data (data, width, height, stride); // mark the image dirty so Cairo clears its caches. cairo_surface_mark_dirty (surface); } </programlisting> </example> Note that for other surface types it might be necessary to acquire the surface's device first. See C<cairo_device_acquire()> for a discussion of devices.
+B<cairo_surface_t> is the abstract type representing all different drawing targets that cairo can render to. The actual drawings are performed using a cairo I<context>. A cairo surface is created by using I<backend>-specific constructors, typically of the form C<cairo_B<backend>_surface_create( )>. Most surface types allow accessing the surface without using Cairo functions. If you do this, keep in mind that it is mandatory that you call C<cairo_surface_flush()> before reading from or writing to the surface and that you must use C<cairo_surface_mark_dirty()> after modifying it. <example> <title>Directly modifying an image surface</title> <programlisting> void modify_image_surface (cairo_surface_t *surface) { char *data; int width, height, stride; // flush to ensure all writing to the image was done cairo_surface_flush (surface); // modify the image data = cairo_image_surface_get_data (surface); width = cairo_image_surface_get_width (surface); height = cairo_image_surface_get_height (surface); stride = cairo_image_surface_get_stride (surface); modify_image_data (data, width, height, stride); // mark the image dirty so Cairo clears its caches. cairo_surface_mark_dirty (surface); } </programlisting> </example> Note that for other surface types it might be necessary to acquire the surface's device first. See C<cairo_device_acquire()> for a discussion of devices.
 
 =head2 See Also
 
@@ -146,7 +146,7 @@ This function returns the type of the backend used to create a surface. See B<ca
 
 =end pod
 
-sub cairo_surface_get_type ( cairo_surface_t $surface --> cairo_surface_type_t )
+sub cairo_surface_get_type ( cairo_surface_t $surface --> int32 )
   is native(&cairo-lib)
   { * }
 
@@ -178,7 +178,7 @@ Checks whether an error has previously occurred for this surface. Return value: 
 
 =end pod
 
-sub cairo_surface_status ( cairo_surface_t $surface --> cairo_status_t )
+sub cairo_surface_status ( cairo_surface_t $surface --> int32 )
   is native(&cairo-lib)
   { * }
 
@@ -334,6 +334,7 @@ sub cairo_surface_finish ( cairo_surface_t $surface  )
   is native(&cairo-lib)
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:cairo_surface_get_user_data:
 =begin pod
@@ -358,18 +359,20 @@ sub cairo_surface_get_user_data ( cairo_surface_t $surface, cairo_user_data_key_
 
 Attach user data to I<surface>. To remove user data from a surface, call this function with the key that was used to set it and C<Any> for I<data>. Return value: C<CAIRO_STATUS_SUCCESS> or C<CAIRO_STATUS_NO_MEMORY> if a slot could not be allocated for the user data.
 
-  method cairo_surface_set_user_data ( cairo_user_data_key_t $key, user_data $*, cairo_destroy_func_t $destroy --> cairo_status_t )
+  method cairo_surface_set_user_data ( cairo_user_data_key_t $key, OpaquePointer $user_data, cairo_destroy_func_t $destroy --> cairo_status_t )
 
 =item cairo_user_data_key_t $key; a B<cairo_surface_t>
-=item user_data $*; the address of a B<cairo_user_data_key_t> to attach the user data to
+=item OpaquePointer $user_data; the address of a B<cairo_user_data_key_t> to attach the user data to
 =item cairo_destroy_func_t $destroy; the user data to attach to the surface
 
 =end pod
 
-sub cairo_surface_set_user_data ( cairo_surface_t $surface, cairo_user_data_key_t $key, user_data $*, cairo_destroy_func_t $destroy --> cairo_status_t )
+sub cairo_surface_set_user_data ( cairo_surface_t $surface, cairo_user_data_key_t $key, OpaquePointer $user_data, cairo_destroy_func_t $destroy --> int32 )
   is native(&cairo-lib)
   { * }
+}}
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:cairo_surface_get_mime_data:
 =begin pod
@@ -377,17 +380,18 @@ sub cairo_surface_set_user_data ( cairo_surface_t $surface, cairo_user_data_key_
 
 Return mime data previously attached to I<surface> using the specified mime type. If no data has been attached with the given mime type, I<data> is set C<Any>.
 
-  method cairo_surface_get_mime_data ( Str $mime_type, unsigned $char **data, unsigned $long *length )
+  method cairo_surface_get_mime_data ( Str $mime_type, $char **data, $long *length )
 
 =item Str $mime_type; a B<cairo_surface_t>
-=item unsigned $char **data; the mime type of the image data
-=item unsigned $long *length; the image data to attached to the surface
+=item $char **data; the mime type of the image data
+=item $long *length; the image data to attached to the surface
 
 =end pod
 
-sub cairo_surface_get_mime_data ( cairo_surface_t $surface, Str $mime_type, unsigned $char **data, unsigned $long *length  )
+sub cairo_surface_get_mime_data ( cairo_surface_t $surface, Str $mime_type, $char **data, $long *length  )
   is native(&cairo-lib)
   { * }
+}}
 
 #-------------------------------------------------------------------------------
 #TM:0:Decode:
@@ -561,6 +565,7 @@ sub Unique ( identifier $/** * :
   is native(&cairo-lib)
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:cairo_surface_set_mime_data:
 =begin pod
@@ -568,19 +573,20 @@ sub Unique ( identifier $/** * :
 
 Attach an image in the format I<mime_type> to I<surface>. To remove the data from a surface, call this function with same mime type and C<Any> for I<data>. The attached image (or filename) data can later be used by backends which support it (currently: PDF, PS, SVG and Win32 Printing surfaces) to emit this data instead of making a snapshot of the I<surface>. This approach tends to be faster and requires less memory and disk space. The recognized MIME types are the following: C<CAIRO_MIME_TYPE_JPEG>, C<CAIRO_MIME_TYPE_PNG>, C<CAIRO_MIME_TYPE_JP2>, C<CAIRO_MIME_TYPE_URI>, C<CAIRO_MIME_TYPE_UNIQUE_ID>, C<CAIRO_MIME_TYPE_JBIG2>, C<CAIRO_MIME_TYPE_JBIG2_GLOBAL>, C<CAIRO_MIME_TYPE_JBIG2_GLOBAL_ID>, C<CAIRO_MIME_TYPE_CCITT_FAX>, C<CAIRO_MIME_TYPE_CCITT_FAX_PARAMS>. See corresponding backend surface docs for details about which MIME types it can handle. Caution: the associated MIME data will be discarded if you draw on the surface afterwards. Use this function with care. Even if a backend supports a MIME type, that does not mean cairo will always be able to use the attached MIME data. For example, if the backend does not natively support the compositing operation used to apply the MIME data to the backend. In that case, the MIME data will be ignored. Therefore, to apply an image in all cases, it is best to create an image surface which contains the decoded image data and then attach the MIME data to that. This ensures the image will always be used while still allowing the MIME data to be used whenever possible. Return value: C<CAIRO_STATUS_SUCCESS> or C<CAIRO_STATUS_NO_MEMORY> if a slot could not be allocated for the user data.
 
-  method cairo_surface_set_mime_data ( Str $mime_type, unsigned $char *data, unsigned $long length, cairo_destroy_func_t $destroy, closure $* --> cairo_status_t )
+  method cairo_surface_set_mime_data ( Str $mime_type, $char *data, $long length, cairo_destroy_func_t $destroy, OpaquePointer $closure --> cairo_status_t )
 
 =item Str $mime_type; a B<cairo_surface_t>
-=item unsigned $char *data; the MIME type of the image data
-=item unsigned $long length; the image data to attach to the surface
+=item $char *data; the MIME type of the image data
+=item $long length; the image data to attach to the surface
 =item cairo_destroy_func_t $destroy; the length of the image data
-=item closure $*; a B<cairo_destroy_func_t> which will be called when the surface is destroyed or when new image data is attached using the same mime type.
+=item OpaquePointer $closure; a B<cairo_destroy_func_t> which will be called when the surface is destroyed or when new image data is attached using the same mime type.
 
 =end pod
 
-sub cairo_surface_set_mime_data ( cairo_surface_t $surface, Str $mime_type, unsigned $char *data, unsigned $long length, cairo_destroy_func_t $destroy, closure $* --> cairo_status_t )
+sub cairo_surface_set_mime_data ( cairo_surface_t $surface, Str $mime_type, $char *data, $long length, cairo_destroy_func_t $destroy, OpaquePointer $closure --> int32 )
   is native(&cairo-lib)
   { * }
+}}
 
 #-------------------------------------------------------------------------------
 #TM:0:cairo_surface_supports_mime_type:
