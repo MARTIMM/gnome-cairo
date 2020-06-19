@@ -128,6 +128,7 @@ sub get-subroutines( Str:D $include-content, Str:D $source-content ) {
   # body is skipped, ignore the curly brackets too.
   $source-content ~~ m:g/
     $<comment-doc> = ('/**' .*? '**/')
+    [ ['/*' .*? '*/'] || ['/**' .*? '**/'] ]*
     $<declaration> = ( <-[({]>+ '(' <-[)]>+ ')' )
   /;
   my List $results = $/[*];
@@ -145,7 +146,8 @@ sub get-subroutines( Str:D $include-content, Str:D $source-content ) {
 
     # sometime there is extra doc for the routine which must be removed
     # this ends up in the declaration
-    $declaration ~~ s/ '/*' .*? '*/' //;
+#    $declaration ~~ s:g/ '/**' .*? '**/'? //;
+    $declaration ~~ s:g/ '/*' .*? '*/' //;
 
 #next unless $declaration ~~ m:s/ const gchar \* /;
     # skip constants and subs with variable argument lists
@@ -162,8 +164,13 @@ sub get-subroutines( Str:D $include-content, Str:D $source-content ) {
 #    $declaration ~~ s:g/ \s* \n \s* / /;
 #    $declaration ~~ s:g/ \s+ / /;
 #    $declaration ~~ s/\s* 'G_GNUC_PURE' \s*//;
-#note "\n0 >> $comment-doc";
-#note "\n1 >> $declaration";
+
+#if $comment-doc ~~ m/ CAIRO_MIME_TYPE */ {
+#  note "\n0 >> $comment-doc";
+#  note "\n1 >> $declaration";
+#}
+
+    next if $declaration ~~ m/^ \s* '/**' /;
     next if $declaration ~~ m/ static /;
 
     my Str ( $return-type, $raku-return-type) = ( '', '');
@@ -313,8 +320,9 @@ sub get-type( Str:D $declaration is copy --> List ) {
 #        void \s* '*' \s* ||
 #        const \s* char \s* '*'* \s* ||
 #        char \s* '*'* \s* ||
-        const \s* <alnum>+ \s* '*'* \s* ||
+        const \s+ unsigned \s+ [ int || long || char ] \s* '*'* ||
         unsigned \s+ [ int || long || char ] \s* '*'* ||
+        const \s* <alnum>+ \s* '*'* \s* ||
         <alnum>+ \s* '*'* \s* ||
         <alnum>+ \s*
     ]
@@ -333,11 +341,11 @@ sub get-type( Str:D $declaration is copy --> List ) {
   $type ~~ s:g/ void \s* '*' \s* /OpaquePointer /;
 
   # convert a pointer char type
-  $type ~~ s/ [unsigned]? \s+ char \s* '*' /Str/ if $type ~~ m/ char \s* '*' /;
+  $type ~~ s/ [unsigned]? \s+ char \s* '*'*/Str/;
 
   # if there is still another pointer, make a CArray
 #  $type = "CArray[$type]" if $type ~~ m/ '*' /;
-#  $type ~~ s:g/ '*' //;
+  $type ~~ s:g/ '*' //;
 #  $type ~~ s:g/ \s+ //;
 
 #`{{
