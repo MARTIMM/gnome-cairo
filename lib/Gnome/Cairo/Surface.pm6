@@ -12,7 +12,17 @@ Base class for surfaces
 
 =head1 Description
 
-B<cairo_surface_t> is the abstract type representing all different drawing targets that cairo can render to. The actual drawings are performed using a cairo I<context>. A cairo surface is created by using I<backend>-specific constructors, typically of the form C<cairo_B<backend>_surface_create( )>. Most surface types allow accessing the surface without using Cairo functions. If you do this, keep in mind that it is mandatory that you call C<cairo_surface_flush()> before reading from or writing to the surface and that you must use C<cairo_surface_mark_dirty()> after modifying it. <example> <title>Directly modifying an image surface</title> <programlisting> void modify_image_surface (cairo_surface_t *surface) { char *data; int width, height, stride; // flush to ensure all writing to the image was done cairo_surface_flush (surface); // modify the image data = cairo_image_surface_get_data (surface); width = cairo_image_surface_get_width (surface); height = cairo_image_surface_get_height (surface); stride = cairo_image_surface_get_stride (surface); modify_image_data (data, width, height, stride); // mark the image dirty so Cairo clears its caches. cairo_surface_mark_dirty (surface); } </programlisting> </example> Note that for other surface types it might be necessary to acquire the surface's device first. See C<cairo_device_acquire()> for a discussion of devices.
+ B<cairo_surface_t> is the abstract type representing all different drawing targets that cairo can render to.  The actual drawings are performed using a cairo I<context>.
+ A cairo surface is created by using I<backend>-specific constructors, typically of the form C<cairo_B<backend>_surface_create( )>.
+ Most surface types allow accessing the surface without using Cairo functions. If you do this, keep in mind that it is mandatory that you call C<cairo_surface_flush()> before reading from or writing to the surface and that you must use C<cairo_surface_mark_dirty()> after modifying it. <example> <title>Directly modifying an image surface</title>
+
+ void modify_image_surface (cairo_surface_t *surface) {   unsigned char *data;   int width, height, stride;
+   // flush to ensure all writing to the image was done   cairo_surface_flush (surface);
+   // modify the image   data = cairo_image_surface_get_data (surface);   width = cairo_image_surface_get_width (surface);   height = cairo_image_surface_get_height (surface);   stride = cairo_image_surface_get_stride (surface);   modify_image_data (data, width, height, stride);
+   // mark the image dirty so Cairo clears its caches.   cairo_surface_mark_dirty (surface); }
+
+ </example> Note that for other surface types it might be necessary to acquire the surface's device first. See C<cairo_device_acquire()> for a discussion of devices.
+
 
 =head2 See Also
 
@@ -51,16 +61,6 @@ also is Gnome::N::TopLevelClassSupport;
 Create a new Surface object.
 
   multi method new ( )
-
-=begin comment
-Create a Surface object using a native object from elsewhere. See also B<Gnome::N::TopLevelClassSupport>.
-
-  multi method new ( N-GObject :$native-object! )
-
-Create a Surface object using a native object returned from a builder. See also B<Gnome::GObject::Object>.
-
-  multi method new ( Str :$build-id! )
-=end comment
 
 =end pod
 
@@ -116,6 +116,9 @@ submethod BUILD ( *%options ) {
 
       self.set-native-object($no);
     }
+
+    # only after creating the native-object
+    self.set-class-info('CairoSurface');
   }
 }
 
@@ -128,6 +131,7 @@ method _fallback ( $native-sub is copy --> Callable ) {
   try { $s = &::("cairo_$native-sub"); } unless ?$s;
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'cairo_' /;
 
+  self.set-class-name-of-sub('CairoSurface');
   $s = callsame unless ?$s;
 
   $s;
@@ -139,9 +143,9 @@ method _fallback ( $native-sub is copy --> Callable ) {
 =begin pod
 =head2 [cairo_surface_] get_type
 
-This function returns the type of the backend used to create a surface. See B<cairo_surface_type_t> for available types. Return value: The type of I<surface>.
+This function returns the type of the backend used to create a surface. See B<cairo_surface_type_t> for available types.  Return value: The type of I<surface>.
 
-  method cairo_surface_get_type ( --> cairo_surface_type_t )
+  method cairo_surface_get_type ( --> Int )
 
 
 =end pod
@@ -155,14 +159,14 @@ sub cairo_surface_get_type ( cairo_surface_t $surface --> int32 )
 =begin pod
 =head2 [cairo_surface_] get_content
 
-This function returns the content type of I<surface> which indicates whether the surface contains color and/or alpha information. See B<cairo_content_t>. Return value: The content type of I<surface>.
+This function returns the content type of I<surface> which indicates whether the surface contains color and/or alpha information. See B<cairo_content_t>.  Return value: The content type of I<surface>.
 
-  method cairo_surface_get_content ( --> cairo_content_t )
+  method cairo_surface_get_content ( --> Int )
 
 
 =end pod
 
-sub cairo_surface_get_content ( cairo_surface_t $surface --> cairo_content_t )
+sub cairo_surface_get_content ( cairo_surface_t $surface --> int32 )
   is native(&cairo-lib)
   { * }
 
@@ -171,9 +175,9 @@ sub cairo_surface_get_content ( cairo_surface_t $surface --> cairo_content_t )
 =begin pod
 =head2 cairo_surface_status
 
-Checks whether an error has previously occurred for this surface. Return value: C<CAIRO_STATUS_SUCCESS>, C<CAIRO_STATUS_NULL_POINTER>, C<CAIRO_STATUS_NO_MEMORY>, C<CAIRO_STATUS_READ_ERROR>, C<CAIRO_STATUS_INVALID_CONTENT>, C<CAIRO_STATUS_INVALID_FORMAT>, or C<CAIRO_STATUS_INVALID_VISUAL>.
+Checks whether an error has previously occurred for this surface.  Return value: C<CAIRO_STATUS_SUCCESS>, C<CAIRO_STATUS_NULL_POINTER>, C<CAIRO_STATUS_NO_MEMORY>, C<CAIRO_STATUS_READ_ERROR>, C<CAIRO_STATUS_INVALID_CONTENT>, C<CAIRO_STATUS_INVALID_FORMAT>, or C<CAIRO_STATUS_INVALID_VISUAL>.
 
-  method cairo_surface_status ( --> cairo_status_t )
+  method cairo_surface_status ( --> Int )
 
 
 =end pod
@@ -187,7 +191,7 @@ sub cairo_surface_status ( cairo_surface_t $surface --> int32 )
 =begin pod
 =head2 [cairo_surface_] get_device
 
-This function returns the device for a I<surface>. See B<cairo_device_t>. Return value: The device for I<surface> or C<Any> if the surface does not have an associated device.
+This function returns the device for a I<surface>. See B<cairo_device_t>.  Return value: The device for I<surface> or C<Any> if the surface does not have an associated device.
 
   method cairo_surface_get_device ( --> cairo_device_t )
 
@@ -203,17 +207,17 @@ sub cairo_surface_get_device ( cairo_surface_t $surface --> cairo_device_t )
 =begin pod
 =head2 [cairo_surface_] create_similar
 
-Create a new surface that is as compatible as possible with an existing surface. For example the new surface will have the same device scale, fallback resolution and font options as I<other>. Generally, the new surface will also use the same backend as I<other>, unless that is not possible for some reason. The type of the returned surface may be examined with C<cairo_surface_get_type()>. Initially the surface contents are all 0 (transparent if contents have transparency, black otherwise.) Use C<cairo_surface_create_similar_image()> if you need an image surface which can be painted quickly to the target surface. Return value: a pointer to the newly allocated surface. The caller owns the surface and should call C<cairo_surface_destroy()> when done with it. This function always returns a valid pointer, but it will return a pointer to a "nil" surface if I<other> is already in an error state or any other error occurs.
+Create a new surface that is as compatible as possible with an existing surface. For example the new surface will have the same device scale, fallback resolution and font options as I<other>. Generally, the new surface will also use the same backend as I<other>, unless that is not possible for some reason. The type of the returned surface may be examined with C<cairo_surface_get_type()>.  Initially the surface contents are all 0 (transparent if contents have transparency, black otherwise.)  Use C<cairo_surface_create_similar_image()> if you need an image surface which can be painted quickly to the target surface.  Return value: a pointer to the newly allocated surface. The caller owns the surface and should call C<cairo_surface_destroy()> when done with it.  This function always returns a valid pointer, but it will return a pointer to a "nil" surface if I<other> is already in an error state or any other error occurs.
 
-  method cairo_surface_create_similar ( cairo_content_t $content, Int $width, Int $height --> cairo_surface_t )
+  method cairo_surface_create_similar ( Int $content, Int $width, Int $height --> cairo_surface_t )
 
-=item cairo_content_t $content; an existing surface used to select the backend of the new surface
+=item Int $content; an existing surface used to select the backend of the new surface
 =item Int $width; the content for the new surface
 =item Int $height; width of the new surface, (in device-space units)
 
 =end pod
 
-sub cairo_surface_create_similar ( cairo_surface_t $other, cairo_content_t $content, int $width, int $height --> cairo_surface_t )
+sub cairo_surface_create_similar ( cairo_surface_t $other, int32 $content, int32 $width, int32 $height --> cairo_surface_t )
   is native(&cairo-lib)
   { * }
 
@@ -222,17 +226,17 @@ sub cairo_surface_create_similar ( cairo_surface_t $other, cairo_content_t $cont
 =begin pod
 =head2 [cairo_surface_] create_similar_image
 
-Create a new image surface that is as compatible as possible for uploading to and the use in conjunction with an existing surface. However, this surface can still be used like any normal image surface. Unlike C<cairo_surface_create_similar()> the new image surface won't inherit the device scale from I<other>. Initially the surface contents are all 0 (transparent if contents have transparency, black otherwise.) Use C<cairo_surface_create_similar()> if you don't need an image surface. Return value: a pointer to the newly allocated image surface. The caller owns the surface and should call C<cairo_surface_destroy()> when done with it. This function always returns a valid pointer, but it will return a pointer to a "nil" surface if I<other> is already in an error state or any other error occurs.
+Create a new image surface that is as compatible as possible for uploading to and the use in conjunction with an existing surface. However, this surface can still be used like any normal image surface. Unlike C<cairo_surface_create_similar()> the new image surface won't inherit the device scale from I<other>.  Initially the surface contents are all 0 (transparent if contents have transparency, black otherwise.)  Use C<cairo_surface_create_similar()> if you don't need an image surface.  Return value: a pointer to the newly allocated image surface. The caller owns the surface and should call C<cairo_surface_destroy()> when done with it.  This function always returns a valid pointer, but it will return a pointer to a "nil" surface if I<other> is already in an error state or any other error occurs.
 
-  method cairo_surface_create_similar_image ( cairo_format_t $format, Int $width, Int $height --> cairo_surface_t )
+  method cairo_surface_create_similar_image ( Int $format, Int $width, Int $height --> cairo_surface_t )
 
-=item cairo_format_t $format; an existing surface used to select the preference of the new surface
+=item Int $format; an existing surface used to select the preference of the new surface
 =item Int $width; the format for the new surface
 =item Int $height; width of the new surface, (in pixels)
 
 =end pod
 
-sub cairo_surface_create_similar_image ( cairo_surface_t $other, cairo_format_t $format, int $width, int $height --> cairo_surface_t )
+sub cairo_surface_create_similar_image ( cairo_surface_t $other, int32 $format, int32 $width, int32 $height --> cairo_surface_t )
   is native(&cairo-lib)
   { * }
 
@@ -241,7 +245,7 @@ sub cairo_surface_create_similar_image ( cairo_surface_t $other, cairo_format_t 
 =begin pod
 =head2 [cairo_surface_] map_to_image
 
-Returns an image surface that is the most efficient mechanism for modifying the backing store of the target surface. The region retrieved may be limited to the I<extents> or C<Any> for the whole surface Note, the use of the original surface as a target or source whilst it is mapped is undefined. The result of mapping the surface multiple times is undefined. Calling C<cairo_surface_destroy()> or C<cairo_surface_finish()> on the resulting image surface results in undefined behavior. Changing the device transform of the image surface or of I<surface> before the image surface is unmapped results in undefined behavior. Return value: a pointer to the newly allocated image surface. The caller must use C<cairo_surface_unmap_image()> to destroy this image surface. This function always returns a valid pointer, but it will return a pointer to a "nil" surface if I<other> is already in an error state or any other error occurs. If the returned pointer does not have an error status, it is guaranteed to be an image surface whose format is not C<CAIRO_FORMAT_INVALID>.
+Returns an image surface that is the most efficient mechanism for modifying the backing store of the target surface. The region retrieved may be limited to the I<extents> or C<Any> for the whole surface  Note, the use of the original surface as a target or source whilst it is mapped is undefined. The result of mapping the surface multiple times is undefined. Calling C<cairo_surface_destroy()> or C<cairo_surface_finish()> on the resulting image surface results in undefined behavior. Changing the device transform of the image surface or of I<surface> before the image surface is unmapped results in undefined behavior.  Return value: a pointer to the newly allocated image surface. The caller must use C<cairo_surface_unmap_image()> to destroy this image surface.  This function always returns a valid pointer, but it will return a pointer to a "nil" surface if I<other> is already in an error state or any other error occurs. If the returned pointer does not have an error status, it is guaranteed to be an image surface whose format is not C<CAIRO_FORMAT_INVALID>.
 
   method cairo_surface_map_to_image ( cairo_rectangle_int_t $extents --> cairo_surface_t )
 
@@ -258,7 +262,7 @@ sub cairo_surface_map_to_image ( cairo_surface_t $surface, cairo_rectangle_int_t
 =begin pod
 =head2 [cairo_surface_] unmap_image
 
-Unmaps the image surface as returned from B<cairo_surface_map_to_image>(). The content of the image will be uploaded to the target surface. Afterwards, the image is destroyed. Using an image surface which wasn't returned by C<cairo_surface_map_to_image()> results in undefined behavior.
+Unmaps the image surface as returned from B<cairo_surface_map_to_image>().  The content of the image will be uploaded to the target surface. Afterwards, the image is destroyed.  Using an image surface which wasn't returned by C<cairo_surface_map_to_image()> results in undefined behavior.
 
   method cairo_surface_unmap_image ( cairo_surface_t $image )
 
@@ -275,7 +279,7 @@ sub cairo_surface_unmap_image ( cairo_surface_t $surface, cairo_surface_t $image
 =begin pod
 =head2 cairo_surface_reference
 
-Increases the reference count on I<surface> by one. This prevents I<surface> from being destroyed until a matching call to C<cairo_surface_destroy()> is made. Use C<cairo_surface_get_reference_count()> to get the number of references to a B<cairo_surface_t>. Return value: the referenced B<cairo_surface_t>.
+Increases the reference count on I<surface> by one. This prevents I<surface> from being destroyed until a matching call to C<cairo_surface_destroy()> is made.  Use C<cairo_surface_get_reference_count()> to get the number of references to a B<cairo_surface_t>.  Return value: the referenced B<cairo_surface_t>.
 
   method cairo_surface_reference ( --> cairo_surface_t )
 
@@ -291,7 +295,7 @@ sub cairo_surface_reference ( cairo_surface_t $surface --> cairo_surface_t )
 =begin pod
 =head2 cairo_surface_destroy
 
-Decreases the reference count on I<surface> by one. If the result is zero, then I<surface> and all associated resources are freed. See C<cairo_surface_reference()>.
+Decreases the reference count on I<surface> by one. If the result is zero, then I<surface> and all associated resources are freed.  See C<cairo_surface_reference()>.
 
   method cairo_surface_destroy ( )
 
@@ -307,14 +311,14 @@ sub cairo_surface_destroy ( cairo_surface_t $surface  )
 =begin pod
 =head2 [cairo_surface_] get_reference_count
 
-Returns the current reference count of I<surface>. Return value: the current reference count of I<surface>. If the object is a nil object, 0 will be returned.
+Returns the current reference count of I<surface>.  Return value: the current reference count of I<surface>.  If the object is a nil object, 0 will be returned.
 
   method cairo_surface_get_reference_count ( --> UInt )
 
 
 =end pod
 
-sub cairo_surface_get_reference_count ( cairo_surface_t $surface --> uint )
+sub cairo_surface_get_reference_count ( cairo_surface_t $surface --> int32 )
   is native(&cairo-lib)
   { * }
 
@@ -323,7 +327,7 @@ sub cairo_surface_get_reference_count ( cairo_surface_t $surface --> uint )
 =begin pod
 =head2 cairo_surface_finish
 
-This function finishes the surface and drops all references to external resources. For example, for the Xlib backend it means that cairo will no longer access the drawable, which can be freed. After calling C<cairo_surface_finish()> the only valid operations on a surface are getting and setting user, referencing and destroying, and flushing and finishing it. Further drawing to the surface will not affect the surface but will instead trigger a C<CAIRO_STATUS_SURFACE_FINISHED> error. When the last call to C<cairo_surface_destroy()> decreases the reference count to zero, cairo will call C<cairo_surface_finish()> if it hasn't been called already, before freeing the resources associated with the surface.
+This function finishes the surface and drops all references to external resources.  For example, for the Xlib backend it means that cairo will no longer access the drawable, which can be freed. After calling C<cairo_surface_finish()> the only valid operations on a surface are getting and setting user, referencing and destroying, and flushing and finishing it. Further drawing to the surface will not affect the surface but will instead trigger a C<CAIRO_STATUS_SURFACE_FINISHED> error.  When the last call to C<cairo_surface_destroy()> decreases the reference count to zero, cairo will call C<cairo_surface_finish()> if it hasn't been called already, before freeing the resources associated with the surface.
 
   method cairo_surface_finish ( )
 
@@ -340,15 +344,15 @@ sub cairo_surface_finish ( cairo_surface_t $surface  )
 =begin pod
 =head2 [cairo_surface_] get_user_data
 
-Return user data previously attached to I<surface> using the specified key. If no user data has been attached with the given key this function returns C<Any>. Return value: the user data previously attached or C<Any>.
+Return user data previously attached to I<surface> using the specified key.  If no user data has been attached with the given key this function returns C<Any>.  Return value: the user data previously attached or C<Any>.
 
-  method cairo_surface_get_user_data ( cairo_user_data_key_t $key )
+  method cairo_surface_get_user_data ( cairo_user_data_key_t $key --> OpaquePointer )
 
 =item cairo_user_data_key_t $key; a B<cairo_surface_t>
 
 =end pod
 
-sub cairo_surface_get_user_data ( cairo_surface_t $surface, cairo_user_data_key_t $key  )
+sub cairo_surface_get_user_data ( cairo_surface_t $surface, cairo_user_data_key_t $key --> OpaquePointer )
   is native(&cairo-lib)
   { * }
 
@@ -357,9 +361,9 @@ sub cairo_surface_get_user_data ( cairo_surface_t $surface, cairo_user_data_key_
 =begin pod
 =head2 [cairo_surface_] set_user_data
 
-Attach user data to I<surface>. To remove user data from a surface, call this function with the key that was used to set it and C<Any> for I<data>. Return value: C<CAIRO_STATUS_SUCCESS> or C<CAIRO_STATUS_NO_MEMORY> if a slot could not be allocated for the user data.
+Attach user data to I<surface>.  To remove user data from a surface, call this function with the key that was used to set it and C<Any> for I<data>.  Return value: C<CAIRO_STATUS_SUCCESS> or C<CAIRO_STATUS_NO_MEMORY> if a slot could not be allocated for the user data.
 
-  method cairo_surface_set_user_data ( cairo_user_data_key_t $key, OpaquePointer $user_data, cairo_destroy_func_t $destroy --> cairo_status_t )
+  method cairo_surface_set_user_data ( cairo_user_data_key_t $key, OpaquePointer $user_data, cairo_destroy_func_t $destroy --> Int )
 
 =item cairo_user_data_key_t $key; a B<cairo_surface_t>
 =item OpaquePointer $user_data; the address of a B<cairo_user_data_key_t> to attach the user data to
@@ -370,220 +374,44 @@ Attach user data to I<surface>. To remove user data from a surface, call this fu
 sub cairo_surface_set_user_data ( cairo_surface_t $surface, cairo_user_data_key_t $key, OpaquePointer $user_data, cairo_destroy_func_t $destroy --> int32 )
   is native(&cairo-lib)
   { * }
-}}
 
-#`{{
 #-------------------------------------------------------------------------------
 #TM:0:cairo_surface_get_mime_data:
 =begin pod
 =head2 [cairo_surface_] get_mime_data
 
-Return mime data previously attached to I<surface> using the specified mime type. If no data has been attached with the given mime type, I<data> is set C<Any>.
+Return mime data previously attached to I<surface> using the specified mime type.  If no data has been attached with the given mime type, I<data> is set C<Any>.
 
-  method cairo_surface_get_mime_data ( Str $mime_type, $char **data, $long *length )
+  method cairo_surface_get_mime_data ( Str $mime_type, Str $data, UInt $length )
 
 =item Str $mime_type; a B<cairo_surface_t>
-=item $char **data; the mime type of the image data
-=item $long *length; the image data to attached to the surface
+=item Str $data; the mime type of the image data
+=item UInt $length; the image data to attached to the surface
 
 =end pod
 
-sub cairo_surface_get_mime_data ( cairo_surface_t $surface, Str $mime_type, $char **data, $long *length  )
-  is native(&cairo-lib)
-  { * }
-}}
-
-#-------------------------------------------------------------------------------
-#TM:0:Decode:
-=begin pod
-=head2 Decode
-
-Group 3 or Group 4 CCITT facsimile encoding (International Telecommunication Union, Recommendations T.4 and T.6.)
-
-  method Decode ( parameters $/** * :
- *
- * for Group 3 or Group 4 CCITT facsimile encoding.
- * See [CCITT Fax Images][ccitt].
- *
- * Since: 1.16
- **/
-
-/**
- * CAIRO_MIME_TYPE_EPS:
- *
- * Encapsulated PostScript file.
- * [Encapsulated PostScript File Format Specification]http://wwwimages.adobe.com/content/dam/Adobe/endevnet/postscript/pdfs/5002.EPSF_Spec.pdf --> CAIRO_MIME_TYPE_CCITT_FAX_PARAMS )
-
-=item parameters $/** * :
- *
- * for Group 3 or Group 4 CCITT facsimile encoding.
- * See [CCITT Fax Images][ccitt].
- *
- * Since: 1.16
- **/
-
-/**
- * CAIRO_MIME_TYPE_EPS:
- *
- * Encapsulated PostScript file.
- * [Encapsulated PostScript File Format Specification]http://wwwimages.adobe.com/content/dam/Adobe/endevnet/postscript/pdfs/5002.EPSF_Spec.pdf;  CAIRO_MIME_TYPE_CCITT_FAX:
-
-=end pod
-
-sub Decode ( parameters $/** * :
- *
- * for Group 3 or Group 4 CCITT facsimile encoding.
- * See [CCITT Fax Images][ccitt].
- *
- * Since: 1.16
- **/
-
-/**
- * CAIRO_MIME_TYPE_EPS:
- *
- * Encapsulated PostScript file.
- * [Encapsulated PostScript File Format Specification]http://wwwimages.adobe.com/content/dam/Adobe/endevnet/postscript/pdfs/5002.EPSF_Spec.pdf --> CAIRO_MIME_TYPE_CCITT_FAX_PARAMS )
+sub cairo_surface_get_mime_data ( cairo_surface_t $surface, Str $mime_type, Str $data, int64 $length  )
   is native(&cairo-lib)
   { * }
 
-#-------------------------------------------------------------------------------
-#TM:0:Joint:
-=begin pod
-=head2 Joint
-
-Embedding parameters Encapsulated PostScript data. See [Embedding EPS files][eps].
-
-  method Joint ( Bi $/** * :
- *
- * -level Image Experts Group image coding standard ISO/IEC 11544 --> CAIRO_MIME_TYPE_JBIG2 )
-
-=item Bi $/** * :
- *
- * -level Image Experts Group image coding standard ISO/IEC 11544;  CAIRO_MIME_TYPE_EPS_PARAMS:
-
-=end pod
-
-sub Joint ( Bi $/** * :
- *
- * -level Image Experts Group image coding standard ISO/IEC 11544 --> CAIRO_MIME_TYPE_JBIG2 )
-  is native(&cairo-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:An:
-=begin pod
-=head2 An
-
-Joint Bi-level Image Experts Group image coding standard (ISO/IEC 11544) global segment.
-
-  method An ( unique $/** * :
- *
- * identifier shared by a JBIG2 global segment and all JBIG2 images
- * that depend on the global segment.
- *
- * Since: 1.14
- **/
-
-/**
- * CAIRO_MIME_TYPE_JP2:
- *
- * The Joint Photographic Experts Group JPEG --> CAIRO_MIME_TYPE_JBIG2_GLOBAL_ID )
-
-=item unique $/** * :
- *
- * identifier shared by a JBIG2 global segment and all JBIG2 images
- * that depend on the global segment.
- *
- * Since: 1.14
- **/
-
-/**
- * CAIRO_MIME_TYPE_JP2:
- *
- * The Joint Photographic Experts Group JPEG;  CAIRO_MIME_TYPE_JBIG2_GLOBAL:
-
-=end pod
-
-sub An ( unique $/** * :
- *
- * identifier shared by a JBIG2 global segment and all JBIG2 images
- * that depend on the global segment.
- *
- * Since: 1.14
- **/
-
-/**
- * CAIRO_MIME_TYPE_JP2:
- *
- * The Joint Photographic Experts Group JPEG --> CAIRO_MIME_TYPE_JBIG2_GLOBAL_ID )
-  is native(&cairo-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:The:
-=begin pod
-=head2 The
-
-The Joint Photographic Experts Group (JPEG) image coding standard (ISO/IEC 10918-1).
-
-  method The ( Portable $/** * :
- *
- * Network Graphics image file format ISO/IEC 15948 --> CAIRO_MIME_TYPE_PNG )
-
-=item Portable $/** * :
- *
- * Network Graphics image file format ISO/IEC 15948;  CAIRO_MIME_TYPE_JPEG:
-
-=end pod
-
-sub The ( Portable $/** * :
- *
- * Network Graphics image file format ISO/IEC 15948 --> CAIRO_MIME_TYPE_PNG )
-  is native(&cairo-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:Unique:
-=begin pod
-=head2 Unique
-
-URI for an image file (unofficial MIME type).
-
-  method Unique ( identifier $/** * :
- *
- * for a surface cairo specific MIME type --> CAIRO_MIME_TYPE_UNIQUE_ID )
-
-=item identifier $/** * :
- *
- * for a surface cairo specific MIME type;  CAIRO_MIME_TYPE_URI:
-
-=end pod
-
-sub Unique ( identifier $/** * :
- *
- * for a surface cairo specific MIME type --> CAIRO_MIME_TYPE_UNIQUE_ID )
-  is native(&cairo-lib)
-  { * }
-
-#`{{
 #-------------------------------------------------------------------------------
 #TM:0:cairo_surface_set_mime_data:
 =begin pod
 =head2 [cairo_surface_] set_mime_data
 
-Attach an image in the format I<mime_type> to I<surface>. To remove the data from a surface, call this function with same mime type and C<Any> for I<data>. The attached image (or filename) data can later be used by backends which support it (currently: PDF, PS, SVG and Win32 Printing surfaces) to emit this data instead of making a snapshot of the I<surface>. This approach tends to be faster and requires less memory and disk space. The recognized MIME types are the following: C<CAIRO_MIME_TYPE_JPEG>, C<CAIRO_MIME_TYPE_PNG>, C<CAIRO_MIME_TYPE_JP2>, C<CAIRO_MIME_TYPE_URI>, C<CAIRO_MIME_TYPE_UNIQUE_ID>, C<CAIRO_MIME_TYPE_JBIG2>, C<CAIRO_MIME_TYPE_JBIG2_GLOBAL>, C<CAIRO_MIME_TYPE_JBIG2_GLOBAL_ID>, C<CAIRO_MIME_TYPE_CCITT_FAX>, C<CAIRO_MIME_TYPE_CCITT_FAX_PARAMS>. See corresponding backend surface docs for details about which MIME types it can handle. Caution: the associated MIME data will be discarded if you draw on the surface afterwards. Use this function with care. Even if a backend supports a MIME type, that does not mean cairo will always be able to use the attached MIME data. For example, if the backend does not natively support the compositing operation used to apply the MIME data to the backend. In that case, the MIME data will be ignored. Therefore, to apply an image in all cases, it is best to create an image surface which contains the decoded image data and then attach the MIME data to that. This ensures the image will always be used while still allowing the MIME data to be used whenever possible. Return value: C<CAIRO_STATUS_SUCCESS> or C<CAIRO_STATUS_NO_MEMORY> if a slot could not be allocated for the user data.
+Attach an image in the format I<mime_type> to I<surface>. To remove the data from a surface, call this function with same mime type and C<Any> for I<data>.  The attached image (or filename) data can later be used by backends which support it (currently: PDF, PS, SVG and Win32 Printing surfaces) to emit this data instead of making a snapshot of the I<surface>.  This approach tends to be faster and requires less memory and disk space.  The recognized MIME types are the following: C<CAIRO_MIME_TYPE_JPEG>, C<CAIRO_MIME_TYPE_PNG>, C<CAIRO_MIME_TYPE_JP2>, C<CAIRO_MIME_TYPE_URI>, C<CAIRO_MIME_TYPE_UNIQUE_ID>, C<CAIRO_MIME_TYPE_JBIG2>, C<CAIRO_MIME_TYPE_JBIG2_GLOBAL>, C<CAIRO_MIME_TYPE_JBIG2_GLOBAL_ID>, C<CAIRO_MIME_TYPE_CCITT_FAX>, C<CAIRO_MIME_TYPE_CCITT_FAX_PARAMS>.  See corresponding backend surface docs for details about which MIME types it can handle. Caution: the associated MIME data will be discarded if you draw on the surface afterwards. Use this function with care.  Even if a backend supports a MIME type, that does not mean cairo will always be able to use the attached MIME data. For example, if the backend does not natively support the compositing operation used to apply the MIME data to the backend. In that case, the MIME data will be ignored. Therefore, to apply an image in all cases, it is best to create an image surface which contains the decoded image data and then attach the MIME data to that. This ensures the image will always be used while still allowing the MIME data to be used whenever possible.  Return value: C<CAIRO_STATUS_SUCCESS> or C<CAIRO_STATUS_NO_MEMORY> if a slot could not be allocated for the user data.
 
-  method cairo_surface_set_mime_data ( Str $mime_type, $char *data, $long length, cairo_destroy_func_t $destroy, OpaquePointer $closure --> cairo_status_t )
+  method cairo_surface_set_mime_data ( Str $mime_type, Str $data, UInt $length, cairo_destroy_func_t $destroy, OpaquePointer $closure --> Int )
 
 =item Str $mime_type; a B<cairo_surface_t>
-=item $char *data; the MIME type of the image data
-=item $long length; the image data to attach to the surface
+=item Str $data; the MIME type of the image data
+=item UInt $length; the image data to attach to the surface
 =item cairo_destroy_func_t $destroy; the length of the image data
 =item OpaquePointer $closure; a B<cairo_destroy_func_t> which will be called when the surface is destroyed or when new image data is attached using the same mime type.
 
 =end pod
 
-sub cairo_surface_set_mime_data ( cairo_surface_t $surface, Str $mime_type, $char *data, $long length, cairo_destroy_func_t $destroy, OpaquePointer $closure --> int32 )
+sub cairo_surface_set_mime_data ( cairo_surface_t $surface, Str $mime_type, Str $data, int64 $length, cairo_destroy_func_t $destroy, OpaquePointer $closure --> int32 )
   is native(&cairo-lib)
   { * }
 }}
@@ -593,7 +421,7 @@ sub cairo_surface_set_mime_data ( cairo_surface_t $surface, Str $mime_type, $cha
 =begin pod
 =head2 [cairo_surface_] supports_mime_type
 
-Return whether I<surface> supports I<mime_type>. Return value: C<1> if I<surface> supports I<mime_type>, C<0> otherwise
+Return whether I<surface> supports I<mime_type>.  Return value: C<1> if I<surface> supports I<mime_type>, C<0> otherwise
 
   method cairo_surface_supports_mime_type ( Str $mime_type --> Int )
 
@@ -659,7 +487,7 @@ sub cairo_surface_mark_dirty ( cairo_surface_t $surface  )
 =begin pod
 =head2 [cairo_surface_] mark_dirty_rectangle
 
-Like C<cairo_surface_mark_dirty()>, but drawing has been done only to the specified rectangle, so that cairo can retain cached contents for other parts of the surface. Any cached clip set on the surface will be reset by this function, to make sure that future cairo calls have the clip set that they expect.
+Like C<cairo_surface_mark_dirty()>, but drawing has been done only to the specified rectangle, so that cairo can retain cached contents for other parts of the surface.  Any cached clip set on the surface will be reset by this function, to make sure that future cairo calls have the clip set that they expect.
 
   method cairo_surface_mark_dirty_rectangle ( Int $x, Int $y, Int $width, Int $height )
 
@@ -670,7 +498,7 @@ Like C<cairo_surface_mark_dirty()>, but drawing has been done only to the specif
 
 =end pod
 
-sub cairo_surface_mark_dirty_rectangle ( cairo_surface_t $surface, int $x, int $y, int $width, int $height  )
+sub cairo_surface_mark_dirty_rectangle ( cairo_surface_t $surface, int32 $x, int32 $y, int32 $width, int32 $height  )
   is native(&cairo-lib)
   { * }
 
@@ -679,7 +507,7 @@ sub cairo_surface_mark_dirty_rectangle ( cairo_surface_t $surface, int $x, int $
 =begin pod
 =head2 [cairo_surface_] set_device_scale
 
-Sets a scale that is multiplied to the device coordinates determined by the CTM when drawing to I<surface>. One common use for this is to render to very high resolution display devices at a scale factor, so that code that assumes 1 pixel will be a certain size will still work. Setting a transformation via C<cairo_translate()> isn't sufficient to do this, since functions like C<cairo_device_to_user()> will expose the hidden scale. Note that the scale affects drawing to the surface as well as using the surface in a source pattern.
+Sets a scale that is multiplied to the device coordinates determined by the CTM when drawing to I<surface>. One common use for this is to render to very high resolution display devices at a scale factor, so that code that assumes 1 pixel will be a certain size will still work. Setting a transformation via C<cairo_translate()> isn't sufficient to do this, since functions like C<cairo_device_to_user()> will expose the hidden scale.  Note that the scale affects drawing to the surface as well as using the surface in a source pattern.
 
   method cairo_surface_set_device_scale ( Num $x_scale, Num $y_scale )
 
@@ -715,7 +543,7 @@ sub cairo_surface_get_device_scale ( cairo_surface_t $surface, num64 $x_scale, n
 =begin pod
 =head2 [cairo_surface_] set_device_offset
 
-Sets an offset that is added to the device coordinates determined by the CTM when drawing to I<surface>. One use case for this function is when we want to create a B<cairo_surface_t> that redirects drawing for a portion of an onscreen surface to an offscreen surface in a way that is completely invisible to the user of the cairo API. Setting a transformation via C<cairo_translate()> isn't sufficient to do this, since functions like C<cairo_device_to_user()> will expose the hidden offset. Note that the offset affects drawing to the surface as well as using the surface in a source pattern.
+Sets an offset that is added to the device coordinates determined by the CTM when drawing to I<surface>. One use case for this function is when we want to create a B<cairo_surface_t> that redirects drawing for a portion of an onscreen surface to an offscreen surface in a way that is completely invisible to the user of the cairo API. Setting a transformation via C<cairo_translate()> isn't sufficient to do this, since functions like C<cairo_device_to_user()> will expose the hidden offset.  Note that the offset affects drawing to the surface as well as using the surface in a source pattern.
 
   method cairo_surface_set_device_offset ( Num $x_offset, Num $y_offset )
 
@@ -751,7 +579,7 @@ sub cairo_surface_get_device_offset ( cairo_surface_t $surface, num64 $x_offset,
 =begin pod
 =head2 [cairo_surface_] set_fallback_resolution
 
-Set the horizontal and vertical resolution for image fallbacks. When certain operations aren't supported natively by a backend, cairo will fallback by rendering operations to an image and then overlaying that image onto the output. For backends that are natively vector-oriented, this function can be used to set the resolution used for these image fallbacks, (larger values will result in more detailed images, but also larger file sizes). Some examples of natively vector-oriented backends are the ps, pdf, and svg backends. For backends that are natively raster-oriented, image fallbacks are still possible, but they are always performed at the native device resolution. So this function has no effect on those backends. Note: The fallback resolution only takes effect at the time of completing a page (with C<cairo_show_page()> or C<cairo_copy_page()>) so there is currently no way to have more than one fallback resolution in effect on a single page. The default fallback resoultion is 300 pixels per inch in both dimensions.
+Set the horizontal and vertical resolution for image fallbacks.  When certain operations aren't supported natively by a backend, cairo will fallback by rendering operations to an image and then overlaying that image onto the output. For backends that are natively vector-oriented, this function can be used to set the resolution used for these image fallbacks, (larger values will result in more detailed images, but also larger file sizes).  Some examples of natively vector-oriented backends are the ps, pdf, and svg backends.  For backends that are natively raster-oriented, image fallbacks are still possible, but they are always performed at the native device resolution. So this function has no effect on those backends.  Note: The fallback resolution only takes effect at the time of completing a page (with C<cairo_show_page()> or C<cairo_copy_page()>) so there is currently no way to have more than one fallback resolution in effect on a single page.  The default fallback resoultion is 300 pixels per inch in both dimensions.
 
   method cairo_surface_set_fallback_resolution ( Num $x_pixels_per_inch, Num $y_pixels_per_inch )
 
@@ -787,7 +615,7 @@ sub cairo_surface_get_fallback_resolution ( cairo_surface_t $surface, num64 $x_p
 =begin pod
 =head2 [cairo_surface_] copy_page
 
-Emits the current page for backends that support multiple pages, but doesn't clear it, so that the contents of the current page will be retained for the next page. Use C<cairo_surface_show_page()> if you want to get an empty page after the emission. There is a convenience function for this that takes a B<cairo_t>, namely C<cairo_copy_page()>.
+Emits the current page for backends that support multiple pages, but doesn't clear it, so that the contents of the current page will be retained for the next page.  Use C<cairo_surface_show_page()> if you want to get an empty page after the emission.  There is a convenience function for this that takes a B<cairo_t>, namely C<cairo_copy_page()>.
 
   method cairo_surface_copy_page ( )
 
@@ -803,7 +631,7 @@ sub cairo_surface_copy_page ( cairo_surface_t $surface  )
 =begin pod
 =head2 [cairo_surface_] show_page
 
-Emits and clears the current page for backends that support multiple pages. Use C<cairo_surface_copy_page()> if you don't want to clear the page. There is a convenience function for this that takes a B<cairo_t>, namely C<cairo_show_page()>.
+Emits and clears the current page for backends that support multiple pages.  Use C<cairo_surface_copy_page()> if you don't want to clear the page.  There is a convenience function for this that takes a B<cairo_t>, namely C<cairo_show_page()>.
 
   method cairo_surface_show_page ( )
 
@@ -819,7 +647,7 @@ sub cairo_surface_show_page ( cairo_surface_t $surface  )
 =begin pod
 =head2 [cairo_surface_] has_show_text_glyphs
 
-Returns whether the surface supports sophisticated C<cairo_show_text_glyphs()> operations. That is, whether it actually uses the provided text and cluster data to a C<cairo_show_text_glyphs()> call. Note: Even if this function returns C<0>, a C<cairo_show_text_glyphs()> operation targeted at I<surface> will still succeed. It just will act like a C<cairo_show_glyphs()> operation. Users can use this function to avoid computing UTF-8 text and cluster mapping if the target surface does not use it. Return value: C<1> if I<surface> supports C<cairo_show_text_glyphs()>, C<0> otherwise
+Returns whether the surface supports sophisticated C<cairo_show_text_glyphs()> operations.  That is, whether it actually uses the provided text and cluster data to a C<cairo_show_text_glyphs()> call.  Note: Even if this function returns C<0>, a C<cairo_show_text_glyphs()> operation targeted at I<surface> will still succeed.  It just will act like a C<cairo_show_glyphs()> operation.  Users can use this function to avoid computing UTF-8 text and cluster mapping if the target surface does not use it.  Return value: C<1> if I<surface> supports C<cairo_show_text_glyphs()>, C<0> otherwise
 
   method cairo_surface_has_show_text_glyphs ( --> Int )
 

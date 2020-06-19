@@ -24,7 +24,7 @@ B<cairo_surface_t>
 =head2 Declaration
 
   unit class Gnome::Cairo::Png;
-  also is Gnome::Cairo::Surface;
+  also is Gnome::Cairo::ImageSurface;
 
 =comment head2 Example
 
@@ -35,7 +35,7 @@ use NativeCall;
 use Gnome::N::X;
 use Gnome::N::NativeLib;
 #use Gnome::N::TopLevelClassSupport;
-use Gnome::Cairo::Surface;
+use Gnome::Cairo::ImageSurface;
 
 use Gnome::Cairo::N-Types;
 use Gnome::Cairo::Enums;
@@ -43,7 +43,7 @@ use Gnome::Cairo::Enums;
 #-------------------------------------------------------------------------------
 unit class Gnome::Cairo::Png:auth<github:MARTIMM>;
 #also is Gnome::N::TopLevelClassSupport;
-also is Gnome::Cairo::Surface;
+also is Gnome::Cairo::ImageSurface;
 
 #`{{
 #-------------------------------------------------------------------------------

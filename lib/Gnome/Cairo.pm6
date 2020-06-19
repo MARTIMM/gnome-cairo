@@ -48,30 +48,23 @@ also is Gnome::N::TopLevelClassSupport;
 =head1 Methods
 =head2 new
 
-=head3 new()
+=head3 new(:surface)
 
-Create a new  object.
+Creates a new B<cairo_t> with all graphics state parameters set to default values and with I<target> as a target surface. The target surface should be constructed with a backend-specific function such as C<cairo_image_surface_create()> (or any other C<cairo_B<backend>_surface_create( )> variant).  This function references I<target>, so you can immediately call C<cairo_surface_destroy()> on it if you don't need to maintain a separate reference to it.  Return value: a newly allocated B<cairo_t> with a reference count of 1. The initial reference count should be released with C<cairo_destroy()> when you are done using the B<cairo_t>. This function never returns C<Any>. If memory cannot be allocated, a special B<cairo_t> object will be returned on which C<cairo_status()> returns C<CAIRO_STATUS_NO_MEMORY>. If you attempt to target a surface which does not support writing (such as B<cairo_mime_surface_t>) then a C<CAIRO_STATUS_WRITE_ERROR> will be raised.  You can use this object normally, but no drawing will be done.
 
-  multi method new ( )
+  multi method new ( cairo_surface_t :$surface )
 
-=begin comment
-Create a  object using a native object from elsewhere. See also B<Gnome::N::TopLevelClassSupport>.
-
-  multi method new ( N-GObject :$native-object! )
-
-Create a  object using a native object returned from a builder. See also B<Gnome::GObject::Object>.
-
-  multi method new ( Str :$build-id! )
-=end comment
+=item cairo_surface_t $surface;
 
 =end pod
 
-#TM:0:new():
+#TM:0:new(:surface):
 #TM:4:new(:native-object):Gnome::N::TopLevelClassSupport
 submethod BUILD ( *%options ) {
 
+#note "o: ", self.^name, ', ', %options;
   # prevent creating wrong native-objects
-  if self.^name eq 'Gnome::Cairo::' #`{{ or %options<Cairo> }} {
+  if self.^name eq 'Gnome::Cairo' #`{{ or %options<Cairo> }} {
 
     # check if native object is set by a parent class
     if self.is-valid { }
@@ -83,14 +76,14 @@ submethod BUILD ( *%options ) {
 
     else {
       my $no;
-      # if ? %options<> {
-      #   $no = %options<>;
-      #   $no .= get-native-object-no-reffing
-      #     if $no.^can('get-native-object-no-reffing');
-      #   $no = ...($no);
-      # }
+      if %options<surface>:exists {
+        $no = %options<surface>;
+        $no .= get-native-object-no-reffing
+          if $no.^can('get-native-object-no-reffing');
+        $no = _cairo_create($no);
+      }
 
-      #`{{ use this when the module is not made inheritable
+#      #`{{ use this when the module is not made inheritable
       # check if there are unknown options
       elsif %options.elems {
         die X::Gnome.new(
@@ -100,14 +93,14 @@ submethod BUILD ( *%options ) {
           )
         );
       }
-      }}
+#      }}
 
-      #`{{ when there are no defaults use this
+#      #`{{ when there are no defaults use this
       # check if there are any options
       elsif %options.elems == 0 {
         die X::Gnome.new(:message('No options specified ' ~ self.^name));
       }
-      }}
+#      }}
 
       #`{{ when there are defaults use this instead
       # create default object
@@ -118,6 +111,8 @@ submethod BUILD ( *%options ) {
 
       self.set-native-object($no);
     }
+
+    self.set-class-info('Cairo');
   }
 }
 
@@ -130,6 +125,7 @@ method _fallback ( $native-sub is copy --> Callable ) {
   try { $s = &::("cairo_$native-sub"); } unless ?$s;
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'cairo_' /;
 
+  self.set-class-name-of-sub('Cairo');
   $s = callsame unless ?$s;
 
   $s;
@@ -137,7 +133,8 @@ method _fallback ( $native-sub is copy --> Callable ) {
 
 
 #-------------------------------------------------------------------------------
-#TM:0:cairo_create:
+#TM:0:_cairo_create:
+#`{{
 =begin pod
 =head2 cairo_create
 
@@ -148,9 +145,11 @@ Creates a new B<cairo_t> with all graphics state parameters set to default value
 =item cairo_surface_t $target;  cairo_create:
 
 =end pod
+}}
 
-sub cairo_create ( cairo_surface_t $target --> cairo_t )
+sub _cairo_create ( cairo_surface_t $target --> cairo_t )
   is native(&cairo-lib)
+  is symbol('cairo_create')
   { * }
 
 #-------------------------------------------------------------------------------
