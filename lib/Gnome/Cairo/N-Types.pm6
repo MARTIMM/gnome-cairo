@@ -105,13 +105,31 @@ class cairo_font_extents_t
 #-------------------------------------------------------------------------------
 =begin pod
 =head2 cairo_text_extents_t
+
+The cairo_text_extents_t structure stores the extents of a single glyph or a string of glyphs in user-space coordinates. Because text extents are in user-space coordinates, they are mostly, but not entirely, independent of the current transformation matrix. If you call cairo_scale(cr, 2.0, 2.0), text will be drawn twice as big, but the reported text extents will not be doubled. They will change slightly due to hinting (so you can't assume that metrics are independent of the transformation matrix), but otherwise will remain unchanged.
+
+=item double x_bearing; the horizontal distance from the origin to the leftmost part of the glyphs as drawn. Positive if the glyphs lie entirely to the right of the origin.
+
+=item double y_bearing; the vertical distance from the origin to the topmost part of the glyphs as drawn. Positive only if the glyphs lie completely below the origin; will usually be negative.
+
+=item double width; width of the glyphs as drawn
+
+=item double height; height of the glyphs as drawn
+
+=item double x_advance; distance to advance in the X direction after drawing these glyphs
+
+=item double y_advance; distance to advance in the Y direction after drawing these glyphs. Will typically be zero except for vertical text layout as found in East-Asian languages.
 =end pod
 
 #TT:0:cairo_text_extents_t
-class cairo_text_extents_t
-  is repr('CPointer')
-  is export
-  { }
+class cairo_text_extents_t {
+  has num64 $.x_bearing;
+  has num64 $.y_bearing;
+  has num64 $.width;
+  has num64 $.height;
+  has num64 $.x_advance;
+  has num64 $.y_advance;
+};
 
 #-------------------------------------------------------------------------------
 =begin pod
