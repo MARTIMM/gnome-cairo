@@ -1,10 +1,10 @@
 use v6;
-use lib '../gnome-native/lib';
+#use lib '../gnome-native/lib';
 use NativeCall;
 use Test;
 
 use Gnome::Cairo;
-use Gnome::Cairo::Png;
+use Gnome::Cairo::ImageSurface;
 use Gnome::Cairo::Enums;
 
 #use Gnome::N::X;
@@ -12,14 +12,15 @@ use Gnome::Cairo::Enums;
 
 #-------------------------------------------------------------------------------
 my Gnome::Cairo $c;
-my Gnome::Cairo::Png $p;
+my Gnome::Cairo::ImageSurface $p;
 #-------------------------------------------------------------------------------
 subtest 'ISA test', {
-  my Gnome::Cairo::Png $p .= new(
-    :format(CAIRO_FORMAT_ARGB32), :width(128), :height(128)
-  );
+  $p .= new( :format(CAIRO_FORMAT_ARGB32), :width(128), :height(128));
   $c .= new(:surface($p));
   isa-ok $c, Gnome::Cairo, '.new(:surface)';
+  ok $c.is-valid, '.is-valid()';
+  $c.clear-object;
+  nok $c.is-valid, '.clear-object()';
 }
 
 #`{{

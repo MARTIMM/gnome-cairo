@@ -137,6 +137,15 @@ method _fallback ( $native-sub is copy --> Callable ) {
   $s;
 }
 
+#-------------------------------------------------------------------------------
+method native-object-ref ( $no ) {
+  _cairo_surface_reference($no)
+}
+
+#-------------------------------------------------------------------------------
+method native-object-unref ( $no ) {
+  _cairo_surface_destroy($no);
+}
 
 #-------------------------------------------------------------------------------
 #TM:0:cairo_surface_get_type:
@@ -275,7 +284,8 @@ sub cairo_surface_unmap_image ( cairo_surface_t $surface, cairo_surface_t $image
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:cairo_surface_reference:
+#TM:0:_cairo_surface_reference:
+#`{{
 =begin pod
 =head2 cairo_surface_reference
 
@@ -285,13 +295,16 @@ Increases the reference count on I<surface> by one. This prevents I<surface> fro
 
 
 =end pod
+}}
 
-sub cairo_surface_reference ( cairo_surface_t $surface --> cairo_surface_t )
+sub _cairo_surface_reference ( cairo_surface_t $surface --> cairo_surface_t )
   is native(&cairo-lib)
+  is symbol('cairo_surface_reference')
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:cairo_surface_destroy:
+#TM:1:_cairo_surface_destroy:
+#`{{
 =begin pod
 =head2 cairo_surface_destroy
 
@@ -299,11 +312,12 @@ Decreases the reference count on I<surface> by one. If the result is zero, then 
 
   method cairo_surface_destroy ( )
 
-
 =end pod
+}}
 
-sub cairo_surface_destroy ( cairo_surface_t $surface  )
+sub _cairo_surface_destroy ( cairo_surface_t $surface  )
   is native(&cairo-lib)
+  is symbol('cairo_surface_destroy')
   { * }
 
 #-------------------------------------------------------------------------------
@@ -657,3 +671,45 @@ Returns whether the surface supports sophisticated C<cairo_show_text_glyphs()> o
 sub cairo_surface_has_show_text_glyphs ( cairo_surface_t $surface --> int32 )
   is native(&cairo-lib)
   { * }
+
+
+
+
+#--[ png support ]--------------------------------------------------------------
+#TM:0:cairo_surface_write_to_png:
+=begin pod
+=head2 cairo_surface_write_to_png
+
+The PNG functions allow reading PNG images into image surfaces, and writing any surface to a PNG file.  It is a toy API. It only offers very simple support for reading and writing PNG files, which is sufficient for testing and demonstration purposes. Applications which need more control over the generated PNG file should access the pixel data directly, using C<cairo_image_surface_get_data()> or a backend-specific access function, and process it with another library, e.g. gdk-pixbuf or libpng. CAIRO_HAS_PNG_FUNCTIONS:  Defined if the PNG functions are available. This macro can be used to conditionally compile code using the cairo PNG functions.   stderr and rely on the user to check for errors via the B<cairo_status_t> return. loading the image after a warning. So we also want to return the (incorrect?) surface.  We use our own warning callback to squelch any attempts by libpng to write to stderr as we may not be in control of that output. Otherwise, we will segfault if we are writing to a stream.
+
+  method cairo_surface_write_to_png ( cairo_surface_t $surface, Str $filename --> Int )
+
+=item cairo_surface_t $surface;  SECTION:cairo-png
+=item Str $filename; PNG Support
+
+=end pod
+
+sub cairo_surface_write_to_png ( cairo_surface_t $surface, Str $filename --> int32 )
+  is native(&cairo-lib)
+  { * }
+
+#`{{
+#-------------------------------------------------------------------------------
+#TM:0:cairo_surface_write_to_png_stream:
+=begin pod
+=head2 cairo_surface_write_to_png_stream
+
+Writes the image surface to the write function.  Return value: C<CAIRO_STATUS_SUCCESS> if the PNG file was written successfully.  Otherwise, C<CAIRO_STATUS_NO_MEMORY> is returned if memory could not be allocated for the operation, C<CAIRO_STATUS_SURFACE_TYPE_MISMATCH> if the surface does not have pixel contents, or C<CAIRO_STATUS_PNG_ERROR> if libpng returned an error.
+
+  method cairo_surface_write_to_png_stream ( cairo_surface_t $surface, cairo_write_func_t $write_func, OpaquePointer $closure --> Int )
+
+=item cairo_surface_t $surface;  cairo_surface_write_to_png_stream:
+=item cairo_write_func_t $write_func; a B<cairo_surface_t> with pixel contents
+=item OpaquePointer $closure; a B<cairo_write_func_t>
+
+=end pod
+
+sub cairo_surface_write_to_png_stream ( cairo_surface_t $surface, cairo_write_func_t $write_func, OpaquePointer $closure --> int32 )
+  is native(&cairo-lib)
+  { * }
+}}

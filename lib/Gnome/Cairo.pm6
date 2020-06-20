@@ -131,6 +131,16 @@ method _fallback ( $native-sub is copy --> Callable ) {
   $s;
 }
 
+#-------------------------------------------------------------------------------
+method native-object-ref ( $no ) {
+  _cairo_reference($no)
+}
+
+#-------------------------------------------------------------------------------
+method native-object-unref ( $no ) {
+  _cairo_destroy($no);
+}
+
 
 #-------------------------------------------------------------------------------
 #TM:0:_cairo_create:
@@ -153,7 +163,8 @@ sub _cairo_create ( cairo_surface_t $target --> cairo_t )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:cairo_reference:
+#TM:0:_cairo_reference:
+#`{{
 =begin pod
 =head2 cairo_reference
 
@@ -163,13 +174,16 @@ Increases the reference count on I<cr> by one. This prevents I<cr> from being de
 
 
 =end pod
+}}
 
-sub cairo_reference ( cairo_t $cr --> cairo_t )
+sub _cairo_reference ( cairo_t $cr --> cairo_t )
   is native(&cairo-lib)
+  is symbol('cairo_reference')
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:cairo_destroy:
+#TM:0:_cairo_destroy:
+#`{{
 =begin pod
 =head2 cairo_destroy
 
@@ -177,11 +191,12 @@ Decreases the reference count on I<cr> by one. If the result is zero, then I<cr>
 
   method cairo_destroy ( )
 
-
 =end pod
+}}
 
-sub cairo_destroy ( cairo_t $cr )
+sub _cairo_destroy ( cairo_t $cr )
   is native(&cairo-lib)
+  is symbol('cairo_destroy')
   { * }
 
 #`{{
@@ -377,7 +392,6 @@ Sets the source pattern within I<cr> to an opaque color. This opaque color will 
 
 sub cairo_set_source_rgb (
   cairo_t $cr, num64 $red, num64 $green, num64 $blue
-  --> void
 ) is native(&cairo-lib)
   { * }
 
@@ -505,11 +519,15 @@ sub cairo_set_fill_rule ( cairo_t $cr, int32 $fill_rule )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:cairo_set_line_width:
+#TM:1:cairo_set_line_width:
 =begin pod
 =head2 [cairo_] set_line_width
 
-Sets the current line width within the cairo context. The line width value specifies the diameter of a pen that is circular in user space, (though device-space pen may be an ellipse in general due to scaling/shear/rotation of the CTM).  Note: When the description above refers to user space and CTM it refers to the user space and CTM in effect at the time of the stroking operation, not the user space and CTM in effect at the time of the call to C<cairo_set_line_width()>. The simplest usage makes both of these spaces identical. That is, if there is no change to the CTM between a call to C<cairo_set_line_width()> and the stroking operation, then one can just pass user-space values to C<cairo_set_line_width()> and ignore this note.  As with the other stroke parameters, the current line width is examined by C<cairo_stroke()>, C<cairo_stroke_extents()>, and C<cairo_stroke_to_path()>, but does not have any effect during path construction.  The default line width value is 2.0.
+Sets the current line width within the cairo context. The line width value specifies the diameter of a pen that is circular in user space, (though device-space pen may be an ellipse in general due to scaling/shear/rotation of the CTM).
+
+Note: When the description above refers to user space and CTM it refers to the user space and CTM in effect at the time of the stroking operation, not the user space and CTM in effect at the time of the call to C<cairo_set_line_width()>. The simplest usage makes both of these spaces identical. That is, if there is no change to the CTM between a call to C<cairo_set_line_width()> and the stroking operation, then one can just pass user-space values to C<cairo_set_line_width()> and ignore this note.  As with the other stroke parameters, the current line width is examined by C<cairo_stroke()>, C<cairo_stroke_extents()>, and C<cairo_stroke_to_path()>, but does not have any effect during path construction.
+
+The default line width value is 2.0.
 
   method cairo_set_line_width ( Num $width )
 
@@ -1128,7 +1146,13 @@ sub cairo_mask_surface ( cairo_t $cr, cairo_surface_t $surface, num64 $surface_x
 =begin pod
 =head2 cairo_stroke
 
-A drawing operator that strokes the current path according to the current line width, line join, line cap, and dash settings. After C<cairo_stroke()>, the current path will be cleared from the cairo context. See C<cairo_set_line_width()>, C<cairo_set_line_join()>, C<cairo_set_line_cap()>, C<cairo_set_dash()>, and C<cairo_stroke_preserve()>.  Note: Degenerate segments and sub-paths are treated specially and provide a useful result. These can result in two different situations:  1. Zero-length "on" segments set in C<cairo_set_dash()>. If the cap style is C<CAIRO_LINE_CAP_ROUND> or C<CAIRO_LINE_CAP_SQUARE> then these segments will be drawn as circular dots or squares respectively. In the case of C<CAIRO_LINE_CAP_SQUARE>, the orientation of the squares is determined by the direction of the underlying path.  2. A sub-path created by C<cairo_move_to()> followed by either a C<cairo_close_path()> or one or more calls to C<cairo_line_to()> to the same coordinate as the C<cairo_move_to()>. If the cap style is C<CAIRO_LINE_CAP_ROUND> then these sub-paths will be drawn as circular dots. Note that in the case of C<CAIRO_LINE_CAP_SQUARE> a degenerate sub-path will not be drawn at all, (since the correct orientation is indeterminate).  In no case will a cap style of C<CAIRO_LINE_CAP_BUTT> cause anything to be drawn in the case of either degenerate segments or sub-paths.
+A drawing operator that strokes the current path according to the current line width, line join, line cap, and dash settings. After C<cairo_stroke()>, the current path will be cleared from the cairo context. See C<cairo_set_line_width()>, C<cairo_set_line_join()>, C<cairo_set_line_cap()>, C<cairo_set_dash()>, and C<cairo_stroke_preserve()>.
+
+Note: Degenerate segments and sub-paths are treated specially and provide a useful result. These can result in two different situations:
+
+=item Zero-length "on" segments set in C<cairo_set_dash()>. If the cap style is C<CAIRO_LINE_CAP_ROUND> or C<CAIRO_LINE_CAP_SQUARE> then these segments will be drawn as circular dots or squares respectively. In the case of C<CAIRO_LINE_CAP_SQUARE>, the orientation of the squares is determined by the direction of the underlying path.
+
+=item A sub-path created by C<cairo_move_to()> followed by either a C<cairo_close_path()> or one or more calls to C<cairo_line_to()> to the same coordinate as the C<cairo_move_to()>. If the cap style is C<CAIRO_LINE_CAP_ROUND> then these sub-paths will be drawn as circular dots. Note that in the case of C<CAIRO_LINE_CAP_SQUARE> a degenerate sub-path will not be drawn at all, (since the correct orientation is indeterminate).  In no case will a cap style of C<CAIRO_LINE_CAP_BUTT> cause anything to be drawn in the case of either degenerate segments or sub-paths.
 
   method cairo_stroke ( )
 
@@ -1635,8 +1659,16 @@ Gets the extents for a string of text. The extents describe a user-space rectang
 
 =end pod
 
-sub cairo_text_extents ( cairo_t $cr, Str $utf8, cairo_text_extents_t $extents )
-  is native(&cairo-lib)
+sub cairo_text_extents ( cairo_t $cr, Str $utf8, --> cairo_text_extents_t ) {
+  my cairo_text_extents_t $te .= new;
+  _cairo_text_extents( $cr, $utf8, $te);
+  $te
+}
+
+sub _cairo_text_extents (
+  cairo_t $cr, Str $utf8, cairo_text_extents_t $extents is rw
+) is native(&cairo-lib)
+  is symbol('cairo_text_extents')
   { * }
 
 #-------------------------------------------------------------------------------

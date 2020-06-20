@@ -139,6 +139,8 @@ submethod BUILD ( *%options ) {
 
       self.set-native-object($no);
     }
+
+    self.set-class-info('CairoImageSurface');
   }
 }
 
@@ -151,6 +153,7 @@ method _fallback ( $native-sub is copy --> Callable ) {
   try { $s = &::("cairo_$native-sub"); } unless ?$s;
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'cairo_' /;
 
+  self.set-class-name-of-sub('CairoImageSurface');
   $s = callsame unless ?$s;
 
   $s;
@@ -306,3 +309,42 @@ Get the stride of the image surface in bytes  Return value: the stride of the im
 sub cairo_image_surface_get_stride ( cairo_surface_t $surface --> int32 )
   is native(&cairo-lib)
   { * }
+
+
+
+#--[ png support ]--------------------------------------------------------------
+#TM:0:cairo_image_surface_create_from_png:
+=begin pod
+=head2 cairo_image_surface_create_from_png
+
+Creates a new image surface and initializes the contents to the given PNG file.  Return value: a new B<cairo_surface_t> initialized with the contents of the PNG file, or a "nil" surface if any error occurred. A nil surface can be checked for with cairo_surface_status(surface) which may return one of the following values:  C<CAIRO_STATUS_NO_MEMORY> C<CAIRO_STATUS_FILE_NOT_FOUND> C<CAIRO_STATUS_READ_ERROR> C<CAIRO_STATUS_PNG_ERROR>  Alternatively, you can allow errors to propagate through the drawing operations and check the status on the context upon completion using C<cairo_status()>.
+
+  method cairo_image_surface_create_from_png ( Str $filename --> cairo_surface_t )
+
+=item Str $filename;  cairo_image_surface_create_from_png:
+
+=end pod
+
+sub cairo_image_surface_create_from_png ( Str $filename --> cairo_surface_t )
+  is native(&cairo-lib)
+  { * }
+
+#`{{
+#-------------------------------------------------------------------------------
+#TM:0:cairo_image_surface_create_from_png_stream:
+=begin pod
+=head2 cairo_image_surface_create_from_png_stream
+
+Creates a new image surface from PNG data read incrementally via the I<read_func> function.  Return value: a new B<cairo_surface_t> initialized with the contents of the PNG file or a "nil" surface if the data read is not a valid PNG image or memory could not be allocated for the operation.  A nil surface can be checked for with cairo_surface_status(surface) which may return one of the following values:  C<CAIRO_STATUS_NO_MEMORY> C<CAIRO_STATUS_READ_ERROR> C<CAIRO_STATUS_PNG_ERROR>  Alternatively, you can allow errors to propagate through the drawing operations and check the status on the context upon completion using C<cairo_status()>.
+
+  method cairo_image_surface_create_from_png_stream ( cairo_read_func_t $read_func, OpaquePointer $closure --> cairo_surface_t )
+
+=item cairo_read_func_t $read_func;  cairo_image_surface_create_from_png_stream:
+=item OpaquePointer $closure; function called to read the data of the file
+
+=end pod
+
+sub cairo_image_surface_create_from_png_stream ( cairo_read_func_t $read_func, OpaquePointer $closure --> cairo_surface_t )
+  is native(&cairo-lib)
+  { * }
+}}
