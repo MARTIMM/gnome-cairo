@@ -135,9 +135,20 @@ method _fallback ( $native-sub is copy --> Callable ) {
   $s;
 }
 
+#-------------------------------------------------------------------------------
+method native-object-ref ( $no ) {
+  _cairo_font_face_reference($no)
+}
 
 #-------------------------------------------------------------------------------
-#TM:0:cairo_font_face_reference:
+method native-object-unref ( $no ) {
+  _cairo_font_face_destroy($no);
+}
+
+
+#-------------------------------------------------------------------------------
+#TM:0:_cairo_font_face_reference:
+#`{{
 =begin pod
 =head2 cairo_font_face_reference
 
@@ -145,15 +156,17 @@ B<cairo_font_face_t> represents a particular font at a particular weight, slant,
 
   method cairo_font_face_reference ( --> cairo_font_face_t )
 
-
 =end pod
+}}
 
-sub cairo_font_face_reference ( cairo_font_face_t $font_face --> cairo_font_face_t )
+sub _cairo_font_face_reference ( cairo_font_face_t $font_face --> cairo_font_face_t )
   is native(&cairo-lib)
+  is symbol('cairo_font_face_reference')
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:cairo_font_face_destroy:
+#TM:0:_cairo_font_face_destroy:
+#`{{
 =begin pod
 =head2 cairo_font_face_destroy
 
@@ -161,11 +174,12 @@ Decreases the reference count on I<font_face> by one. If the result is zero, the
 
   method cairo_font_face_destroy ( --> void )
 
-
 =end pod
+}}
 
-sub cairo_font_face_destroy ( cairo_font_face_t $font_face --> void )
+sub _cairo_font_face_destroy ( cairo_font_face_t $font_face --> void )
   is native(&cairo-lib)
+  is symbol('cairo_font_face_destroy')
   { * }
 
 #-------------------------------------------------------------------------------

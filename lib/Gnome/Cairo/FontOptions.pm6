@@ -134,6 +134,16 @@ method _fallback ( $native-sub is copy --> Callable ) {
   $s;
 }
 
+#-------------------------------------------------------------------------------
+method native-object-ref ( $no ) {
+#  _cairo_reference($no)
+  $no
+}
+
+#-------------------------------------------------------------------------------
+method native-object-unref ( $no ) {
+  _cairo_destroy($no);
+}
 
 #-------------------------------------------------------------------------------
 #TM:0:cairo_font_options_create:
@@ -143,7 +153,6 @@ method _fallback ( $native-sub is copy --> Callable ) {
 Allocates a new font options object with all options initialized to default values.  Return value: a newly allocated B<cairo_font_options_t>. Free with C<cairo_font_options_destroy()>. This function always returns a valid pointer; if memory cannot be allocated, then a special error object is returned where all operations on the object do nothing. You can check for this with C<cairo_font_options_status()>.
 
   method cairo_font_options_create ( --> cairo_font_options_t )
-
 
 =end pod
 
@@ -159,7 +168,6 @@ sub cairo_font_options_create (  --> cairo_font_options_t )
 Allocates a new font options object copying the option values from I<original>.  Return value: a newly allocated B<cairo_font_options_t>. Free with C<cairo_font_options_destroy()>. This function always returns a valid pointer; if memory cannot be allocated, then a special error object is returned where all operations on the object do nothing. You can check for this with C<cairo_font_options_status()>.
 
   method cairo_font_options_copy ( --> cairo_font_options_t )
-
 
 =end pod
 
