@@ -50,7 +50,13 @@ also is Gnome::N::TopLevelClassSupport;
 
 =head3 new(:surface)
 
-Creates a new B<cairo_t> with all graphics state parameters set to default values and with I<target> as a target surface. The target surface should be constructed with a backend-specific function such as C<cairo_image_surface_create()> (or any other C<cairo_B<backend>_surface_create( )> variant).  This function references I<target>, so you can immediately call C<cairo_surface_destroy()> on it if you don't need to maintain a separate reference to it.  Return value: a newly allocated B<cairo_t> with a reference count of 1. The initial reference count should be released with C<cairo_destroy()> when you are done using the B<cairo_t>. This function never returns C<Any>. If memory cannot be allocated, a special B<cairo_t> object will be returned on which C<cairo_status()> returns C<CAIRO_STATUS_NO_MEMORY>. If you attempt to target a surface which does not support writing (such as B<cairo_mime_surface_t>) then a C<CAIRO_STATUS_WRITE_ERROR> will be raised.  You can use this object normally, but no drawing will be done.
+Creates a new B<cairo_t> with all graphics state parameters set to default values and with I<target> as a target surface. The target surface should be constructed with a backend-specific function such as C<cairo_image_surface_create()> (or any other C<cairo_B<backend>_surface_create( )> variant).
+
+This function references I<target>, so you can immediately call C<cairo_surface_destroy()> on it if you don't need to maintain a separate reference to it.
+
+The object is cleared with C<clear-object()> when you are done using the B<cairo_t>. This function never returns C<Any>. If memory cannot be allocated, a special B<cairo_t> object will be returned on which C<cairo_status()> returns C<CAIRO_STATUS_NO_MEMORY>. If you attempt to target a surface which does not support writing (such as B<cairo_mime_surface_t>) then a C<CAIRO_STATUS_WRITE_ERROR> will be raised.
+
+You can use this object normally, but no drawing will be done.
 
   multi method new ( cairo_surface_t :$surface )
 
@@ -58,7 +64,7 @@ Creates a new B<cairo_t> with all graphics state parameters set to default value
 
 =end pod
 
-#TM:0:new(:surface):
+#TM:1:new(:surface):
 #TM:4:new(:native-object):Gnome::N::TopLevelClassSupport
 submethod BUILD ( *%options ) {
 
@@ -143,12 +149,14 @@ method native-object-unref ( $no ) {
 
 
 #-------------------------------------------------------------------------------
-#TM:0:_cairo_create:
+#TM:1:_cairo_create:new
 #`{{
 =begin pod
 =head2 cairo_create
 
-Creates a new B<cairo_t> with all graphics state parameters set to default values and with I<target> as a target surface. The target surface should be constructed with a backend-specific function such as C<cairo_image_surface_create()> (or any other C<cairo_B<backend>_surface_create( )> variant).  This function references I<target>, so you can immediately call C<cairo_surface_destroy()> on it if you don't need to maintain a separate reference to it.  Return value: a newly allocated B<cairo_t> with a reference count of 1. The initial reference count should be released with C<cairo_destroy()> when you are done using the B<cairo_t>. This function never returns C<Any>. If memory cannot be allocated, a special B<cairo_t> object will be returned on which C<cairo_status()> returns C<CAIRO_STATUS_NO_MEMORY>. If you attempt to target a surface which does not support writing (such as B<cairo_mime_surface_t>) then a C<CAIRO_STATUS_WRITE_ERROR> will be raised.  You can use this object normally, but no drawing will be done.
+Creates a new B<cairo_t> with all graphics state parameters set to default values and with I<target> as a target surface. The target surface should be constructed with a backend-specific function such as C<cairo_image_surface_create()> (or any other C<cairo_B<backend>_surface_create( )> variant).
+
+This function references I<target>, so you can immediately call C<cairo_surface_destroy()> on it if you don't need to maintain a separate reference to it.  Return value: a newly allocated B<cairo_t> with a reference count of 1. The initial reference count should be released with C<cairo_destroy()> when you are done using the B<cairo_t>. This function never returns C<Any>. If memory cannot be allocated, a special B<cairo_t> object will be returned on which C<cairo_status()> returns C<CAIRO_STATUS_NO_MEMORY>. If you attempt to target a surface which does not support writing (such as B<cairo_mime_surface_t>) then a C<CAIRO_STATUS_WRITE_ERROR> will be raised.  You can use this object normally, but no drawing will be done.
 
   method cairo_create ( cairo_surface_t $target --> cairo_t )
 
@@ -376,7 +384,7 @@ sub cairo_set_operator ( cairo_t $cr, int32 $op )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:cairo_set_source_rgb:
+#TM:2:cairo_set_source_rgb:xt/c1.pl6
 =begin pod
 =head2 [cairo_] set_source_rgb
 
@@ -396,7 +404,7 @@ sub cairo_set_source_rgb (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:cairo_set_source_rgba:
+#TM:2:cairo_set_source_rgba:xt/c1.pl6
 =begin pod
 =head2 [cairo_] set_source_rgba
 
@@ -439,7 +447,11 @@ sub cairo_set_source_surface ( cairo_t $cr, cairo_surface_t $surface, num64 $x, 
 =begin pod
 =head2 [cairo_] set_source
 
-Sets the source pattern within I<cr> to I<source>. This pattern will then be used for any subsequent drawing operation until a new source pattern is set.  Note: The pattern's transformation matrix will be locked to the user space in effect at the time of C<cairo_set_source()>. This means that further modifications of the current transformation matrix will not affect the source pattern. See C<cairo_pattern_set_matrix()>.  The default source pattern is a solid pattern that is opaque black, (that is, it is equivalent to cairo_set_source_rgb(cr, 0.0, 0.0, 0.0)).
+Sets the source pattern within I<cr> to I<source>. This pattern will then be used for any subsequent drawing operation until a new source pattern is set.
+
+Note: The pattern's transformation matrix will be locked to the user space in effect at the time of C<cairo_set_source()>. This means that further modifications of the current transformation matrix will not affect the source pattern. See C<cairo_pattern_set_matrix()>.
+
+The default source pattern is a solid pattern that is opaque black, (that is, it is equivalent to cairo_set_source_rgb(cr, 0.0, 0.0, 0.0)).
 
   method cairo_set_source ( cairo_pattern_t $source )
 
@@ -519,7 +531,7 @@ sub cairo_set_fill_rule ( cairo_t $cr, int32 $fill_rule )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:1:cairo_set_line_width:
+#TM:2:cairo_set_line_width:xt/c1.pl6
 =begin pod
 =head2 [cairo_] set_line_width
 
@@ -540,7 +552,7 @@ sub cairo_set_line_width ( cairo_t $cr, num64 $width )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:cairo_set_line_cap:
+#TM:2:cairo_set_line_cap:xt/c1.pl6
 =begin pod
 =head2 [cairo_] set_line_cap
 
@@ -557,7 +569,7 @@ sub cairo_set_line_cap ( cairo_t $cr, int32 $line_cap )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:cairo_set_line_join:
+#TM:2:cairo_set_line_join:xt/c1.pl6
 =begin pod
 =head2 [cairo_] set_line_join
 
@@ -574,11 +586,13 @@ sub cairo_set_line_join ( cairo_t $cr, int32 $line_join )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:cairo_set_dash:
+#TM:2:cairo_set_dash:xt/c1.pl6
 =begin pod
 =head2 [cairo_] set_dash
 
-Sets the dash pattern to be used by C<cairo_stroke()>. A dash pattern is specified by I<dashes>, an array of positive values. Each value provides the length of alternate "on" and "off" portions of the stroke. The I<offset> specifies an offset into the pattern at which the stroke begins.  Each "on" segment will have caps applied as if the segment were a separate sub-path. In particular, it is valid to use an "on" length of 0.0 with C<CAIRO_LINE_CAP_ROUND> or C<CAIRO_LINE_CAP_SQUARE> in order to distributed dots or squares along a path.  Note: The length values are in user-space units as evaluated at the time of stroking. This is not necessarily the same as the user space at the time of C<cairo_set_dash()>.  If I<num_dashes> is 0 dashing is disabled.  If I<num_dashes> is 1 a symmetric pattern is assumed with alternating on and off portions of the size specified by the single value in I<dashes>.  If any value in I<dashes> is negative, or if all values are 0, then I<cr> will be put into an error state with a status of C<CAIRO_STATUS_INVALID_DASH>.
+Sets the dash pattern to be used by C<cairo_stroke()>. A dash pattern is specified by I<dashes>, an array of positive values. Each value provides the length of alternate "on" and "off" portions of the stroke. The I<offset> specifies an offset into the pattern at which the stroke begins.  Each "on" segment will have caps applied as if the segment were a separate sub-path. In particular, it is valid to use an "on" length of 0.0 with C<CAIRO_LINE_CAP_ROUND> or C<CAIRO_LINE_CAP_SQUARE> in order to distributed dots or squares along a path.  Note: The length values are in user-space units as evaluated at the time of stroking. This is not necessarily the same as the user space at the time of C<cairo_set_dash()>.
+
+If I<num_dashes> is 0 dashing is disabled.  If I<num_dashes> is 1 a symmetric pattern is assumed with alternating on and off portions of the size specified by the single value in I<dashes>.  If any value in I<dashes> is negative, or if all values are 0, then I<cr> will be put into an error state with a status of C<CAIRO_STATUS_INVALID_DASH>.
 
   method cairo_set_dash ( Num $dashes, Int $num_dashes, Num $offset )
 
@@ -588,8 +602,17 @@ Sets the dash pattern to be used by C<cairo_stroke()>. A dash pattern is specifi
 
 =end pod
 
-sub cairo_set_dash ( cairo_t $cr, num64 $dashes, int32 $num_dashes, num64 $offset )
-  is native(&cairo-lib)
+sub cairo_set_dash (
+  cairo_t $cr, Array $dashes, int32 $num_dashes, num64 $offset
+) {
+  my CArray[num64] $ds .= new(@$dashes>>.Num);
+  _cairo_set_dash( $cr, $ds, $num_dashes, $offset);
+}
+
+sub _cairo_set_dash (
+  cairo_t $cr, CArray[num64] $dashes, int32 $num_dashes, num64 $offset
+) is native(&cairo-lib)
+  is symbol('cairo_set_dash')
   { * }
 
 #-------------------------------------------------------------------------------
@@ -773,8 +796,8 @@ Transform a distance vector from user space to device space. This function is si
 
   method cairo_user_to_device_distance ( Num $dx, Num $dy )
 
-=item Num $dx; a cairo context
-=item Num $dy; X component of a distance vector (in/out parameter)
+=item Num $dx; X component of a distance vector (in/out parameter)
+=item Num $dy; y component of a distance vector (in/out parameter)
 
 =end pod
 
@@ -791,12 +814,12 @@ Transform a coordinate from device space to user space by multiplying the given 
 
   method cairo_device_to_user ( Num $x, Num $y )
 
-=item Num $x; a cairo
-=item Num $y; X value of coordinate (in/out parameter)
+=item Num $x; X value of coordinate (in/out parameter)
+=item Num $y; y value of coordinate (in/out parameter)
 
 =end pod
 
-sub cairo_device_to_user ( cairo_t $cr, num64 $x, num64 $y )
+sub cairo_device_to_user ( cairo_t $cr, num64 $x is rw, num64 $y is rw )
   is native(&cairo-lib)
   { * }
 
@@ -809,13 +832,14 @@ Transform a distance vector from device space to user space. This function is si
 
   method cairo_device_to_user_distance ( Num $dx, Num $dy )
 
-=item Num $dx; a cairo context
-=item Num $dy; X component of a distance vector (in/out parameter)
+=item Num $dx; X component of a distance vector (in/out parameter)
+=item Num $dy; y component of a distance vector (in/out parameter)
 
 =end pod
 
-sub cairo_device_to_user_distance ( cairo_t $cr, num64 $dx, num64 $dy )
-  is native(&cairo-lib)
+sub cairo_device_to_user_distance (
+  cairo_t $cr, num64 $dx is rw, num64 $dy is rw
+) is native(&cairo-lib)
   { * }
 
 #-------------------------------------------------------------------------------
@@ -851,7 +875,7 @@ sub cairo_new_sub_path ( cairo_t $cr )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:cairo_move_to:
+#TM:2:cairo_move_to:xt/c1.pl6
 =begin pod
 =head2 [cairo_] move_to
 
@@ -859,8 +883,8 @@ Begin a new sub-path. After this call the current point will be (I<x>, I<y>).
 
   method cairo_move_to ( Num $x, Num $y )
 
-=item Num $x; a cairo context
-=item Num $y; the X coordinate of the new position
+=item Num $x; the X coordinate of the new position
+=item Num $y; the y coordinate of the new position
 
 =end pod
 
@@ -877,8 +901,8 @@ Adds a line to the path from the current point to position (I<x>, I<y>) in user-
 
   method cairo_line_to ( Num $x, Num $y )
 
-=item Num $x; a cairo context
-=item Num $y; the X coordinate of the end of the new line
+=item Num $x; the x coordinate of the end of the new line
+=item Num $y; the y coordinate of the end of the new line
 
 =end pod
 
@@ -887,7 +911,7 @@ sub cairo_line_to ( cairo_t $cr, num64 $x, num64 $y )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:cairo_curve_to:
+#TM:2:cairo_curve_to:xt/c1.pl6
 =begin pod
 =head2 [cairo_] curve_to
 
@@ -895,12 +919,12 @@ Adds a cubic Bézier spline to the path from the current point to position (I<x3
 
   method cairo_curve_to ( Num $x1, Num $y1, Num $x2, Num $y2, Num $x3, Num $y3 )
 
-=item Num $x1; a cairo context
-=item Num $y1; the X coordinate of the first control point
-=item Num $x2; the Y coordinate of the first control point
-=item Num $y2; the X coordinate of the second control point
-=item Num $x3; the Y coordinate of the second control point
-=item Num $y3; the X coordinate of the end of the curve
+=item Num $x1; the x coordinate of the first control point
+=item Num $y1; the y coordinate of the first control point
+=item Num $x2; the x coordinate of the second control point
+=item Num $y2; the y coordinate of the second control point
+=item Num $x3; the x coordinate of the end of the curve
+=item Num $y3; the y coordinate of the end of the curve
 
 =end pod
 
@@ -1652,14 +1676,15 @@ sub cairo_get_scaled_font ( cairo_t $cr --> cairo_scaled_font_t )
 
 Gets the extents for a string of text. The extents describe a user-space rectangle that encloses the "inked" portion of the text, (as it would be drawn by C<cairo_show_text()>). Additionally, the x_advance and y_advance values indicate the amount by which the current point would be advanced by C<cairo_show_text()>.  Note that whitespace characters do not directly contribute to the size of the rectangle (extents.width and extents.height). They do contribute indirectly by changing the position of non-whitespace characters. In particular, trailing whitespace characters are likely to not affect the size of the rectangle, though they will affect the x_advance and y_advance values.
 
-  method cairo_text_extents ( Str $utf8, cairo_text_extents_t $extents )
+  method cairo_text_extents ( Str $utf8 --> cairo_text_extents_t )
 
 =item Str $utf8; a B<cairo_t>
-=item cairo_text_extents_t $extents; a NUL-terminated string of text encoded in UTF-8, or C<Any>
+
+Returns cairo_text_extents_t; a string of text encoded in UTF-8, or undefined
 
 =end pod
 
-sub cairo_text_extents ( cairo_t $cr, Str $utf8, --> cairo_text_extents_t ) {
+sub cairo_text_extents ( cairo_t $cr, Str $utf8 --> cairo_text_extents_t ) {
   my cairo_text_extents_t $te .= new;
   _cairo_text_extents( $cr, $utf8, $te);
   $te
@@ -2015,7 +2040,15 @@ sub cairo_get_group_target ( cairo_t $cr --> cairo_surface_t )
 =begin pod
 =head2 [cairo_] copy_path
 
-Creates a copy of the current path and returns it to the user as a B<cairo_path_t>. See B<cairo_path_data_t> for hints on how to iterate over the returned data structure.  This function will always return a valid pointer, but the result will have no data (<literal>data==C<Any></literal> and <literal>num_data==0</literal>), if either of the following conditions hold:  <orderedlist> <listitem>If there is insufficient memory to copy the path. In this case <literal>path->status</literal> will be set to C<CAIRO_STATUS_NO_MEMORY>.</listitem> <listitem>If I<cr> is already in an error state. In this case <literal>path->status</literal> will contain the same status that would be returned by C<cairo_status()>.</listitem> </orderedlist>  Return value: the copy of the current path. The caller owns the returned object and should call C<cairo_path_destroy()> when finished with it.
+Creates a copy of the current path and returns it to the user as a B<cairo_path_t>. See B<cairo_path_data_t> for hints on how to iterate over the returned data structure.
+
+This function will always return a valid pointer, but the result will have no data (C<.data ~~ undefined> and C<.num_data ~~ 0>), if either of the following conditions hold:
+
+=item If there is insufficient memory to copy the path. In this case C<.status()> will be set to C<CAIRO_STATUS_NO_MEMORY>.
+
+=item If the context is already in an error state. In this case C<.status> will contain the same status that would be returned by C<cairo_status().
+
+The caller owns the returned object and should call C<()> when finished with it.
 
   method cairo_copy_path ( --> cairo_path_t )
 

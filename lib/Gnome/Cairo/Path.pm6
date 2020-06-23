@@ -132,9 +132,65 @@ method _fallback ( $native-sub is copy --> Callable ) {
   $s;
 }
 
+#-------------------------------------------------------------------------------
+method native-object-ref ( $no ) {
+  $no
+}
 
 #-------------------------------------------------------------------------------
-#TM:0:cairo_path_destroy:
+method native-object-unref ( $no ) {
+  _cairo_path_destroy($no);
+}
+
+#-----------------------------------------------------------------------------
+# Convenience method to walk over the set of parts in a path.
+method walk-path (
+  Any:D $user-object, Str:D $move-to, Str:D $line-to,
+  Str:D $curve-to, Str:D $close-path
+) {
+
+  my cairo_path_t $path = self.get-native-object;
+  if $path.status !~~ CAIRO_STATUS_SUCCESS {
+    self.clear-object;
+    X::Gnome.new(:message('Path is not valid'));
+  }
+
+  my $length = $path.num_data;
+  my $i = 0;
+  loop {
+#note "Type: [$i], ", $path.data[$i].header.type;
+    given $path.data[$i].header.type {
+      when CAIRO_PATH_MOVE_TO {
+        $user-object."$move-to"( $path.data[$i + 1].point);
+        $i += 2;
+      }
+
+      when CAIRO_PATH_LINE_TO {
+        $user-object."$line-to"( $path.data[$i + 1].point);
+        $i += 2;
+      }
+
+      when CAIRO_PATH_CURVE_TO {
+        $user-object."$curve-to"(
+          $path.data[$i + 1].point, $path.data[$i + 2].point,
+          $path.data[$i + 3].point
+        );
+        $i += 4;
+      }
+
+      when CAIRO_PATH_CLOSE_PATH {
+        $user-object."$close-path"();
+        $i += 1;
+      }
+    }
+
+    last if $i >= $length;
+  }
+}
+
+#-------------------------------------------------------------------------------
+#TM:0:_cairo_path_destroy:
+#`{{
 =begin pod
 =head2 cairo_path_destroy
 
@@ -144,7 +200,9 @@ Paths are the most basic drawing tools and are primarily used to implicitly gene
 
 
 =end pod
+}}
 
-sub cairo_path_destroy ( cairo_path_t $path --> void )
+sub _cairo_path_destroy ( cairo_path_t $path --> void )
   is native(&cairo-lib)
+  is symbol('cairo_path_destroy')
   { * }

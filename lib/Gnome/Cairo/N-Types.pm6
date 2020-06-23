@@ -8,7 +8,7 @@ use Gnome::Cairo::Enums;
 =head2 cairo_t
 =end pod
 
-#TT:0:cairo_t
+#TT:1:cairo_t
 class cairo_t
   is repr('CPointer')
   is export
@@ -19,7 +19,7 @@ class cairo_t
 =head2 cairo_surface_t
 =end pod
 
-#TT:0:cairo_surface_t
+#TT:1:cairo_surface_t
 class cairo_surface_t
   is repr('CPointer')
   is export
@@ -49,14 +49,38 @@ class cairo_matrix_t
 
 #-------------------------------------------------------------------------------
 =begin pod
+=head2 cairo_path_data_t
+=end pod
+
+#TT:0:cairo_path_data_header_t
+class cairo_path_data_header_t is repr('CStruct') is export {
+  has int32 $.type;                   # enum cairo_path_data_type_t
+  has int32 $.length;                 # nbr points following header
+}
+
+#TT:0:cairo_path_data_point_t
+class cairo_path_data_point_t is repr('CStruct') is export {
+  has num64 $.x;
+  has num64 $.y;
+}
+
+#TT:0:cairo_path_data_t
+class cairo_path_data_t is repr('CUnion') is export {
+  HAS cairo_path_data_header_t $.header;
+  HAS cairo_path_data_point_t $.point;
+}
+
+#-------------------------------------------------------------------------------
+=begin pod
 =head2 cairo_path_t
 =end pod
 
 #TT:0:cairo_path_t
-class cairo_path_t
-  is repr('CPointer')
-  is export
-  { }
+class cairo_path_t is repr('CStruct') is export {
+  has int32 $.status;                 # enum cairo_status_t
+  has Pointer[cairo_path_data_t] $.data;
+  has int32 $.num_data;
+}
 
 #-------------------------------------------------------------------------------
 =begin pod
@@ -121,8 +145,8 @@ The cairo_text_extents_t structure stores the extents of a single glyph or a str
 =item double y_advance; distance to advance in the Y direction after drawing these glyphs. Will typically be zero except for vertical text layout as found in East-Asian languages.
 =end pod
 
-#TT:0:cairo_text_extents_t
-class cairo_text_extents_t {
+#TT:1:cairo_text_extents_t
+class cairo_text_extents_t is repr('CStruct') is export {
   has num64 $.x_bearing;
   has num64 $.y_bearing;
   has num64 $.width;
@@ -154,7 +178,7 @@ C<cairo_user_data_key_t> is used for attaching user data to cairo data structure
 =end pod
 
 #TT:0:cairo_user_data_key_t
-class cairo_user_data_key_t is repr('CStruct') {
+class cairo_user_data_key_t is repr('CStruct') is export {
   has int32 $.unused;
 }
 
@@ -172,7 +196,7 @@ A data structure for holding a rectangle with integer coordinates.
 =end pod
 
 #TT:0:cairo_rectangle_int_t
-class cairo_rectangle_int_t is repr('CStruct') {
+class cairo_rectangle_int_t is repr('CStruct') is export {
   has int32 $.x;
   has int32 $.y;
   has int32 $.width;
@@ -194,7 +218,7 @@ A data structure for holding a rectangle using doubles this time.
 =end pod
 
 #TT:0:cairo_rectangle_t
-class cairo_rectangle_t is repr('CStruct') {
+class cairo_rectangle_t is repr('CStruct') is export {
   has num64 $.x;
   has num64 $.y;
   has num64 $.width;
@@ -213,7 +237,7 @@ A data structure for holding a dynamically allocated array of rectangles.
 =end pod
 
 #TT:0:cairo_rectangle_list_t
-class cairo_rectangle_list_t is repr('CStruct') {
+class cairo_rectangle_list_t is repr('CStruct') is export {
   has int32 $.status;          # cairo_status_t
   has CArray $.rectangles;     # array of cairo_rectangle_t
   has int32 $.num_rectangles;
@@ -237,7 +261,7 @@ Note that the offsets given by x and y are not cumulative. When drawing or measu
 =end pod
 
 #TT:0:cairo_glyph_t
-class cairo_glyph_t is repr('CStruct') {
+class cairo_glyph_t is repr('CStruct') is export {
   has int64 $.index;
   has num64 $.x;
   has num64 $.y;
@@ -259,7 +283,7 @@ See C<cairo_show_text_glyphs()> for how clusters are used in advanced text opera
 =end pod
 
 #TT:0:cairo_text_cluster_t
-class cairo_text_cluster_t is repr('CStruct') {
+class cairo_text_cluster_t is repr('CStruct') is export {
   has int32 $.num_bytes;
   has int32 $.num_glyphs;
 }
@@ -272,7 +296,7 @@ class cairo_text_cluster_t is repr('CStruct') {
 =end pod
 
 #TT:0:
-class  is repr('CStruct') {
+class  is repr('CStruct') is export {
   has  $.;
   has  $.;
 }

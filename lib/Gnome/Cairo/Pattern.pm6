@@ -528,8 +528,7 @@ sub _cairo_pattern_destroy ( cairo_pattern_t $pattern )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:_cairo_pattern_get_reference_count:
-#`{{
+#TM:0:cairo_pattern_get_reference_count:
 =begin pod
 =head2 [cairo_pattern_] get_reference_count
 
@@ -538,11 +537,9 @@ Returns the current reference count of I<pattern>.  Return value: the current re
   method cairo_pattern_get_reference_count ( --> UInt )
 
 =end pod
-}}
 
-sub _cairo_pattern_get_reference_count ( cairo_pattern_t $pattern --> int32 )
+sub cairo_pattern_get_reference_count ( cairo_pattern_t $pattern --> int32 )
   is native(&cairo-lib)
-  is symbol('cairo_pattern_get_reference_count')
   { * }
 
 #`{{
