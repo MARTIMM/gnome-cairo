@@ -428,7 +428,11 @@ sub cairo_set_source_rgba ( cairo_t $cr, num64 $red, num64 $green, num64 $blue, 
 =begin pod
 =head2 [cairo_] set_source_surface
 
-This is a convenience function for creating a pattern from I<surface> and setting it as the source in I<cr> with C<cairo_set_source()>.  The I<x> and I<y> parameters give the user-space coordinate at which the surface origin should appear. (The surface origin is its upper-left corner before any transformation has been applied.) The I<x> and I<y> parameters are negated and then set as translation values in the pattern matrix.  Other than the initial translation pattern matrix, as described above, all other pattern attributes, (such as its extend mode), are set to the default values as in C<cairo_pattern_create_for_surface()>. The resulting pattern can be queried with C<cairo_get_source()> so that these attributes can be modified if desired, (eg. to create a repeating pattern with C<cairo_pattern_set_extend()>).
+This is a convenience function for creating a pattern from I<surface> and setting it as the source in I<cr> with C<cairo_set_source()>.
+
+The I<x> and I<y> parameters give the user-space coordinate at which the surface origin should appear. (The surface origin is its upper-left corner before any transformation has been applied.) The I<x> and I<y> parameters are negated and then set as translation values in the pattern matrix.
+
+Other than the initial translation pattern matrix, as described above, all other pattern attributes, (such as its extend mode), are set to the default values as in C<cairo_pattern_create_for_surface()>. The resulting pattern can be queried with C<cairo_get_source()> so that these attributes can be modified if desired, (eg. to create a repeating pattern with C<cairo_pattern_set_extend()>).
 
   method cairo_set_source_surface ( cairo_surface_t $surface, Num $x, Num $y )
 

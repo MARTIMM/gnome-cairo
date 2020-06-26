@@ -583,7 +583,7 @@ B<cairo_surface_type_t> is used to describe the type of a given surface. The sur
 
 =end pod
 
-#TE:0:cairo_surface_type_t:
+#TE:4:cairo_surface_type_t:xt/c4.pl6
 enum cairo_surface_type_t is export (
   'CAIRO_SURFACE_TYPE_IMAGE',
   'CAIRO_SURFACE_TYPE_PDF',

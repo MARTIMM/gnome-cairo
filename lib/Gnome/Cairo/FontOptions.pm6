@@ -142,7 +142,7 @@ method native-object-ref ( $no ) {
 
 #-------------------------------------------------------------------------------
 method native-object-unref ( $no ) {
-  _cairo_destroy($no);
+  _cairo_font_options_destroy($no);
 }
 
 #-------------------------------------------------------------------------------
@@ -176,7 +176,8 @@ sub cairo_font_options_copy ( cairo_font_options_t $original --> cairo_font_opti
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:cairo_font_options_destroy:
+#TM:0:_cairo_font_options_destroy:
+#`{{
 =begin pod
 =head2 cairo_font_options_destroy
 
@@ -184,11 +185,12 @@ Destroys a B<cairo_font_options_t> object created with C<cairo_font_options_crea
 
   method cairo_font_options_destroy ( --> void )
 
-
 =end pod
+}}
 
-sub cairo_font_options_destroy ( cairo_font_options_t $options --> void )
+sub _cairo_font_options_destroy ( cairo_font_options_t $options --> void )
   is native(&cairo-lib)
+  is symbol('cairo_font_options_destroy')
   { * }
 
 #-------------------------------------------------------------------------------

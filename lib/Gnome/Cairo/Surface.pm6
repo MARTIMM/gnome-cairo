@@ -154,7 +154,7 @@ method native-object-unref ( $no ) {
 
 This function returns the type of the backend used to create a surface. See B<cairo_surface_type_t> for available types.  Return value: The type of I<surface>.
 
-  method cairo_surface_get_type ( --> Int )
+  method cairo_surface_get_type ( --> cairo_surface_type_t )
 
 
 =end pod
@@ -168,7 +168,7 @@ sub cairo_surface_get_type ( cairo_surface_t $surface --> int32 )
 =begin pod
 =head2 [cairo_surface_] get_content
 
-This function returns the content type of I<surface> which indicates whether the surface contains color and/or alpha information. See B<cairo_content_t>.  Return value: The content type of I<surface>.
+This function returns the content type of I<surface> which indicates whether the surface contains color and/or alpha information. See B<cairo_content_t>.  Return value: The content type of this I<surface>.
 
   method cairo_surface_get_content ( --> Int )
 
@@ -186,7 +186,7 @@ sub cairo_surface_get_content ( cairo_surface_t $surface --> int32 )
 
 Checks whether an error has previously occurred for this surface.  Return value: C<CAIRO_STATUS_SUCCESS>, C<CAIRO_STATUS_NULL_POINTER>, C<CAIRO_STATUS_NO_MEMORY>, C<CAIRO_STATUS_READ_ERROR>, C<CAIRO_STATUS_INVALID_CONTENT>, C<CAIRO_STATUS_INVALID_FORMAT>, or C<CAIRO_STATUS_INVALID_VISUAL>.
 
-  method cairo_surface_status ( --> Int )
+  method cairo_surface_status ( --> cairo_status_t )
 
 
 =end pod
@@ -216,7 +216,13 @@ sub cairo_surface_get_device ( cairo_surface_t $surface --> cairo_device_t )
 =begin pod
 =head2 [cairo_surface_] create_similar
 
-Create a new surface that is as compatible as possible with an existing surface. For example the new surface will have the same device scale, fallback resolution and font options as I<other>. Generally, the new surface will also use the same backend as I<other>, unless that is not possible for some reason. The type of the returned surface may be examined with C<cairo_surface_get_type()>.  Initially the surface contents are all 0 (transparent if contents have transparency, black otherwise.)  Use C<cairo_surface_create_similar_image()> if you need an image surface which can be painted quickly to the target surface.  Return value: a pointer to the newly allocated surface. The caller owns the surface and should call C<cairo_surface_destroy()> when done with it.  This function always returns a valid pointer, but it will return a pointer to a "nil" surface if I<other> is already in an error state or any other error occurs.
+Create a new surface that is as compatible as possible with an existing surface. For example the new surface will have the same device scale, fallback resolution and font options as this surface. Generally, the new surface will also use the same backend as this surface, unless that is not possible for some reason. The type of the returned surface may be examined with C<cairo_surface_get_type()>.
+
+Initially the surface contents are all 0 (transparent if contents have transparency, black otherwise.)  Use C<cairo_surface_create_similar_image()> if you need an image surface which can be painted quickly to the target surface.
+
+Return value: a pointer to the newly allocated surface. The caller owns the surface and should call C<cairo_surface_destroy()> when done with it.
+
+This function always returns a valid pointer, but it will return a pointer to a "nil" surface if I<other> is already in an error state or any other error occurs.
 
   method cairo_surface_create_similar ( Int $content, Int $width, Int $height --> cairo_surface_t )
 
