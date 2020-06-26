@@ -7,7 +7,7 @@ use Gnome::Cairo::Pattern;
 use Gnome::Cairo::Path;
 use Gnome::Cairo::ImageSurface;
 use Gnome::Cairo::Enums;
-use Gnome::Cairo::N-Types;
+use Gnome::Cairo::Types;
 
 use Gnome::N::X;
 #Gnome::N::debug(:on);
@@ -45,12 +45,12 @@ class PathHandling {
       $!first = False;
     }
 
-    $!context.move_to( |self."$!path-function"( $p1.x, $p1.y));
+    $!context.move-to( |self."$!path-function"( $p1.x, $p1.y));
   }
 
   method lt ( cairo_path_data_point_t $p1 ) {
 #    note "  line to Px: ", $p1.x, ', ', $p1.y;
-    $!context.line_to( |self."$!path-function"( $p1.x, $p1.y));
+    $!context.line-to( |self."$!path-function"( $p1.x, $p1.y));
   }
 
   method ct (
@@ -98,7 +98,7 @@ sub warpPath (
   cairo_text_extents_t :$text-extents
 ) {
 
-  my Gnome::Cairo::Path $path .= new(:native-object($context.copy_path));
+  my Gnome::Cairo::Path $path .= new(:native-object($context.copy-path));
   $path.walk-path(
     PathHandling.new(
       :$context, :$path-function, :$width, :$height, :$text-extents
@@ -118,39 +118,41 @@ my Gnome::Cairo::Pattern $solid-pattern .= new(
 # background
 my Gnome::Cairo::Pattern $pat .= new( :x0(0), :y0(0), :x1(0), :y1($height));
 $pat.add-color-stop-rgba( 1, 0, 0, 0, 1);
-$pat.add_color_stop_rgba(0, 1, 1, 1, 1);
+$pat.add-color-stop-rgba(0, 1, 1, 1, 1);
 
 $cairo-context.rectangle( 0, 0, $width, $height);
-$cairo-context.set_source($pat);
+$cairo-context.set-source($pat);
 $cairo-context.fill;
 
 # foreground
 #Gnome::N::debug(:on);
-$cairo-context.set_source($solid-pattern);
-$cairo-context.set_source_rgb( 1, 1, 1);
+$cairo-context.set-source($solid-pattern);
+$cairo-context.set-source-rgb( 1, 1, 1);
 
-$cairo-context.select_font_face(
+$cairo-context.select-font-face(
   "Sans", CAIRO_FONT_SLANT_ITALIC, CAIRO_FONT_WEIGHT_BOLD
 );
-$cairo-context.set_font_size(80);
+$cairo-context.set-font-size(80);
 
 # spiral text
-$cairo-context.new_path;
-$cairo-context.move_to( 0, 0);
-$cairo-context.text_path('Raku Cairo Library');
+$cairo-context.new-path;
+$cairo-context.move-to( 0, 0);
+$cairo-context.text-path('Raku Cairo Library');
 warpPath( $cairo-context, 'spiral');
 $cairo-context.fill;
 
 # curly text
-$cairo-context.new_path;
-$cairo-context.move_to( 0, 0);
-$cairo-context.set_source_rgb( 0.3, 0.3, 0.3);
+$cairo-context.new-path;
+$cairo-context.move-to( 0, 0);
+$cairo-context.set-source-rgb( 0.3, 0.3, 0.3);
 my Str $text = "I am curly";
-$cairo-context.text_path($text);
+$cairo-context.text-path($text);
 warpPath(
-  $cairo-context, 'curl', :text-extents($cairo-context.text_extents($text))
+  $cairo-context, 'curl', :text-extents($cairo-context.text-extents($text))
 );
 $cairo-context.fill;
 
-$image-surface.write_to_png("xt/c2.png");   # save as png
-#$cairo-context.clear-object;
+$image-surface.write-to-png("xt/c2.png");   # save as png
+
+$cairo-context.clear-object;
+$image-surface.clear-object;

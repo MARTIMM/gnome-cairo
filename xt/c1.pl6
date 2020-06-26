@@ -6,7 +6,7 @@ use Gnome::Cairo;
 use Gnome::Cairo::Pattern;
 use Gnome::Cairo::ImageSurface;
 use Gnome::Cairo::Enums;
-use Gnome::Cairo::N-Types;
+use Gnome::Cairo::Types;
 
 #use Gnome::N::X;
 #Gnome::N::debug(:on);
@@ -33,7 +33,7 @@ given $cairo-context {
   .set-source-rgba( 1/4, 1/4, 1/4, 0.5);  # gray color
   .rectangle( 20, 20, '101', 101);        # set larger rectangle
   .set-dash( [ 5, 5, 10, 15], 1, 0);
-  note "dash status: ", cairo_status_t(.status);
+#  note "dash status: ", cairo_status_t(.status);
   .set-line-width(4);
   .set-line-cap(CAIRO_LINE_CAP_ROUND);    # end of a line set round
   .set-line-join(CAIRO_LINE_JOIN_ROUND);  # corners are round
@@ -76,4 +76,6 @@ given $cairo-context {
 }
 
 $image-surface.write_to_png("xt/c1.png");   # save as png
+
 $cairo-context.clear-object;
+$image-surface.clear-object;
