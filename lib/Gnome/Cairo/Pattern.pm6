@@ -48,7 +48,7 @@ also is Gnome::N::TopLevelClassSupport;
 =head1 Methods
 =head2 new
 
-=head3 new ( :red, :green, :blue, :alpha )
+=head3 new ( :rgb( red, green, blue) )
 
 Creates a new B<cairo_pattern_t> corresponding to an opaque color. The color components are floating point numbers in the range 0 to 1. If the values passed in are outside that range, they will be clamped. Return value: the newly created B<cairo_pattern_t> if successful, or an error pattern in case of no memory.
 
@@ -56,8 +56,30 @@ The caller owns the returned object and should call C<cairo_pattern_destroy()> w
 
 A translucent colored pattern is created when also an alpha value is defined.
 
-  multi method new ( Num :$red!, Num :$green!, Num :$blue!, Num :$alpha? )
+  multi method new ( :rgb( $red, $green, $blue) )
 
+=item Num $red; red color from 0 to 1
+=item Num $green; green color from 0 to 1
+=item Num $blue; blue color from 0 to 1
+
+=head3 new ( )
+
+Creates a new B<cairo_pattern_t> as if :rgb( 1, 1, 1) is used. This is a white colored pattern.
+
+  multi method new ( )
+
+=head3 new ( :rgba( red, green, blue, alpha) )
+
+Creates a new B<cairo_pattern_t> corresponding to a color with added transparency.
+
+The caller owns the returned object and should call C<cairo_pattern_destroy()> when finished with it. This function will always return a valid pointer, but if an error occurred the pattern status will be set to an error. To inspect the status of a pattern use C<cairo_pattern_status()>.
+
+  multi method new ( :rgba( $red, $green, $blue, $alpha) )
+
+=item Num $red; red color from 0 to 1
+=item Num $green; green color from 0 to 1
+=item Num $blue; blue color from 0 to 1
+=item Num $alpha; transparency from 0 to 1 (opaque)
 
 =head3 new ( :surface )
 
@@ -66,13 +88,13 @@ Create a new B<cairo_pattern_t> for the given surface. The caller owns the retur
   multi method new ( cairo_surface_t :$surface! )
 
 
-=head3 new ( :x0, :y0, :x1, :y1 )
+=head3 new ( :linear( x0, y0, x1, y1) )
 
 Create a new linear gradient B<cairo_pattern_t> along the line defined by (x0, y0) and (x1, y1).  Before using the gradient pattern, a number of color stops should be defined using C<cairo_pattern_add_color_stop_rgb()> or C<cairo_pattern_add_color_stop_rgba()>.  Note: The coordinates here are in pattern space. For a new pattern, pattern space is identical to user space, but the relationship between the spaces can be changed with C<cairo_pattern_set_matrix()>.
 
 The caller owns the returned object and should call C<cairo_pattern_destroy()> when finished with it.  This function will always return a valid pointer, but if an error occurred the pattern status will be set to an error.  To inspect the status of a pattern use C<cairo_pattern_status()>.
 
-  method new ( Num :$x0!, Num :$y0!, Num :$x1!, Num :$y1! )
+  method new ( :linear( $x0, $y0, $x1, $y1) )
 
 =item Num $x0; x coordinate of the start point
 =item Num $y0; y coordinate of the start point
@@ -80,23 +102,20 @@ The caller owns the returned object and should call C<cairo_pattern_destroy()> w
 =item Num $y1; y coordinate of the end point
 
 
-=head3 new ( :cx0, :cy0, :radius0, :cx1, :cy1, :radius1 )
+=head3 new ( :radial( cx0, cy0, radius0, cx1, cy1, radius1) )
 
 Creates a new radial gradient B<cairo_pattern_t> between the two circles defined by (cx0, cy0, radius0) and (cx1, cy1, radius1).  Before using the gradient pattern, a number of color stops should be defined using C<cairo_pattern_add_color_stop_rgb()> or C<cairo_pattern_add_color_stop_rgba()>.  Note: The coordinates here are in pattern space. For a new pattern, pattern space is identical to user space, but the relationship between the spaces can be changed with C<cairo_pattern_set_matrix()>.
 
 The caller owns the returned object and should call C<cairo_pattern_destroy()> when finished with it. To inspect the status of a pattern use C<cairo_pattern_status()>.
 
-  method new (
-    Num :$cx0!, Num :$cy0!, Num :$radius!,
-    Num :$cx1!, Num :$cy1!, Num :$radius1!
-  )
+  method new ( :radial( $cx0, $cy0, $radius, $cx1, $cy1, $radius1 )
 
 =item Num $cx0; x coordinate for the center of the start circle
 =item Num $cy0; y coordinate for the center of the start circle
 =item Num $radius0; radius of the start circle
 =item Num $cx1; x coordinate for the center of the end circle
 =item Num $cy1; y coordinate for the center of the end circle
-=item Num $radius1; radius of the start circle
+=item Num $radius1; radius of the end circle
 
 
 =head3 new( :mesh )
@@ -168,9 +187,11 @@ Note: The coordinates are always in pattern space. For a new pattern, pattern sp
 
 =end pod
 
-#TM:1:new(:red,:green,:blue,:alpha):
-#TM:1:new(:x0,:y0,:x1,:y1):
-#TM:1:new(:cx0,:cy0,:radius0,:cx1,:cy1,:radius1):
+#TM:1:new():
+#TM:1:new(:rgb):
+#TM:1:new(:rgba):
+#TM:1:new(:linear):
+#TM:1:new(:radial):
 #TM:1:new(:surface):
 #TM:1:new(:mesh):
 #TM:4:new(:native-object):Gnome::N::TopLevelClassSupport
@@ -191,43 +212,27 @@ submethod BUILD ( *%options ) {
       my $no;
 
       # set rgba
-      if %options<red>:exists and %options<green>:exists and
-         %options<blue>:exists and %options<alpha>:exists {
-
-        $no = _cairo_pattern_create_rgba(
-          %options<red>.Num, %options<green>.Num, %options<blue>.Num,
-          %options<alpha>.Num
-        );
+      if %options<rgb>:exists {
+        my @rgb = map { ($_//0).Num }, %options<rgb>[^3];
+        $no = _cairo_pattern_create_rgb(|@rgb);
       }
 
       # set rgb
-      elsif %options<red>:exists and
-         %options<green>:exists and
-         %options<blue>:exists {
-
-        $no = _cairo_pattern_create_rgb(
-          %options<red>.Num, %options<green>.Num, %options<blue>.Num
-        );
+      elsif %options<rgba>:exists {
+        my @rgba = map { ($_//0).Num }, %options<rgba>[^4];
+        $no = _cairo_pattern_create_rgba(|@rgba);
       }
 
       # linear gradient
-      elsif %options<x0>:exists and %options<y0>:exists and
-         %options<x1>:exists and %options<y1>:exists {
-
-        $no = _cairo_pattern_create_linear(
-          %options<x0>.Num, %options<y0>.Num, %options<x1>.Num, %options<y1>.Num
-        );
+      elsif %options<linear>:exists {
+        my @linear = map { ($_//0).Num }, %options<linear>[^4];
+        $no = _cairo_pattern_create_linear(|@linear);
       }
 
       # radial gradient
-      elsif %options<cx0>:exists and %options<cy0>:exists and
-         %options<radius0>:exists and %options<cx1>:exists and
-         %options<cy1>:exists and %options<radius1>:exists {
-
-        $no = _cairo_pattern_create_radial(
-          %options<cx0>.Num, %options<cy0>.Num, %options<radius0>.Num,
-          %options<cx1>.Num, %options<cy1>.Num, %options<radius1>.Num
-        );
+      elsif %options<radial>:exists {
+        my @radial = map { ($_//0).Num }, %options<radial>[^6];
+        $no = _cairo_pattern_create_radial(|@radial);
       }
 
       # surface
@@ -243,7 +248,6 @@ submethod BUILD ( *%options ) {
         $no = _cairo_pattern_create_mesh;
       }
 
-
 #      #`{{ use this when the module is not made inheritable
       # check if there are unknown options
       elsif %options.elems {
@@ -256,19 +260,19 @@ submethod BUILD ( *%options ) {
       }
 #      }}
 
-#      #`{{ when there are no defaults use this
+      #`{{ when there are no defaults use this
       # check if there are any options
       elsif %options.elems == 0 {
         die X::Gnome.new(:message('No options specified ' ~ self.^name));
       }
-#      }}
+      }}
 
-      #`{{ when there are defaults use this instead
+#      #`{{ when there are defaults use this instead
       # create default object
       else {
-        $no = cairo_pattern_new();
+        $no = _cairo_pattern_create_rgb( 1e0, 1e0, 1e0);
       }
-      }}
+#      }}
 
       self.set-native-object($no);
     }
@@ -735,9 +739,13 @@ sub cairo_mesh_pattern_set_corner_color_rgba ( cairo_pattern_t $pattern, int32 $
 =begin pod
 =head2 [cairo_pattern_] add_color_stop_rgb
 
-Adds an opaque color stop to a gradient pattern. The offset specifies the location along the gradient's control vector. For example, a linear gradient's control vector is from (x0,y0) to (x1,y1) while a radial gradient's control vector is from any point on the start circle to the corresponding point on the end circle.  The color is specified in the same way as in C<cairo_set_source_rgb()>.  If two (or more) stops are specified with identical offset values, they will be sorted according to the order in which the stops are added, (stops added earlier will compare less than stops added later). This can be useful for reliably making sharp color transitions instead of the typical blend.   Note: If the pattern is not a gradient pattern, (eg. a linear or radial pattern), then the pattern will be put into an error status with a status of C<CAIRO_STATUS_PATTERN_TYPE_MISMATCH>.
+Adds an opaque color stop to a gradient pattern. The offset specifies the location along the gradient's control vector. For example, a linear gradient's control vector is from (x0,y0) to (x1,y1) while a radial gradient's control vector is from any point on the start circle to the corresponding point on the end circle.  The color is specified in the same way as in C<cairo_set_source_rgb()>.  If two (or more) stops are specified with identical offset values, they will be sorted according to the order in which the stops are added, (stops added earlier will compare less than stops added later). This can be useful for reliably making sharp color transitions instead of the typical blend.
 
-  method cairo_pattern_add_color_stop_rgb ( Num $offset, Num $red, Num $green, Num $blue )
+Note: If the pattern is not a gradient pattern, (eg. a linear or radial pattern), then the pattern will be put into an error status with a status of C<CAIRO_STATUS_PATTERN_TYPE_MISMATCH>.
+
+  method cairo_pattern_add_color_stop_rgb (
+    Num $offset, Num $red, Num $green, Num $blue
+  )
 
 =item Num $offset; a B<cairo_pattern_t>
 =item Num $red; an offset in the range [0.0 .. 1.0]

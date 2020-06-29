@@ -15,22 +15,25 @@ my Gnome::Cairo::Pattern $p;
 my Gnome::Cairo::ImageSurface $is;
 #-------------------------------------------------------------------------------
 subtest 'ISA test', {
-  $p .= new( :red(1), :green(0.5), :blue(0.5e0));
-  isa-ok $p, Gnome::Cairo::Pattern, '.new( :red, :green, :blue)';
+  $p .= new;
+  isa-ok $p, Gnome::Cairo::Pattern, '.new()';
   ok $p.is-valid, '.is-valid()';
   $p.clear-object;
   nok $p.is-valid, '.clear-object()';
 
-  $p .= new( :red(1), :green(0.5), :blue(0.5e0), :alpha('0.8'));
-  isa-ok $p, Gnome::Cairo::Pattern, '.new( :red, :green, :blue, :alpha)';
+  $p .= new(:rgb( 1, 0.5, 0.5e0));
+  isa-ok $p, Gnome::Cairo::Pattern, '.new(:rgb)';
+
+  $p .= new(:rgba( 1, 0.5, 0.5e0, '0.8'));
+  isa-ok $p, Gnome::Cairo::Pattern, '.new(:rgba)';
   $p.clear-object;
 
-  $p .= new( :x0(1), :y0(5), :x1(0.5e2), :y1('30.4'));
-  isa-ok $p, Gnome::Cairo::Pattern, '.new( :x0, :y0, :x1, :y1)';
+  $p .= new(:linear( 1, 5, 0.5e2, '30.4'));
+  isa-ok $p, Gnome::Cairo::Pattern, '.new(:linear)';
   $p.clear-object;
 
-  $p .= new( :cx0(1), :cy0(1), :radius0(5), :cx1(10), :cy1(10), :radius1(5));
-  isa-ok $p, Gnome::Cairo::Pattern, '.new( :cx0, :cy0, :radius0, :cx1, :cy1, :radius1)';
+  $p .= new(:radial( 1, 1, 5, 10, 10, 5));
+  isa-ok $p, Gnome::Cairo::Pattern, '.new(:radial)';
   $p.clear-object;
 
   $p .= new(:mesh);
@@ -39,7 +42,7 @@ subtest 'ISA test', {
 
   $is .= new( :format(CAIRO_FORMAT_ARGB32), :width(128), :height(128));
   $p .= new( :surface($is));
-  isa-ok $p, Gnome::Cairo::Pattern, '.new( :surface)';
+  isa-ok $p, Gnome::Cairo::Pattern, '.new(:surface)';
   $p.clear-object;
 }
 

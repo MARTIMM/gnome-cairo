@@ -693,7 +693,7 @@ sub cairo_translate ( cairo_t $cr, num64 $tx, num64 $ty )
 =begin pod
 =head2 cairo_scale
 
-Modifies the current transformation matrix (CTM) by scaling the X and Y user-space axes by I<sx> and I<sy> respectively. The scaling of the axes takes place after any existing transformation of user space.
+Modifies the current transformation matrix (CTM) by scaling the X and Y user-space axes by I<$sx> and I<$sy> respectively. The scaling of the axes takes place after any existing transformation of user space.
 
   method cairo_scale ( Num $sx, Num $sy )
 

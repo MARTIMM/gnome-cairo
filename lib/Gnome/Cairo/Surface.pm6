@@ -679,8 +679,6 @@ sub cairo_surface_has_show_text_glyphs ( cairo_surface_t $surface --> int32 )
   { * }
 
 
-
-
 #--[ png support ]--------------------------------------------------------------
 #TM:0:cairo_surface_write_to_png:
 =begin pod

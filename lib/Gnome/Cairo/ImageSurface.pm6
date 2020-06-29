@@ -66,16 +66,6 @@ Creates an image surface of the specified format and dimensions. Initially the s
 
   multi method new ( cairo_format_t :$format, Int :$width, Int :$height )
 
-=begin comment
-Create a ImageSurface object using a native object from elsewhere. See also B<Gnome::N::TopLevelClassSupport>.
-
-  multi method new ( N-GObject :$native-object! )
-
-Create a ImageSurface object using a native object returned from a builder. See also B<Gnome::GObject::Object>.
-
-  multi method new ( Str :$build-id! )
-=end comment
-
 =end pod
 
 #TM:0:new():
@@ -209,11 +199,21 @@ sub cairo_format_stride_for_width ( int32 $format, int32 $width --> int32 )
 =begin pod
 =head2 [cairo_image_surface_] create_for_data
 
-Creates an image surface for the provided pixel data. The output buffer must be kept around until the B<cairo_surface_t> is destroyed or C<cairo_surface_finish()> is called on the surface.  The initial contents of I<data> will be used as the initial image contents; you must explicitly clear the buffer, using, for example, C<cairo_rectangle()> and C<cairo_fill()> if you want it cleared.  Note that the stride may be larger than width*bytes_per_pixel to provide proper alignment for each pixel and row. This alignment is required to allow high-performance rendering within cairo. The correct way to obtain a legal stride value is to call C<cairo_format_stride_for_width()> with the desired format and maximum image width value, and then use the resulting stride value to allocate the data and to create the image surface. See C<cairo_format_stride_for_width()> for example code.  Return value: a pointer to the newly created surface. The caller owns the surface and should call C<cairo_surface_destroy()> when done with it.  This function always returns a valid pointer, but it will return a pointer to a "nil" surface in the case of an error such as out of memory or an invalid stride value. In case of invalid stride value the error status of the returned surface will be C<CAIRO_STATUS_INVALID_STRIDE>.  You can use C<cairo_surface_status()> to check for this.  See C<cairo_surface_set_user_data()> for a means of attaching a destroy-notification fallback to the surface if necessary.
+Creates an image surface for the provided pixel data. The output buffer must be kept around until the B<cairo_surface_t> is destroyed or C<cairo_surface_finish()> is called on the surface.
 
-  method cairo_image_surface_create_for_data ( Str $data, Int $format, Int $width, Int $height, Int $stride --> cairo_surface_t )
+The initial contents of I<data> will be used as the initial image contents; you must explicitly clear the buffer, using, for example, C<cairo_rectangle()> and C<cairo_fill()> if you want it cleared.
 
-=item Str $data;  cairo_image_surface_create_for_data:
+Note that the stride may be larger than width*bytes_per_pixel to provide proper alignment for each pixel and row. This alignment is required to allow high-performance rendering within cairo. The correct way to obtain a legal stride value is to call C<cairo_format_stride_for_width()> with the desired format and maximum image width value, and then use the resulting stride value to allocate the data and to create the image surface. See C<cairo_format_stride_for_width()> for example code.
+
+Return value: a pointer to the newly created surface. The caller owns the surface and should call C<cairo_surface_destroy()> when done with it.
+
+This function always returns a valid pointer, but it will return a pointer to a "nil" surface in the case of an error such as out of memory or an invalid stride value. In case of invalid stride value the error status of the returned surface will be C<CAIRO_STATUS_INVALID_STRIDE>. You can use C<cairo_surface_status()> to check for this.
+
+See C<cairo_surface_set_user_data()> for a means of attaching a destroy-notification fallback to the surface if necessary.
+
+  method cairo_image_surface_create_for_data ( CArray[int8] $data, Int $format, Int $width, Int $height, Int $stride --> cairo_surface_t )
+
+=item CArray[int8] $data;  cairo_image_surface_create_for_data:
 =item Int $format; a pointer to a buffer supplied by the application in which to write contents. This pointer must be suitably aligned for any kind of variable, (for example, a pointer returned by malloc).
 =item Int $width; the format of pixels in the buffer
 =item Int $height; the width of the image to be stored in the buffer
@@ -221,7 +221,7 @@ Creates an image surface for the provided pixel data. The output buffer must be 
 
 =end pod
 
-sub cairo_image_surface_create_for_data ( Str $data, int32 $format, int32 $width, int32 $height, int32 $stride --> cairo_surface_t )
+sub cairo_image_surface_create_for_data ( CArray[int8] $data, int32 $format, int32 $width, int32 $height, int32 $stride --> cairo_surface_t )
   is native(&cairo-lib)
   { * }
 
@@ -232,13 +232,13 @@ sub cairo_image_surface_create_for_data ( Str $data, int32 $format, int32 $width
 
 Get a pointer to the data of the image surface, for direct inspection or modification.  A call to C<cairo_surface_flush()> is required before accessing the pixel data to ensure that all pending drawing operations are finished. A call to C<cairo_surface_mark_dirty()> is required after the data is modified.  Return value: a pointer to the image data of this surface or C<Any> if I<surface> is not an image surface, or if C<cairo_surface_finish()> has been called.
 
-  method cairo_image_surface_get_data ( cairo_surface_t $surface --> Str )
+  method cairo_image_surface_get_data ( cairo_surface_t $surface --> CArray[int8] )
 
-=item cairo_surface_t $surface;  cairo_image_surface_get_data:
+=item cairo_surface_t $surface;  returned data:
 
 =end pod
 
-sub cairo_image_surface_get_data ( cairo_surface_t $surface --> Str )
+sub cairo_image_surface_get_data ( cairo_surface_t $surface --> CArray[int8] )
   is native(&cairo-lib)
   { * }
 
@@ -311,13 +311,14 @@ sub cairo_image_surface_get_stride ( cairo_surface_t $surface --> int32 )
   { * }
 
 
-
 #--[ png support ]--------------------------------------------------------------
 #TM:0:cairo_image_surface_create_from_png:
 =begin pod
 =head2 cairo_image_surface_create_from_png
 
-Creates a new image surface and initializes the contents to the given PNG file.  Return value: a new B<cairo_surface_t> initialized with the contents of the PNG file, or a "nil" surface if any error occurred. A nil surface can be checked for with cairo_surface_status(surface) which may return one of the following values:  C<CAIRO_STATUS_NO_MEMORY> C<CAIRO_STATUS_FILE_NOT_FOUND> C<CAIRO_STATUS_READ_ERROR> C<CAIRO_STATUS_PNG_ERROR>  Alternatively, you can allow errors to propagate through the drawing operations and check the status on the context upon completion using C<cairo_status()>.
+Creates a new image surface and initializes the contents to the given PNG file.  Return value: a new B<cairo_surface_t> initialized with the contents of the PNG file, or a "nil" surface if any error occurred. A nil surface can be checked for with cairo_surface_status(surface) which may return one of the following values:  C<CAIRO_STATUS_NO_MEMORY> C<CAIRO_STATUS_FILE_NOT_FOUND> C<CAIRO_STATUS_READ_ERROR> C<CAIRO_STATUS_PNG_ERROR>.
+
+Alternatively, you can allow errors to propagate through the drawing operations and check the status on the context upon completion using C<cairo_status()>.
 
   method cairo_image_surface_create_from_png ( Str $filename --> cairo_surface_t )
 
