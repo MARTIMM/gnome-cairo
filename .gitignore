@@ -12,3 +12,4 @@ t/Travis-ci/*.tgz
 tests/Pencil*
 markdown-refs.md
 xt/NewModules/*
+xt/data/*
