@@ -28,7 +28,8 @@ class PathHandling {
   submethod BUILD (
     Gnome::Cairo :$!context, Str :$!path-function,
     Int :$!width, Int :$!height,
-    cairo_text_extents_t :$text-extents
+    #cairo_text_extents_t :$text-extents
+     :$text-extents
   ) {
     # the curl method needs the text width. height isn't used
     if $text-extents.defined {
@@ -37,7 +38,8 @@ class PathHandling {
     }
   }
 
-  method mt ( cairo_path_data_point_t $p1 ) {
+#  method mt ( cairo_path_data_point_t $p1 ) {
+  method mt (  $p1 ) {
 #    note "  move to Px: ", $p1.x, ', ', $p1.y;
 
     if $!first {
@@ -48,15 +50,17 @@ class PathHandling {
     $!context.move-to( |self."$!path-function"( $p1.x, $p1.y));
   }
 
-  method lt ( cairo_path_data_point_t $p1 ) {
+#  method lt ( cairo_path_data_point_t $p1 ) {
+  method lt (  $p1 ) {
 #    note "  line to Px: ", $p1.x, ', ', $p1.y;
     $!context.line-to( |self."$!path-function"( $p1.x, $p1.y));
   }
 
-  method ct (
-    cairo_path_data_point_t $p1, cairo_path_data_point_t $p2,
-    cairo_path_data_point_t $p3
-  ) {
+#  method ct (
+#    cairo_path_data_point_t $p1, cairo_path_data_point_t $p2,
+#    cairo_path_data_point_t $p3
+#  ) {
+  method ct (     $p1,  $p2,     $p3  ) {
 #    note "  curve to Px: ", $p1.x, ', ', $p1.y, ', ', $p2.x, ', ',
 #      $p2.y, ', ', $p3.x, ', ', $p3.y;
     $!context.curve-to(
@@ -95,7 +99,8 @@ my Int ( $width, $height, $text-width) = ( 512, 512, );
 
 sub warpPath (
   Gnome::Cairo $context, Str $path-function,
-  cairo_text_extents_t :$text-extents
+  #cairo_text_extents_t :$text-extents
+   :$text-extents
 ) {
 
   my Gnome::Cairo::Path $path .= new(:native-object($context.copy-path));
@@ -116,7 +121,7 @@ my Gnome::Cairo::Pattern $solid-pattern .= new(
 );
 
 # background
-my Gnome::Cairo::Pattern $pat .= new( :x0(0), :y0(0), :x1(0), :y1($height));
+my Gnome::Cairo::Pattern $pat .= new(:linear( 0, 0, 0, $height));
 $pat.add-color-stop-rgba( 1, 0, 0, 0, 1);
 $pat.add-color-stop-rgba(0, 1, 1, 1, 1);
 
@@ -152,7 +157,7 @@ warpPath(
 );
 $cairo-context.fill;
 
-$image-surface.write-to-png("xt/c2.png");   # save as png
+$image-surface.write-to-png("xt/data/c2.png");   # save as png
 
 $cairo-context.clear-object;
 $image-surface.clear-object;

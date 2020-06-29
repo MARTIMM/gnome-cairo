@@ -109,18 +109,27 @@ class X {
       "Z003", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD
     );
 
+    my Int $font-size = 80;
     $cairo-context.set-source-rgb( 0.4, 0.0, 0.0);
-    $cairo-context.set-font-size(80);
+    $cairo-context.set-font-size($font-size);
 
     my Str $zetcode = 'ZetCode';
-    my $te = $cairo-context.text-extents($zetcode);
-    #my cairo_text_extents_t $te = $cairo-context.text-extents($zetcode);
+    #my $te = $cairo-context.text-extents($zetcode);
+    my cairo_text_extents_t $te .= new(
+      :native-object($cairo-context.text-extents($zetcode))
+    );
     $cairo-context.move-to( $!width / 2 - $te.width / 2, $!height / 2);
     $cairo-context.show-text($zetcode);
 
-    $cairo-context.set-source-rgb( 0.9, 0.0, 0.0);
+    my Gnome::Cairo::Pattern $pat .= new( :linear( 0, 15, 0, $font-size * 0.8));
+    $pat.set_extend(CAIRO_EXTEND_REPEAT);
+    $pat.add-color-stop-rgb( 0.0, 1, 0.6, 0);
+    $pat.add-color-stop-rgb( 0.5, 1, 1, 0);
+
     $cairo-context.move-to( $!width / 2 - $te.width / 2 + 3, $!height / 2 + 3);
-    $cairo-context.show-text($zetcode);
+    $cairo-context.text-path($zetcode);
+    $cairo-context.set-source($pat);
+    $cairo-context.fill;
 
     $cairo-context.clear-object;
 
@@ -128,7 +137,7 @@ class X {
   }
 
   #-----------------------------------------------------------------------------
-  # Called by the draw signal after chaging or uncovering the window.
+  # Called by the draw signal after changing the window.
   method redraw ( cairo_t $n-cx, --> Int ) {
 
     # we have received a cairo context in which our surface must be set.

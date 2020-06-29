@@ -46,7 +46,8 @@ given $cairo-context {
   );                                      # set font
   .set-font-size(30);                     # font size
   my Str $text = 'abc';                   # move to coords
-  my cairo_text_extents_t $te = .cairo_text_extents($text);
+#  my cairo_text_extents_t $te = .cairo_text_extents($text);
+  my  $te = .cairo_text_extents($text);
   .move-to( 58 - $te.width / 2 - $te.x_bearing,
            100 - $te.height / 2 - $te.y_bearing
   );
@@ -61,21 +62,17 @@ given $cairo-context {
 
 
   # try to understand some patterns and mask
-  my Gnome::Cairo::Pattern $linpat .= new(
-    :x0(128), :y0(0), :x1(0), :y1(128)
-  );
+  my Gnome::Cairo::Pattern $linpat .= new(:linear( 128, 0, 0, 128));
   $linpat.add-color-stop-rgb( 0, 0, 0.3, 0.8);
   $linpat.add-color-stop-rgb( 1, 0, 0.8, 0.3);
-  my Gnome::Cairo::Pattern $radpat .= new(
-    :cx0(85), :cy0(65), :radius0(10), :cx1(75), :cy1(55), :radius1(30)
-  );
+  my Gnome::Cairo::Pattern $radpat .= new(:radial( 85, 65, 10, 75, 55, 30));
   $radpat.add-color-stop-rgba( 0, 0, 0, 0, 1);
   $radpat.add-color-stop-rgba( 0.5, 0, 0, 0, 0);
   .set-source($linpat);
   .cairo-mask($radpat);
 }
 
-$image-surface.write_to_png("xt/c1.png");   # save as png
+$image-surface.write_to_png("xt/data/c1.png");   # save as png
 
 $cairo-context.clear-object;
 $image-surface.clear-object;

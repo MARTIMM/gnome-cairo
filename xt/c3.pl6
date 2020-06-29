@@ -45,7 +45,7 @@ my Gnome::Cairo::ImageSurface $image-surface .= new(
 
 my Gnome::Cairo $cairo-context .= new(:surface($image-surface));
 natasha-beddingfield($cairo-context);
-$image-surface.write_to_png("xt/c3.png");   # save as png
+$image-surface.write_to_png("xt/data/c3.png");   # save as png
 
 $cairo-context.clear-object;
 $image-surface.clear-object;
