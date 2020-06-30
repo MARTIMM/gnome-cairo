@@ -3,6 +3,8 @@ use NativeCall;
 
 use Gnome::Cairo::Enums;
 
+#unit class Gnome::Cairo::Types:auth<github:MARTIMM>;
+
 #-------------------------------------------------------------------------------
 =begin pod
 =head2 cairo_t
@@ -54,13 +56,8 @@ class cairo_matrix_t
 
 #TT:0:cairo_path_data_header_t
 class cairo_path_data_header_t is repr('CStruct') is export {
-  has int32 $.type;                   # enum cairo_path_data_type_t
+  has uint32 $.type;                  # enum cairo_path_data_type_t
   has int32 $.length;                 # nbr points following header
-
-  submethod BUILD ( :$native-object ) {
-    $!type = $native-object.type;
-    $!length = $native-object.length;
-  }
 }
 
 #TT:0:cairo_path_data_point_t
@@ -82,7 +79,7 @@ class cairo_path_data_t is repr('CUnion') is export {
 
 #TT:0:cairo_path_t
 class cairo_path_t is repr('CStruct') is export {
-  has int32 $.status;                 # enum cairo_status_t
+  has uint32 $.status;                # enum cairo_status_t
   has Pointer[cairo_path_data_t] $.data;
   has int32 $.num_data;
 }

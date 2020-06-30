@@ -1,6 +1,6 @@
 use v6;
 
-unit class Gnome::Cairo::Enums;
+#unit class Gnome::Cairo::Enums:auth<github:MARTIMM>;
 
 #-------------------------------------------------------------------------------
 =begin pod

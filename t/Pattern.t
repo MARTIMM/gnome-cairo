@@ -4,7 +4,7 @@ use Test;
 
 use Gnome::Cairo::Pattern;
 use Gnome::Cairo::ImageSurface;
-use Gnome::Cairo::N-Types;
+use Gnome::Cairo::Types;
 use Gnome::Cairo::Enums;
 
 #use Gnome::N::X;

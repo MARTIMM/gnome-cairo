@@ -2,7 +2,7 @@ use v6;
 use NativeCall;
 use Test;
 
-use Gnome::Cairo::N-Types;
+use Gnome::Cairo::Types;
 use Gnome::Cairo::Enums;
 use Gnome::Cairo::ImageSurface;
 

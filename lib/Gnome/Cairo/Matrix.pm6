@@ -34,7 +34,7 @@ use Gnome::N::X;
 use Gnome::N::NativeLib;
 use Gnome::N::TopLevelClassSupport;
 
-use Gnome::Cairo::N-Types;
+use Gnome::Cairo::Types;
 use Gnome::Cairo::Enums;
 
 #-------------------------------------------------------------------------------

@@ -44,7 +44,7 @@ use Gnome::N::X;
 use Gnome::N::NativeLib;
 use Gnome::N::TopLevelClassSupport;
 
-use Gnome::Cairo::N-Types;
+use Gnome::Cairo::Types;
 use Gnome::Cairo::Enums;
 
 #-------------------------------------------------------------------------------
@@ -78,7 +78,7 @@ submethod BUILD ( *%options ) {
 
     # check if common options are handled by some parent
     elsif %options<native-object>:exists { }
-
+#`{{
     else {
       my $no;
       # if ? %options<> {
@@ -116,6 +116,7 @@ submethod BUILD ( *%options ) {
 
       self.set-native-object($no);
     }
+}}
 
     # only after creating the native-object
     self.set-class-info('CairoSurface');

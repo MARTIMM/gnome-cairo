@@ -33,7 +33,7 @@ use Gnome::N::X;
 use Gnome::N::NativeLib;
 use Gnome::N::TopLevelClassSupport;
 
-use Gnome::Cairo::N-Types;
+use Gnome::Cairo::Types;
 use Gnome::Cairo::Enums;
 
 #-------------------------------------------------------------------------------
@@ -43,6 +43,7 @@ also is Gnome::N::TopLevelClassSupport;
 #-------------------------------------------------------------------------------
 =begin pod
 =head1 Methods
+=begin comment
 =head2 new
 
 =head3 new()
@@ -51,16 +52,7 @@ Create a new Path object.
 
   multi method new ( )
 
-=begin comment
-Create a Path object using a native object from elsewhere. See also B<Gnome::N::TopLevelClassSupport>.
-
-  multi method new ( N-GObject :$native-object! )
-
-Create a Path object using a native object returned from a builder. See also B<Gnome::GObject::Object>.
-
-  multi method new ( Str :$build-id! )
 =end comment
-
 =end pod
 
 #TM:0:new():
@@ -77,7 +69,7 @@ submethod BUILD ( *%options ) {
 
     # check if common options are handled by some parent
     elsif %options<native-object>:exists { }
-
+#`{{
     else {
       my $no;
       # if ? %options<> {
@@ -115,6 +107,7 @@ submethod BUILD ( *%options ) {
 
       self.set-native-object($no);
     }
+}}
   }
 }
 
@@ -149,25 +142,33 @@ method walk-path (
   Str:D $curve-to, Str:D $close-path
 ) {
 
+note "\npath: ", self.get-native-object.^mro;
   my cairo_path_t $path = self.get-native-object;
+#  my $path = self.get-native-object;
   if $path.status !~~ CAIRO_STATUS_SUCCESS {
     self.clear-object;
     X::Gnome.new(:message('Path is not valid'));
   }
 
   my $length = $path.num_data;
+note "Path l=$length: ", $path.WHAT;
   my $i = 0;
   loop {
-#note "Type: [$i], ", $path.data[$i].header.type;
-    given $path.data[$i].header.type {
+
+note "path[$i], ", $path.data[$i].perl;
+    my cairo_path_data_header_t $dh = $path.data[$i].header;
+note "\npath[$i] header type: ", cairo_path_data_type_t($dh.type), ", header length: ", $dh.length;
+
+
+    given $$dh.type {
       when CAIRO_PATH_MOVE_TO {
-        $user-object."$move-to"( $path.data[$i + 1].point);
-        $i += 2;
+        my cairo_path_data_point_t $dp = $path.data[$i+1].point;
+        $user-object."$move-to"($dp);
       }
 
       when CAIRO_PATH_LINE_TO {
-        $user-object."$line-to"( $path.data[$i + 1].point);
-        $i += 2;
+        my cairo_path_data_point_t $dp = $path.data[$i+1].point;
+        $user-object."$line-to"($dp);
       }
 
       when CAIRO_PATH_CURVE_TO {
@@ -175,14 +176,14 @@ method walk-path (
           $path.data[$i + 1].point, $path.data[$i + 2].point,
           $path.data[$i + 3].point
         );
-        $i += 4;
       }
 
       when CAIRO_PATH_CLOSE_PATH {
         $user-object."$close-path"();
-        $i += 1;
       }
     }
+
+    $i += $dh.length;
 
     last if $i >= $length;
   }
