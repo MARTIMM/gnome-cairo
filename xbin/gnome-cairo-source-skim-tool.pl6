@@ -772,14 +772,15 @@ sub substitute-in-template (
           # check if common options are handled by some parent
           elsif %options<native-object>:exists { }
 
+          #`{{ if there are options
           else {
             my $no;
-            # if ? %options<> {
-            #   $no = %options<>;
-            #   $no .= get-native-object-no-reffing
-            #     if $no.^can('get-native-object-no-reffing');
-            #   $no = ...($no);
-            # }
+            if ? %options<> {
+              $no = %options<>;
+              $no .= get-native-object-no-reffing
+                if $no.^can('get-native-object-no-reffing');
+              $no = _.BASE-SUBNAME_new_..($no);
+            }
 
             #`{{ use this when the module is not made inheritable
             # check if there are unknown options
@@ -803,12 +804,13 @@ sub substitute-in-template (
             #`{{ when there are defaults use this instead
             # create default object
             else {
-              $no = BASE-SUBNAME_new();
+              $no = _BASE-SUBNAME_new();
             }
             }}
 
             self.set-native-object($no);
           }
+          }}
 
           # only after creating the native-object
           self.set-class-info('LIBCLASSNAME');
