@@ -1,9 +1,7 @@
 use v6;
-#use NativeCall;
 
 use Gnome::Cairo::ImageSurface;
 use Gnome::Cairo;
-#use Gnome::Cairo::Pattern;
 use Gnome::Cairo::Types;
 use Gnome::Cairo::Enums;
 use Gnome::Cairo::Path;
@@ -11,10 +9,8 @@ use Gnome::Cairo::Path;
 say ' ';
 
 class PathHandling {
-  #method mt ( cairo_path_data_point_t $p ) {
-  method mt ( $p ) {
-    note "  path: ", $p.^mro;
-    note "  move to Px: ", $p.x, ', ', $p.y, ', p = ', $p.WHAT;
+  method mt ( cairo_path_data_point_t $p ) {
+    note "  move to Px: ", $p.x, ', ', $p.y;
   }
 
   method lt ( cairo_path_data_point_t $p ) {
@@ -51,10 +47,3 @@ $context.line-to( 10, 20);
 my Gnome::Cairo::Path $path .= new(:native-object($context.copy-path));
 
 $path.walk-path( PathHandling.new, 'mt', 'lt', 'ct', 'cp');
-
-
-
-my cairo_path_data_point_t $d1 .= new( :x(1e0), :y(2e0));
-my cairo_path_data_point_t $d2 = $d1;
-
-note "d2: ", $d2.perl;

@@ -4,11 +4,10 @@ use v6;
 #use lib '../gnome-native/lib';
 use lib '../gnome-gtk3/lib';
 use lib '../gnome-gdk3/lib';
-#use NativeCall;
 
+use Gnome::Cairo::ImageSurface;
 use Gnome::Cairo;
 use Gnome::Cairo::Pattern;
-use Gnome::Cairo::ImageSurface;
 use Gnome::Cairo::Enums;
 use Gnome::Cairo::Types;
 use Gnome::Cairo::Surface;

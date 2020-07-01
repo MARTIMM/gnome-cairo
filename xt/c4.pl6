@@ -3,7 +3,6 @@
 use v6;
 #use lib '../gnome-native/lib';
 use lib '../gnome-gdk3/lib';
-#use NativeCall;
 
 use Gnome::Cairo;
 use Gnome::Cairo::Pattern;
@@ -115,10 +114,11 @@ class X {
 
     my Str $zetcode = 'ZetCode';
     #my $te = $cairo-context.text-extents($zetcode);
-    my cairo_text_extents_t $te .= new(
-      :native-object($cairo-context.text-extents($zetcode))
+    my cairo_text_extents_t $te = $cairo-context.text-extents($zetcode);
+    $cairo-context.move-to(
+      $!width / 2 - $te.width / 2,
+      $!height / 2 #+ $te.height / 2
     );
-    $cairo-context.move-to( $!width / 2 - $te.width / 2, $!height / 2);
     $cairo-context.show-text($zetcode);
 
     my Gnome::Cairo::Pattern $pat .= new( :linear( 0, 15, 0, $font-size * 0.8));
@@ -126,7 +126,10 @@ class X {
     $pat.add-color-stop-rgb( 0.0, 1, 0.6, 0);
     $pat.add-color-stop-rgb( 0.5, 1, 1, 0);
 
-    $cairo-context.move-to( $!width / 2 - $te.width / 2 + 3, $!height / 2 + 3);
+    $cairo-context.move-to(
+      $!width / 2 - $te.width / 2 + 3,
+      $!height / 2 + 3 # + $te.height / 2
+    );
     $cairo-context.text-path($zetcode);
     $cairo-context.set-source($pat);
     $cairo-context.fill;
@@ -161,7 +164,7 @@ class X {
 my Gnome::Gtk3::Window $w .= new;
 $w.set-title('My Drawing In My Window');
 $w.set-position(GTK_WIN_POS_MOUSE);
-$w.set-size-request( 300, 300);
+$w.set-size-request( 300, 200);
 
 my Gnome::Gtk3::Frame $f .= new(:label('My Drawing'));
 $w.gtk-container-add($f);

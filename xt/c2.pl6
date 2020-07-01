@@ -1,6 +1,5 @@
 use v6;
 #use lib '../gnome-native/lib';
-#use NativeCall;
 
 use Gnome::Cairo::ImageSurface;
 use Gnome::Cairo;
@@ -38,8 +37,8 @@ class PathHandling {
     }
   }
 
-#  method mt ( cairo_path_data_point_t $p1 ) {
-  method mt (  $p1 ) {
+  method mt ( cairo_path_data_point_t $p1 ) {
+#  method mt (  $p1 ) {
 #    note "  move to Px: ", $p1.x, ', ', $p1.y;
 
     if $!first {
@@ -50,17 +49,17 @@ class PathHandling {
     $!context.move-to( |self."$!path-function"( $p1.x, $p1.y));
   }
 
-#  method lt ( cairo_path_data_point_t $p1 ) {
-  method lt (  $p1 ) {
+  method lt ( cairo_path_data_point_t $p1 ) {
+#  method lt (  $p1 ) {
 #    note "  line to Px: ", $p1.x, ', ', $p1.y;
     $!context.line-to( |self."$!path-function"( $p1.x, $p1.y));
   }
 
-#  method ct (
-#    cairo_path_data_point_t $p1, cairo_path_data_point_t $p2,
-#    cairo_path_data_point_t $p3
-#  ) {
-  method ct (     $p1,  $p2,     $p3  ) {
+  method ct (
+    cairo_path_data_point_t $p1, cairo_path_data_point_t $p2,
+    cairo_path_data_point_t $p3
+  ) {
+#  method ct (     $p1,  $p2,     $p3  ) {
 #    note "  curve to Px: ", $p1.x, ', ', $p1.y, ', ', $p2.x, ', ',
 #      $p2.y, ', ', $p3.x, ', ', $p3.y;
     $!context.curve-to(
