@@ -1,10 +1,9 @@
 use v6;
 #use lib '../gnome-native/lib';
-#use NativeCall;
 use Test;
 
-use Gnome::Cairo;
 use Gnome::Cairo::ImageSurface;
+use Gnome::Cairo;
 use Gnome::Cairo::Enums;
 
 #use Gnome::N::X;

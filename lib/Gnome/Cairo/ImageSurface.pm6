@@ -41,34 +41,26 @@ use Gnome::Cairo::Surface;
 
 #-------------------------------------------------------------------------------
 unit class Gnome::Cairo::ImageSurface:auth<github:MARTIMM>;
-#also is Gnome::N::TopLevelClassSupport;
 also is Gnome::Cairo::Surface;
-
-#`{{
-#-------------------------------------------------------------------------------
-=begin pod
-=end pod
-#TT:0:cairo_image_surface_t
-class cairo_image_surface_t
-  is repr('CPointer')
-  is export
-  { }
-}}
 
 #-------------------------------------------------------------------------------
 =begin pod
 =head1 Methods
 =head2 new
 
-=head3 new()
+=head3 :format :width :height
 
-Creates an image surface of the specified format and dimensions. Initially the surface contents are set to 0. (Specifically, within each pixel, each color or alpha channel belonging to format will be 0. The contents of bits within a pixel, but not belonging to the given format are undefined).  Return value: a pointer to the newly created surface. The caller owns the surface and should call C<cairo_surface_destroy()> when done with it.  This function always returns a valid pointer, but it will return a pointer to a "nil" surface if an error such as out of memory occurs. You can use C<cairo_surface_status()> to check for this.
+Creates an image surface of the specified format and dimensions. Initially the surface contents are set to 0. (Specifically, within each pixel, each color or alpha channel belonging to format will be 0. The contents of bits within a pixel, but not belonging to the given format are undefined).
+
+The caller owns the surface and should call C<.clear-object()> when done with it.
+
+This function always returns a valid pointer, but it will return a pointer to a "nil" surface if an error such as out of memory occurs. You can use C<.cairo_surface_status()> to check for this.
 
   multi method new ( cairo_format_t :$format, Int :$width, Int :$height )
 
 =end pod
 
-#TM:0:new():
+#TM:0:new(:format,:width,:height):
 #TM:4:new(:native-object):Gnome::N::TopLevelClassSupport
 submethod BUILD ( *%options ) {
 
@@ -149,29 +141,15 @@ method _fallback ( $native-sub is copy --> Callable ) {
   $s;
 }
 
-
 #-------------------------------------------------------------------------------
 #TM:0:_cairo_image_surface_create:
-#`{{
-=begin pod
-=head2 cairo_image_surface_create
-
-Creates an image surface of the specified format and dimensions. Initially the surface contents are set to 0. (Specifically, within each pixel, each color or alpha channel belonging to format will be 0. The contents of bits within a pixel, but not belonging to the given format are undefined).  Return value: a pointer to the newly created surface. The caller owns the surface and should call C<cairo_surface_destroy()> when done with it.  This function always returns a valid pointer, but it will return a pointer to a "nil" surface if an error such as out of memory occurs. You can use C<cairo_surface_status()> to check for this.
-
-  method cairo_image_surface_create ( cairo_format_t $format, Int $width, Int $height --> cairo_surface_t )
-
-=item Int $format; :
-=item Int $width; format of pixels in the surface to create
-=item Int $height; width of the surface, in pixels
-
-=end pod
-}}
 
 sub _cairo_image_surface_create ( int32 $format, int32 $width, int32 $height --> cairo_surface_t )
   is native(&cairo-lib)
   is symbol('cairo_image_surface_create')
   { * }
 
+#`{{ move to other module?
 #-------------------------------------------------------------------------------
 #TM:0:cairo_format_stride_for_width:
 =begin pod
@@ -179,13 +157,28 @@ sub _cairo_image_surface_create ( int32 $format, int32 $width, int32 $height -->
 
 This function provides a stride value that will respect all alignment requirements of the accelerated image-rendering code within cairo. Typical usage will be of the form:
 
- int stride; unsigned char *data; cairo_surface_t *surface;  stride = cairo_format_stride_for_width (format, width); data = malloc (stride * height); surface = cairo_image_surface_create_for_data (data, format, width, height, stride);
+  my Int $width = ...;
+  my Int $height = ...;
+  my cairo_format_t $format = ...;
+  my Int $stride;
+  my CArray[uint8] $data;
+  my Gnome::Cairo::ImageSurface $image .= new( :$format, :$width, :$height);
+  my Gnome::Cairo $cc .= new(...);
+  my Gnome::Cairo::Surface $surface;
 
-   Return value: the appropriate stride to use given the desired format and width, or -1 if either the format is invalid or the width too large.
+  $stride = $cc.format_stride_for_width( $format, $width);
+  data .= new( 0 xx $stride * $height);
+  $surface .= new(
+    :native-object($image.create_for_data(
+      $data, $format, $width, $height, stride
+    )
+  );
+
+Return value: the appropriate stride to use given the desired format and width, or -1 if either the format is invalid or the width too large.
 
   method cairo_format_stride_for_width ( Int $format, Int $width --> Int )
 
-=item Int $format;  cairo_format_stride_for_width:
+=item cairo_format_t $format;  cairo_format_stride_for_width:
 =item Int $width; A B<cairo_format_t> value
 
 =end pod
@@ -193,6 +186,7 @@ This function provides a stride value that will respect all alignment requiremen
 sub cairo_format_stride_for_width ( int32 $format, int32 $width --> int32 )
   is native(&cairo-lib)
   { * }
+}}
 
 #-------------------------------------------------------------------------------
 #TM:0:cairo_image_surface_create_for_data:
@@ -201,7 +195,7 @@ sub cairo_format_stride_for_width ( int32 $format, int32 $width --> int32 )
 
 Creates an image surface for the provided pixel data. The output buffer must be kept around until the B<cairo_surface_t> is destroyed or C<cairo_surface_finish()> is called on the surface.
 
-The initial contents of I<data> will be used as the initial image contents; you must explicitly clear the buffer, using, for example, C<cairo_rectangle()> and C<cairo_fill()> if you want it cleared.
+The initial contents of I<$data> will be used as the initial image contents; you must explicitly clear the buffer, using, for example, C<cairo_rectangle()> and C<cairo_fill()> if you want it cleared.
 
 Note that the stride may be larger than width*bytes_per_pixel to provide proper alignment for each pixel and row. This alignment is required to allow high-performance rendering within cairo. The correct way to obtain a legal stride value is to call C<cairo_format_stride_for_width()> with the desired format and maximum image width value, and then use the resulting stride value to allocate the data and to create the image surface. See C<cairo_format_stride_for_width()> for example code.
 
@@ -211,7 +205,10 @@ This function always returns a valid pointer, but it will return a pointer to a 
 
 See C<cairo_surface_set_user_data()> for a means of attaching a destroy-notification fallback to the surface if necessary.
 
-  method cairo_image_surface_create_for_data ( CArray[int8] $data, Int $format, Int $width, Int $height, Int $stride --> cairo_surface_t )
+  method cairo_image_surface_create_for_data (
+    CArray[int8] $data, Int $format, Int $width, Int $height, Int $stride
+    --> cairo_surface_t
+  )
 
 =item CArray[int8] $data;  cairo_image_surface_create_for_data:
 =item Int $format; a pointer to a buffer supplied by the application in which to write contents. This pointer must be suitably aligned for any kind of variable, (for example, a pointer returned by malloc).

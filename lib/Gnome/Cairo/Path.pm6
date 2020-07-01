@@ -43,19 +43,13 @@ also is Gnome::N::TopLevelClassSupport;
 #-------------------------------------------------------------------------------
 =begin pod
 =head1 Methods
-=begin comment
 =head2 new
 
-=head3 new()
+=head3 :native-object
 
-Create a new Path object.
-
-  multi method new ( )
-
-=end comment
+There is only one way to create a Path object and that is by importing a native object.
 =end pod
 
-#TM:0:new():
 #TM:4:new(:native-object):Gnome::N::TopLevelClassSupport
 submethod BUILD ( *%options ) {
 
@@ -142,23 +136,17 @@ method walk-path (
   Str:D $curve-to, Str:D $close-path
 ) {
 
-note "\npath: ", self.get-native-object.^mro;
   my cairo_path_t $path = self.get-native-object;
-#  my $path = self.get-native-object;
   if $path.status !~~ CAIRO_STATUS_SUCCESS {
     self.clear-object;
     X::Gnome.new(:message('Path is not valid'));
   }
 
   my $length = $path.num_data;
-note "Path l=$length: ", $path.WHAT;
   my $i = 0;
   loop {
 
-note "path[$i], ", $path.data[$i].perl;
     my cairo_path_data_header_t $dh = $path.data[$i].header;
-note "\npath[$i] header type: ", cairo_path_data_type_t($dh.type), ", header length: ", $dh.length;
-
 
     given $$dh.type {
       when CAIRO_PATH_MOVE_TO {

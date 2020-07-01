@@ -155,15 +155,6 @@ class cairo_text_extents_t is repr('CStruct') is export {
   has num64 $.height;
   has num64 $.x_advance;
   has num64 $.y_advance;
-
-  submethod TWEAK ( :$native-object ) {
-    $!x_bearing = $native-object.x_bearing;
-    $!y_bearing = $native-object.y_bearing;
-    $!width = $native-object.width;
-    $!height = $native-object.height;
-    $!x_advance = $native-object.x_advance;
-    $!y_advance = $native-object.y_advance;
-  }
 };
 
 #-------------------------------------------------------------------------------
