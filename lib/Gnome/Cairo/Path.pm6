@@ -102,6 +102,9 @@ submethod BUILD ( *%options ) {
       self.set-native-object($no);
     }
 }}
+
+    # only after creating the native-object
+    self.set-class-info('CairoPath');
   }
 }
 
@@ -114,6 +117,7 @@ method _fallback ( $native-sub is copy --> Callable ) {
   try { $s = &::("cairo_$native-sub"); } unless ?$s;
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'cairo_' /;
 
+  self.set-class-name-of-sub('CairoPath');
   $s = callsame unless ?$s;
 
   $s;
@@ -131,6 +135,21 @@ method native-object-unref ( $no ) {
 
 #-----------------------------------------------------------------------------
 # Convenience method to walk over the set of parts in a path.
+=begin pod
+=head2 walk-path
+
+A convenience method to walk over the set of parts in a path. The method will go through the elements of he path and calls user methods in an object given by the user to let the user process specific parts in the path.
+
+  method walk-path (
+    Any:D $user-object, Str:D $move-to, Str:D $line-to,
+    Str:D $curve-to, Str:D $close-path
+  }
+
+C<$move-to>, C<$line-to>, C<$curve-to> and C<$close-path> are the names of the methods defined in C<$user-object>.
+
+
+
+#TM:0:walk-path:
 method walk-path (
   Any:D $user-object, Str:D $move-to, Str:D $line-to,
   Str:D $curve-to, Str:D $close-path

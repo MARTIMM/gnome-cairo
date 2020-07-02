@@ -12,8 +12,9 @@ Base class for font faces
 
 =head1 Description
 
- B<cairo_font_face_t> represents a particular font at a particular weight, slant, and other characteristic but no size, transformation, or size.
- Font faces are created using I<font-backend>-specific constructors, typically of the form C<cairo_B<backend>_font_face_create( )>, or implicitly using the I<toy> text API by way of C<cairo_select_font_face()>.  The resulting face can be accessed using C<cairo_get_font_face()>.
+B<cairo_font_face_t> represents a particular font at a particular weight, slant, and other characteristic but no size, transformation, or size.
+
+Font faces are created using I<font-backend>-specific constructors, typically of the form C<cairo_B<backend>_font_face_create( )>, or implicitly using the I<toy> text API by way of C<cairo_select_font_face()>.  The resulting face can be accessed using C<cairo_get_font_face()>.
 
 
 =head2 See Also
@@ -46,6 +47,7 @@ also is Gnome::N::TopLevelClassSupport;
 #-------------------------------------------------------------------------------
 =begin pod
 =head1 Methods
+=begin comment
 =head2 new
 
 =head3 new()
@@ -53,17 +55,7 @@ also is Gnome::N::TopLevelClassSupport;
 Create a new FontFace object.
 
   multi method new ( )
-
-=begin comment
-Create a FontFace object using a native object from elsewhere. See also B<Gnome::N::TopLevelClassSupport>.
-
-  multi method new ( N-GObject :$native-object! )
-
-Create a FontFace object using a native object returned from a builder. See also B<Gnome::GObject::Object>.
-
-  multi method new ( Str :$build-id! )
 =end comment
-
 =end pod
 
 #TM:0:new():
@@ -81,6 +73,7 @@ submethod BUILD ( *%options ) {
     # check if common options are handled by some parent
     elsif %options<native-object>:exists { }
 
+    #`{{
     else {
       my $no;
       # if ? %options<> {
@@ -118,6 +111,10 @@ submethod BUILD ( *%options ) {
 
       self.set-native-object($no);
     }
+    }}
+
+    # only after creating the native-object
+    self.set-class-info('CairoFontFace');
   }
 }
 
@@ -130,6 +127,7 @@ method _fallback ( $native-sub is copy --> Callable ) {
   try { $s = &::("cairo_$native-sub"); } unless ?$s;
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'cairo_' /;
 
+  self.set-class-name-of-sub('CairoFontFace');
   $s = callsame unless ?$s;
 
   $s;
