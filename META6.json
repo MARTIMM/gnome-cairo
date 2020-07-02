@@ -1,9 +1,9 @@
 {
   "description": "Raku Gnome Cairo api, Please install Gnome::Gtk3",
   "name": "Gnome::Cairo",
-  "version": "0.1.0.1",
+  "version": "0.1.1",
   "authors": [ "Marcel Timmerman"],
-  "tags": [ "drawing", "cairo", "plotting"],
+  "tags": [ "drawing", "cairo", "gtk", "gdk"],
 
   "perl": "6",
   "license": "Artistic-2.0",
