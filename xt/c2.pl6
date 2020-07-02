@@ -94,7 +94,7 @@ class PathHandling {
 }
 
 
-my Int ( $width, $height, $text-width) = ( 512, 512, );
+my Int ( $width, $height) = ( 512, 512 );
 
 sub warpPath (
   Gnome::Cairo $context, Str $path-function,
