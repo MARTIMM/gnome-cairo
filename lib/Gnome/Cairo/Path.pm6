@@ -147,7 +147,7 @@ A convenience method to walk over the set of parts in a path. The method will go
 
 C<$move-to>, C<$line-to>, C<$curve-to> and C<$close-path> are the names of the methods defined in C<$user-object>.
 
-
+=end pod
 
 #TM:0:walk-path:
 method walk-path (
