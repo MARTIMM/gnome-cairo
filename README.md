@@ -6,21 +6,16 @@
 
 # Description
 
-From the Gnome documentation;
-
-GIO is striving to provide a modern, easy-to-use VFS API that sits at the right level in the library stack, as well as other generally useful APIs for desktop applications (such as networking and D-Bus support). The goal is to overcome the shortcomings of GnomeVFS and provide an API that is so good that developers prefer it over raw POSIX calls. Among other things that means using GObject. It also means not cloning the POSIX API, but providing higher-level, document-centric interfaces.
-
-That being said, the Raku implementation is not implementing all of it, only those parts interesting to the other packages like application, resource and settings handling or DBus I/O.
-
+This package can be used on its own but it is meant to be used by the other Gnome package to draw in widgets. However, if you want to use it standalone to make drawings saved in a file on disk, I would advice you to use the **Cairo** package of Timo.
 
 # Documentation
 ## Release notes
 * [Release notes][changes]
 
 # Installation
-Do not install this package on its own. Instead install `Gnome::Gtk3`.
+As mentioned above, this package can be used on its own. But better install **Gnome::Gtk3** instead.
 
-`zef install Gnome::Gtk3`
+`zef install Gnome::Cairo`
 
 
 # Author
