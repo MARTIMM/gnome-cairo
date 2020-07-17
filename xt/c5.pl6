@@ -3,7 +3,7 @@
 use v6;
 #use lib '../gnome-native/lib';
 use lib '../gnome-gtk3/lib';
-use lib '../gnome-gdk3/lib';
+#use lib '../gnome-gdk3/lib';
 
 use Gnome::Cairo::ImageSurface;
 use Gnome::Cairo;
@@ -32,8 +32,6 @@ use Gnome::N::X;
 #-------------------------------------------------------------------------------
 # see also http://zetcode.com/gfx/cairo/cairotext/
 # and https://developer.gnome.org/gtk3/stable/ch01s05.html
-
-my Gnome::Gtk3::Main $m .= new;
 
 #-------------------------------------------------------------------------------
 class X {
@@ -104,37 +102,41 @@ class X {
     self.init unless $!initialized;
 
     # the context is created from the current surface. nothing is yet visible
-    my Gnome::Cairo $cairo-context .= new(:$!surface);
-    $cairo-context.set-source-rgb( 1, 1, 1);
-    $cairo-context.paint;
+    given Gnome::Cairo.new(:$!surface) {
+      .set-source-rgb( 1, 1, 1);
+      .paint;
 
-    $cairo-context.select-font-face(
-      "Z003", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD
-    );
+      .select-font-face(
+        "Z003", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD
+      );
 
-    my Int $font-size = 80;
-    $cairo-context.set-source-rgb( 0.4, 0.0, 0.0);
-    $cairo-context.set-font-size($font-size);
+      my Int $font-size = 80;
+      .set-source-rgb( 0.4, 0.0, 0.0);
+      .set-font-size($font-size);
 
-    my Str $zetcode = 'ZetCode';
-    #my $te = $cairo-context.text-extents($zetcode);
-    my cairo_text_extents_t $te .= new(
-      :native-object($cairo-context.text-extents($zetcode))
-    );
-    $cairo-context.move-to( $!width / 2 - $te.width / 2, $!height / 2);
-    $cairo-context.show-text($zetcode);
+      my Str $zetcode = 'ZetCode';
+      #my $te = .text-extents($zetcode);
+      my cairo_text_extents_t $te .= new(
+        :native-object(.text-extents($zetcode))
+      );
+      .move-to( $!width / 2 - $te.width / 2, $!height / 2);
+      .show-text($zetcode);
 
-    my Gnome::Cairo::Pattern $pat .= new( :linear( 0, 15, 0, $font-size * 0.8));
-    $pat.set_extend(CAIRO_EXTEND_REPEAT);
-    $pat.add-color-stop-rgb( 0.0, 1, 0.6, 0);
-    $pat.add-color-stop-rgb( 0.5, 1, 1, 0);
+      given my Gnome::Cairo::Pattern $pattern .= new(
+        :linear( 0, 15, 0, $font-size * 0.8)
+      ) {
+        .set_extend(CAIRO_EXTEND_REPEAT);
+        .add-color-stop-rgb( 0.0, 1, 0.6, 0);
+        .add-color-stop-rgb( 0.5, 1, 1, 0);
+      }
 
-    $cairo-context.move-to( $!width / 2 - $te.width / 2 + 3, $!height / 2 + 3);
-    $cairo-context.text-path($zetcode);
-    $cairo-context.set-source($pat);
-    $cairo-context.fill;
+      .move-to( $!width / 2 - $te.width / 2 + 3, $!height / 2 + 3);
+      .text-path($zetcode);
+      .set-source($pattern);
+      .fill;
 
-    $cairo-context.clear-object;
+      .clear-object;
+    }
 
     1;
   }
@@ -144,19 +146,20 @@ class X {
   method redraw ( cairo_t $n-cx, --> Int ) {
 
     # we have received a cairo context in which our surface must be set.
-    my Gnome::Cairo $cairo-context .= new(:native-object($n-cx));
-    $cairo-context.set-source-surface( $!surface, 0, 0);
+    given Gnome::Cairo.new(:native-object($n-cx)) {
+      .set-source-surface( $!surface, 0, 0);
 
-    # just repaint the whole scenery
-    $cairo-context.paint;
-    $cairo-context.clear-object;
+      # just repaint the whole scenery
+      .paint;
+      .clear-object;
+    }
 
     1
   }
 
   #-----------------------------------------------------------------------------
-  method exit ( ) {
-    $m.gtk-main-quit;
+  method exit ( Gnome::Gtk3::Main :$main ) {
+    $main.gtk-main-quit;
   }
 }
 
@@ -220,17 +223,18 @@ class Y {
     self.init;
 
     # we have received a cairo context in which our surface must be set.
-    my Gnome::Cairo $cairo-context .= new(:native-object($n-cx));
-    $cairo-context.set-source-surface( $!surface, 0, 0);
+    given my Gnome::Cairo $cairo-context .= new(:native-object($n-cx)) {
+      .set-source-surface( $!surface, 0, 0);
 
-    # first transfor user space
-    $cairo-context.scale( 0.7, 0.7);
-    $cairo-context.rotate(0.6);
+      # first transfor user space
+      .scale( 0.7, 0.7);
+      .rotate(0.6);
 
-    # then do the drawing and paint
-    $widget-to-draw.widget-draw($cairo-context);
-    $cairo-context.paint;
-    $cairo-context.clear-object;
+      # then do the drawing and paint
+      $widget-to-draw.draw($cairo-context);
+      .paint;
+      .clear-object;
+    }
 
     1
   }
@@ -251,7 +255,7 @@ class Y {
     );
 
     my Gnome::Cairo $cairo-context .= new(:surface($image-surface));
-    $!drawing-area.widget-draw($cairo-context);
+    $!drawing-area.draw($cairo-context);
     $image-surface.write_to_png("xt/data/c5.png");
 
     $cairo-context.clear-object;
@@ -266,7 +270,7 @@ class Y {
     );
 
     my Gnome::Cairo $cairo-context .= new(:surface($image-surface));
-    $!drawing-area.widget-draw($cairo-context);
+    $!drawing-area.draw($cairo-context);
 
     my Gnome::Gdk3::Pixbuf $pb .= new(
       :surface($image-surface), :clipto( 0, 0, $!width, $!height)
@@ -282,44 +286,48 @@ class Y {
 
 
 #-------------------------------------------------------------------------------
-my Gnome::Gtk3::Window $w .= new;
-$w.set-title('My Drawing In My Window');
-$w.set-position(GTK_WIN_POS_MOUSE);
-$w.set-size-request( 600, 300);
 
-my Gnome::Gtk3::Frame $f .= new(:label('My Drawing'));
-$w.gtk-container-add($f);
+my Gnome::Gtk3::Main $m .= new;
 
-my Gnome::Gtk3::Grid $g .= new;
-$f.gtk-container-add($g);
+given Gnome::Gtk3::Window.new {
+  .set-title('My Drawing In My Window');
+  .set-position(GTK_WIN_POS_MOUSE);
+  .set-size-request( 600, 300);
+
+  my Gnome::Gtk3::Frame $f .= new(:label('My Drawing'));
+  .gtk-container-add($f);
+
+  my Gnome::Gtk3::Grid $g .= new;
+  $f.gtk-container-add($g);
 
 
-my Gnome::Gtk3::DrawingArea $da1 .= new;
-my X $x .= new(:drawing-area($da1));
-#$da.set-size-request( 300, 100);
-$da1.set-hexpand(True);
-$da1.set-vexpand(True);
+  my Gnome::Gtk3::DrawingArea $da1 .= new;
+  my X $x .= new(:drawing-area($da1));
+  #$da.set-size-request( 300, 100);
+  $da1.set-hexpand(True);
+  $da1.set-vexpand(True);
 
-$g.grid-attach( $da1, 0, 0, 1, 1);
+  $g.grid-attach( $da1, 0, 0, 1, 1);
 
-$w.register-signal( $x, 'exit', 'destroy');
+  .register-signal( $x, 'exit', 'destroy', :main($m));
 
-$da1.register-signal( $x, 'make-drawing', 'realize');
-$da1.register-signal( $x, 'modify-drawing', 'configure-event');
-$da1.register-signal( $x, 'redraw', 'draw');
+  $da1.register-signal( $x, 'make-drawing', 'realize');
+  $da1.register-signal( $x, 'modify-drawing', 'configure-event');
+  $da1.register-signal( $x, 'redraw', 'draw');
 
-my Gnome::Gtk3::DrawingArea $da2 .= new;
-my Y $y .= new(:drawing-area($da2));
-$g.grid-attach( $da2, 1, 0, 1, 2);
-#$da2.set-size-request( 300, 100);
-$da2.set-hexpand(True);
-$da2.set-vexpand(True);
+  my Gnome::Gtk3::DrawingArea $da2 .= new;
+  my Y $y .= new(:drawing-area($da2));
+  $g.grid-attach( $da2, 1, 0, 1, 2);
+  #$da2.set-size-request( 300, 100);
+  $da2.set-hexpand(True);
+  $da2.set-vexpand(True);
 
-my Gnome::Gtk3::Button $b .= new(:label<Save>);
-$g.grid-attach( $b, 0, 1, 1, 1);
-$b.register-signal( $y, 'save-picture', 'clicked');
-$da2.register-signal( $y, 'redraw', 'draw', :widget-to-draw($f));
+  my Gnome::Gtk3::Button $b .= new(:label<Save>);
+  $g.grid-attach( $b, 0, 1, 1, 1);
+  $b.register-signal( $y, 'save-picture', 'clicked');
+  $da2.register-signal( $y, 'redraw', 'draw', :widget-to-draw($f));
 
-$w.show-all;
+  .show-all;
+}
 
 $m.gtk-main;
