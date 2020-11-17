@@ -2097,7 +2097,7 @@ sub cairo_append_path ( cairo_t $cr, cairo_path_t $path )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:cairo_status:
+#TM:1:cairo_status:
 =begin pod
 =head2 cairo_status
 
@@ -2109,5 +2109,20 @@ Checks whether an error has previously occurred for this context.  Returns: the 
 =end pod
 
 sub cairo_status ( cairo_t $cr --> int32 )
+  is native(&cairo-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:1:cairo_status_to_string:
+=begin pod
+=head2 [[cairo_] status_] to_string
+
+Provides a human-readable description of a cairo_status_t.
+
+  method cairo_status_to_string ( cairo_status_t $status--> Str )
+
+=end pod
+
+sub cairo_status_to_string ( int32 $status --> Str )
   is native(&cairo-lib)
   { * }
