@@ -1,8 +1,17 @@
 ![gtk logo][logo]
 
-# Gnome Gio -
+# Cairo - Binding of Cairo to the Gnome modules
 
-[![License](http://martimm.github.io/label/License-label.svg)](http://www.perlfoundation.org/artistic_license_2_0)
+![T][travis-svg] ![A][appveyor-svg] ![L][license-svg]
+
+[travis-svg]: https://travis-ci.org/MARTIMM/gnome-cairo.svg?branch=master
+[travis-run]: https://travis-ci.org/MARTIMM/gnome-cairo
+
+[appveyor-svg]: https://ci.appveyor.com/api/projects/status/github/MARTIMM/gnome-cairo?branch=master&passingText=Windows%20-%20OK&failingText=Windows%20-%20FAIL&pendingText=Windows%20-%20pending&svg=true
+[appveyor-run]: https://ci.appveyor.com/project/MARTIMM/gnome-cairo/branch/master
+
+[license-svg]: http://martimm.github.io/label/License-label.svg
+[licence-lnk]: http://www.perlfoundation.org/artistic_license_2_0
 
 # Description
 
@@ -11,8 +20,12 @@ Cairo is a 2D graphics library with support for multiple output devices. Current
 This package can be used on its own but it is meant to be used by the other Gnome package to draw in widgets. However, if you want to use it standalone to make drawings saved in a file on disk, I would advice you to use the **Cairo** package of Timo.
 
 # Documentation
-## Release notes
-* [Release notes][changes]
+* [ 🔗 Website](https://martimm.github.io/gnome-gtk3/content-docs/reference-cairo.html)
+* [ 🔗 Travis-ci run on master branch][travis-run]
+* [ 🔗 Appveyor run on master branch][appveyor-run]
+* [ 🔗 License document][licence-lnk]
+* [ 🔗 Release notes][changes]
+* [ 🔗 Issues](https://github.com/MARTIMM/gnome-gtk3/issues)
 
 # Installation
 As mentioned above, this package can be used on its own. But better install **Gnome::Gtk3** instead.
