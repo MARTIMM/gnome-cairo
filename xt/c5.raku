@@ -2,7 +2,7 @@
 
 use v6;
 #use lib '../gnome-native/lib';
-use lib '../gnome-gtk3/lib';
+#use lib '../gnome-gtk3/lib';
 #use lib '../gnome-gdk3/lib';
 
 use Gnome::Cairo::ImageSurface;
