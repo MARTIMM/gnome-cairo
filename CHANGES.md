@@ -1,5 +1,8 @@
 ## Release notes
 
+* 2021-04-05 0.2.1
+  * renamed `xt/c5.raku` and made small modifications for changes from other modules.
+
 * 2020-11-17 0.2.0
   * Improve **Gnome::Cairo::ImageSurface**, new option `:png` to initialize and added tests. method `.cairo_image_surface_create_from_png()` dropped in favor of the .new(:png).
   * Added `cairo_status_to_string()` to **Gnome::Cairo**.
