@@ -114,7 +114,7 @@ submethod BUILD ( *%options ) {
     }}
 
     # only after creating the native-object
-    self.set-class-info('CairoFontFace');
+    self._set-class-info('CairoFontFace');
   }
 }
 
@@ -127,7 +127,7 @@ method _fallback ( $native-sub is copy --> Callable ) {
   try { $s = &::("cairo_$native-sub"); } unless ?$s;
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'cairo_' /;
 
-  self.set-class-name-of-sub('CairoFontFace');
+  self._set-class-name-of-sub('CairoFontFace');
   $s = callsame unless ?$s;
 
   $s;

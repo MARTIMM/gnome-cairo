@@ -813,7 +813,7 @@ sub substitute-in-template (
           }}
 
           # only after creating the native-object
-          self.set-class-info('LIBCLASSNAME');
+          self._set-class-info('LIBCLASSNAME');
         }
       }
 
@@ -826,7 +826,7 @@ sub substitute-in-template (
         try { $s = &::("cairo_$native-sub"); } unless ?$s;
         try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'cairo_' /;
 
-        self.set-class-name-of-sub('LIBCLASSNAME');
+        self._set-class-name-of-sub('LIBCLASSNAME');
         $s = callsame unless ?$s;
 
         $s;

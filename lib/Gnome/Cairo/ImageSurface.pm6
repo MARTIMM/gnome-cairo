@@ -140,7 +140,7 @@ submethod BUILD ( *%options ) {
       self.set-native-object($no);
     }
 
-    self.set-class-info('CairoImageSurface');
+    self._set-class-info('CairoImageSurface');
   }
 }
 
@@ -153,7 +153,7 @@ method _fallback ( $native-sub is copy --> Callable ) {
   try { $s = &::("cairo_$native-sub"); } unless ?$s;
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'cairo_' /;
 
-  self.set-class-name-of-sub('CairoImageSurface');
+  self._set-class-name-of-sub('CairoImageSurface');
   $s = callsame unless ?$s;
 
   $s;
