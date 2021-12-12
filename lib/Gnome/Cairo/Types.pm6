@@ -5,6 +5,12 @@ use Gnome::Cairo::Enums;
 
 #unit class Gnome::Cairo::Types:auth<github:MARTIMM>;
 
+# TODO Must I ?? Rename all classes which are the same as N-Cairo. Using
+# TopLevelClassSupport the same way as Gtk/Gdk/GObject by storing a N-GObject.
+# Other classes which have content should be renamed too;
+# E.g. cairo_rectangle_int_t should become N-CairoRectangleInt.
+# To keep backwards compatibility a module like GlibToRakuTypes can be created
+# to map the old types to its new types
 #-------------------------------------------------------------------------------
 =begin pod
 =head2 cairo_t
