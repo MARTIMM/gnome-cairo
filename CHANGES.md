@@ -1,4 +1,6 @@
 ## Release notes
+* 2021-12-12 0.2.2
+  * Changes for renamed methods in **Gnome::N::TopLevelClassSupport**.
 
 * 2021-04-05 0.2.1
   * renamed `xt/c5.raku` and made small modifications for changes from other modules.
