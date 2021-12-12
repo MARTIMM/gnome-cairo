@@ -171,11 +171,11 @@ given my Gnome::Gtk3::Window $top-window .= new {
   .set-size-request( 300, 200);
 
   my Gnome::Gtk3::Frame $f .= new(:label('My Drawing'));
-  .gtk-container-add($f);
+  .add($f);
 
   my Gnome::Gtk3::DrawingArea $da .= new;
   my X $x .= new(:drawing-area($da));
-  $f.gtk-container-add($da);
+  $f.add($da);
 
   .register-signal( $x, 'exit', 'destroy', :main($m));
   $da.register-signal( $x, 'make-drawing', 'realize');

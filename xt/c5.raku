@@ -251,7 +251,7 @@ class Y {
   method !save-to-png ( ) {
 
     my Gnome::Cairo::ImageSurface $image-surface .= new(
-      :format(CAIRO_FORMAT_ARGB32), :width($!width), :height($!height)
+      :format(CAIRO_FORMAT_ARGB32), :$!width, :$!height
     );
 
     my Gnome::Cairo $cairo-context .= new(:surface($image-surface));
@@ -295,10 +295,10 @@ given Gnome::Gtk3::Window.new {
   .set-size-request( 600, 300);
 
   my Gnome::Gtk3::Frame $f .= new(:label('My Drawing'));
-  .gtk-container-add($f);
+  .add($f);
 
   my Gnome::Gtk3::Grid $g .= new;
-  $f.gtk-container-add($g);
+  $f.add($g);
 
 
   my Gnome::Gtk3::DrawingArea $da1 .= new;
