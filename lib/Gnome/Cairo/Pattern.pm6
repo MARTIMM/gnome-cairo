@@ -238,8 +238,8 @@ submethod BUILD ( *%options ) {
       # surface
       elsif %options<surface>:exists {
         $no = %options<surface>;
-        $no .= get-native-object-no-reffing
-          if $no.^can('get-native-object-no-reffing');
+        $no .= _get-native-object-no-reffing
+          if $no.^can('_get-native-object-no-reffing');
         $no = _cairo_pattern_create_for_surface($no);
       }
 
@@ -274,7 +274,7 @@ submethod BUILD ( *%options ) {
       }
 #      }}
 
-      self.set-native-object($no);
+      self._set-native-object($no);
     }
 
     # only after creating the native-object

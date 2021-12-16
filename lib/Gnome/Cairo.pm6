@@ -35,6 +35,7 @@ use NativeCall;
 use Gnome::N::X;
 use Gnome::N::NativeLib;
 use Gnome::N::TopLevelClassSupport;
+#use Gnome::N::N-GObject;
 
 use Gnome::Cairo::Types;
 use Gnome::Cairo::Enums;
@@ -84,8 +85,8 @@ submethod BUILD ( *%options ) {
       my $no;
       if %options<surface>:exists {
         $no = %options<surface>;
-        $no .= get-native-object-no-reffing
-          if $no.^can('get-native-object-no-reffing');
+        $no .= _get-native-object-no-reffing unless $no ~~ cairo_surface_t;
+#note "C: $?LINE  $no.raku()";
         $no = _cairo_create($no);
       }
 
@@ -115,10 +116,13 @@ submethod BUILD ( *%options ) {
       }
       }}
 
-      self.set-native-object($no);
+#note "C: $?LINE  $no.raku()";
+      self._set-native-object($no);
     }
 
+#note "C: $?LINE";
     self._set-class-info('Cairo');
+#note "C: $?LINE";
   }
 }
 

@@ -100,14 +100,13 @@ submethod BUILD ( *%options ) {
       }
 
       elsif %options<png>:exists {
-
         $no = _cairo_image_surface_create_from_png(%options<png>);
       }
 
       # if ? %options<> {
       #   $no = %options<>;
-      #   $no .= get-native-object-no-reffing
-      #     if $no.^can('get-native-object-no-reffing');
+      #   $no .= _get-native-object-no-reffing
+      #     if $no.^can('_get-native-object-no-reffing');
       #   $no = ...($no);
       # }
 
@@ -137,7 +136,8 @@ submethod BUILD ( *%options ) {
       }
       }}
 
-      self.set-native-object($no);
+note "IS: $?LINE  $no.raku()";
+      self._set-native-object($no);
     }
 
     self._set-class-info('CairoImageSurface');

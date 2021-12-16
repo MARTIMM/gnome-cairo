@@ -78,8 +78,8 @@ submethod BUILD ( *%options ) {
       my $no;
       # if ? %options<> {
       #   $no = %options<>;
-      #   $no .= get-native-object-no-reffing
-      #     if $no.^can('get-native-object-no-reffing');
+      #   $no .= _get-native-object-no-reffing
+      #     if $no.^can('_get-native-object-no-reffing');
       #   $no = ...($no);
       # }
 
@@ -109,7 +109,7 @@ submethod BUILD ( *%options ) {
       }
       }}
 
-      self.set-native-object($no);
+      self._set-native-object($no);
     }
     }}
 

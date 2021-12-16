@@ -68,8 +68,8 @@ submethod BUILD ( *%options ) {
       my $no;
       # if ? %options<> {
       #   $no = %options<>;
-      #   $no .= get-native-object-no-reffing
-      #     if $no.^can('get-native-object-no-reffing');
+      #   $no .= _get-native-object-no-reffing
+      #     if $no.^can('_get-native-object-no-reffing');
       #   $no = ...($no);
       # }
 
@@ -99,7 +99,7 @@ submethod BUILD ( *%options ) {
       }
       }}
 
-      self.set-native-object($no);
+      self._set-native-object($no);
     }
 }}
 
@@ -155,7 +155,7 @@ method walk-path (
   Str:D $curve-to, Str:D $close-path
 ) {
 
-  my cairo_path_t $path = self.get-native-object;
+  my cairo_path_t $path = self._get-native-object;
   if $path.status !~~ CAIRO_STATUS_SUCCESS {
     self.clear-object;
     X::Gnome.new(:message('Path is not valid'));

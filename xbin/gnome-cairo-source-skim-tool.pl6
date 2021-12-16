@@ -777,8 +777,8 @@ sub substitute-in-template (
             my $no;
             if ? %options<> {
               $no = %options<>;
-              $no .= get-native-object-no-reffing
-                if $no.^can('get-native-object-no-reffing');
+              $no .= _get-native-object-no-reffing
+                if $no.^can('_get-native-object-no-reffing');
               $no = _.BASE-SUBNAME_new_..($no);
             }
 
