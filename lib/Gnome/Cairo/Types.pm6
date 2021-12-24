@@ -17,10 +17,7 @@ use Gnome::Cairo::Enums;
 =end pod
 
 #TT:1:cairo_t
-class cairo_t
-  is repr('CPointer')
-  is export
-  { }
+class cairo_t is repr('CPointer') is export { }
 
 #-------------------------------------------------------------------------------
 =begin pod
@@ -28,10 +25,7 @@ class cairo_t
 =end pod
 
 #TT:1:cairo_surface_t
-class cairo_surface_t
-  is repr('CPointer')
-  is export
-  { }
+class cairo_surface_t is repr('CPointer') is export { }
 
 #-------------------------------------------------------------------------------
 =begin pod
@@ -39,10 +33,7 @@ class cairo_surface_t
 =end pod
 
 #TT:0:cairo_pattern_t
-class cairo_pattern_t
-  is repr('CPointer')
-  is export
-  { }
+class cairo_pattern_t is repr('CPointer') is export { }
 
 #-------------------------------------------------------------------------------
 =begin pod
@@ -50,10 +41,47 @@ class cairo_pattern_t
 =end pod
 
 #TT:0:cairo_matrix_t
-class cairo_matrix_t
-  is repr('CPointer')
-  is export
-  { }
+class cairo_matrix_t is repr('CPointer') is export { }
+
+#-------------------------------------------------------------------------------
+=begin pod
+=head2 cairo_font_face_t
+=end pod
+
+#TT:0:cairo_font_face_t
+class cairo_font_face_t is repr('CPointer') is export { }
+
+#-------------------------------------------------------------------------------
+=begin pod
+=head2 cairo_font_options_t
+=end pod
+
+#TT:0:cairo_font_options_t
+class cairo_font_options_t is repr('CPointer') is export { }
+
+#-------------------------------------------------------------------------------
+=begin pod
+=head2 cairo_scaled_font_t
+=end pod
+
+#TT:0:cairo_scaled_font_t
+class cairo_scaled_font_t is repr('CPointer') is export { }
+
+#-------------------------------------------------------------------------------
+=begin pod
+=head2 cairo_font_extents_t
+=end pod
+
+#TT:0:cairo_font_extents_t
+class cairo_font_extents_t is repr('CPointer') is export { }
+
+#-------------------------------------------------------------------------------
+=begin pod
+=head2 cairo_device_t
+=end pod
+
+#TT:0:cairo_device_t
+class cairo_device_t is repr('CPointer') is export { }
 
 #-------------------------------------------------------------------------------
 =begin pod
@@ -92,50 +120,6 @@ class cairo_path_t is repr('CStruct') is export {
 
 #-------------------------------------------------------------------------------
 =begin pod
-=head2 cairo_font_face_t
-=end pod
-
-#TT:0:cairo_font_face_t
-class cairo_font_face_t
-  is repr('CPointer')
-  is export
-  { }
-
-#-------------------------------------------------------------------------------
-=begin pod
-=head2 cairo_font_options_t
-=end pod
-
-#TT:0:cairo_font_options_t
-class cairo_font_options_t
-  is repr('CPointer')
-  is export
-  { }
-
-#-------------------------------------------------------------------------------
-=begin pod
-=head2
-=end pod
-
-#TT:0:cairo_scaled_font_t
-class cairo_scaled_font_t
-  is repr('CPointer')
-  is export
-  { }
-
-#-------------------------------------------------------------------------------
-=begin pod
-=head2 cairo_font_extents_t
-=end pod
-
-#TT:0:cairo_font_extents_t
-class cairo_font_extents_t
-  is repr('CPointer')
-  is export
-  { }
-
-#-------------------------------------------------------------------------------
-=begin pod
 =head2 cairo_text_extents_t
 
 The cairo_text_extents_t structure stores the extents of a single glyph or a string of glyphs in user-space coordinates. Because text extents are in user-space coordinates, they are mostly, but not entirely, independent of the current transformation matrix. If you call cairo_scale(cr, 2.0, 2.0), text will be drawn twice as big, but the reported text extents will not be doubled. They will change slightly due to hinting (so you can't assume that metrics are independent of the transformation matrix), but otherwise will remain unchanged.
@@ -162,17 +146,6 @@ class cairo_text_extents_t is repr('CStruct') is export {
   has num64 $.x_advance;
   has num64 $.y_advance;
 };
-
-#-------------------------------------------------------------------------------
-=begin pod
-=head2 cairo_device_t
-=end pod
-
-#TT:0:cairo_device_t
-class cairo_device_t
-  is repr('CPointer')
-  is export
-  { }
 
 #`{{
 #-------------------------------------------------------------------------------
