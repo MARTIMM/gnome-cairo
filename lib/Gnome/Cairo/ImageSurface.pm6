@@ -136,7 +136,7 @@ submethod BUILD ( *%options ) {
       }
       }}
 
-note "IS: $?LINE  $no.raku()";
+#note "IS: $?LINE  $no.raku()";
       self._set-native-object($no);
     }
 
