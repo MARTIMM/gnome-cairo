@@ -8,10 +8,11 @@ my Str $library = '';
 my Str $include-filename;
 my Str $lib-class-name;
 
-my Str $base-sub-name;
-my Str $raku-lib-name;
-my Str $raku-class-name;
-my Str $no-type-name;
+#my Str $*base-sub-name;
+#my Str $*raku-lib-name;
+#my Str $*raku-class-name;
+#my Str $*no-type-name;
+
 #my Str $raku-parentlib-name;
 #my Str $raku-parentclass-name;
 
@@ -24,24 +25,42 @@ my @cairodirlist = "$root-dir/xbin/cairo-list.txt".IO.slurp.lines;
 $root-dir = '/home/marcel/Languages/Raku/Projects/gnome-gtk3';
 my @enum-list = "$root-dir/Design-docs/skim-tool-enum-list".IO.slurp.lines;
 
+my Bool $class-is-leaf;
+my Bool $class-is-role; # is leaf implicitly
+my Bool $class-is-top;
 #-------------------------------------------------------------------------------
 sub MAIN (
   Str:D $base-name, Bool :$main = False,
-  Bool :$sub = False, Bool :$types = False, Bool :$test = False
+  Bool :$sub = False, Bool :$types = False, Bool :$test = False,
+  Bool :$leaf = False
 ) {
 
+  my Str $*base-sub-name;
+  my Str $*library = '';
+  my Str $*raku-lib-name;
+  my Str $*lib-class-name;
+  my Str $*raku-class-name;
+  my Str $*no-type-name;
+#  my Str $*raku-parentlib-name = '';
+#  my Str $*raku-parentclass-name = '';
+
   my Bool $do-all = !( [or] $main, $sub, $types, $test );
+  $class-is-leaf = $leaf;
 
 #  load-dir-lists();
 
+  $*base-sub-name = $*base-sub-name // $base-name;
+
   my Bool $file-found;
   my Str ( $include-content, $source-content);
-  $base-sub-name = $base-name;
-  ( $file-found, $include-filename, $lib-class-name, $raku-class-name,
-    $raku-lib-name, $include-content, $source-content, $no-type-name
-  ) = setup-names($base-name);
+  $*base-sub-name = $*base-sub-name // $base-name;
 
-  if $file-found {
+#  ( $file-found, $include-filename, $lib-class-name, $*raku-class-name,
+#    $*raku-lib-name, $include-content, $source-content, $*no-type-name
+#  ) = setup-names($base-name);
+  ( $include-content, $source-content) = setup-names($base-name);
+
+#  if $file-found {
     # test for dir 'xt'
     mkdir( 'xt', 0o766) unless 'xt'.IO.e;
     mkdir( 'xt/NewModules', 0o766) unless 'xt/NewModules'.IO.e;
@@ -57,20 +76,20 @@ sub MAIN (
     get-subroutines( $include-content, $source-content) if $do-all or $sub;
 #    get-signals($source-content) if $do-all or $sig;
 #    get-properties($source-content) if $do-all or $prop;
-
+#`{{
     if $test or $do-all {
       # create var name named after classname. E.g. TextBuffer -> $tb.
       my Str $m = '$' ~
-        (?$raku-class-name ?? $raku-class-name !! $raku-lib-name).comb(
+        (?$*raku-class-name ?? $*raku-class-name !! $*raku-lib-name).comb(
           /<[A..Z]>/
         ).join.lc;
 
       my Str $class;
-      if ?$raku-class-name {
-        $class = [~] 'Gnome::', $raku-lib-name, '::', $raku-class-name;
+      if ?$*raku-class-name {
+        $class = [~] 'Gnome::', $*raku-lib-name, '::', $*raku-class-name;
       }
       else {
-        $class = [~] 'Gnome::', $raku-lib-name;
+        $class = [~] 'Gnome::', $*raku-lib-name;
       }
 
       my Str $test-content = Q:q:s:b:to/EOTEST/;
@@ -102,18 +121,21 @@ sub MAIN (
 
         EOTEST
 
-      if ?$raku-class-name {
-        "xt/NewModules/$raku-class-name.t".IO.spurt($test-content);
+      if ?$*raku-class-name {
+        "xt/NewModules/$*raku-class-name.rakutest".IO.spurt($test-content);
       }
       else {
-        "xt/NewModules/$raku-lib-name.t".IO.spurt($test-content);
+        "xt/NewModules/$*raku-lib-name.rakutest".IO.spurt($test-content);
       }
     }
-  }
+}}
+#  }
 
-  else {
-    note "Include file '$include-filename' is not found";
-  }
+#  else {
+#    note "Include file '$include-filename' is not found";
+#  }
+
+  generate-test if $test or $do-all;
 }
 
 #-------------------------------------------------------------------------------
@@ -134,6 +156,8 @@ sub get-subroutines( Str:D $include-content, Str:D $source-content ) {
   my List $results = $/[*];
 
   # process subroutines
+  print "Find subroutines ";
+  my Hash $sub-documents = %();
   for @$results -> $r {
 #    $variable-args-list = False;
 #note "\n $r";
@@ -199,8 +223,10 @@ sub get-subroutines( Str:D $include-content, Str:D $source-content ) {
 #note "Pod items: $items-src-doc.elems()\n  ", $items-src-doc.join("\n  ");
 
     my Str $args-declaration = $declaration;
-    my Str ( $pod-args, $args, $pod-doc-items) = ( '', '', '');
+    my Str ( $pod-args, $call-args, $args, $pod-doc-items) = ( '', '', '', '');
     my Bool $first-arg = True;
+    my Str $convert-lines = "";
+    my Str $method-args = '';
 
     # process arguments
     for $args-declaration.split(/ \s* ',' \s* /) -> $raw-arg {
@@ -222,9 +248,65 @@ sub get-subroutines( Str:D $include-content, Str:D $source-content ) {
 
         else {
           # make arguments pod doc
-          $pod-args ~= ',' if ?$pod-args;
-          $pod-args ~= " $raku-arg-type \$$arg";
-          $pod-doc-items ~= "=item $raku-arg-type \$$arg; {$pod-doc-item-doc//''}\n";
+#          $pod-args ~= ',' if ?$pod-args;
+#          $pod-args ~= " $raku-arg-type \$$arg";
+#          $pod-doc-items ~= "=item $raku-arg-type \$$arg; {$pod-doc-item-doc//''}\n";
+
+          if $raku-arg-type ~~ any(
+            < N-GObject N-GSList N-GList N-GOptionContext N-GOptionGroup
+              N-GOptionEntry N-GError
+            >
+          ) {
+
+            $convert-lines ~= "  \$$arg .= _get-native-object-no-reffing unless \$$arg ~~ $raku-arg-type;\n";
+
+            $method-args ~= ',' if ?$method-args;
+            $method-args ~= " \$$arg is copy";
+            $call-args ~= ',' if ?$call-args;
+            $call-args ~= " \$$arg";
+            $pod-args ~= ',' if ?$pod-args;
+            $pod-args ~= " $raku-arg-type \$$arg";
+          }
+
+          elsif $raku-arg-type eq 'Int-ptr' {
+            # don't define method args should insert '--> List' at the end
+            # also no pod args and also add '--> List' at the end, but how
+            # and not always if it only one
+            $raku-arg-type = 'Int';
+            $call-args ~= ',' if ?$call-args;
+            $call-args ~= " my gint \$$arg";
+          }
+
+          else {
+            $method-args ~= ',' if ?$method-args;
+            $method-args ~= " $raku-arg-type \$$arg";
+            $call-args ~= ',' if ?$call-args;
+            $call-args ~= " \$$arg";
+            $pod-args ~= ',' if ?$pod-args;
+            $pod-args ~= " $raku-arg-type \$$arg";
+          }
+
+
+
+          # remove some c-oriented remarks
+          if ?$pod-doc-item-doc {
+            $pod-doc-item-doc ~~ s:g/'(' [
+                    nullable | 'transfer none' | 'transfer full' |
+                    'allow-none' | 'not nullable' | 'array zero-terminated=1' |
+                    optional | inout | out | in
+                  ] ')' //;
+            $pod-doc-item-doc ~~ s/^ \s* <[:;]> \s+ //;
+            $pod-doc-item-doc ~~ s/ 'C<Any>-terminated' //;
+            $pod-doc-items ~=
+              "=item $raku-arg-type \$$arg; $pod-doc-item-doc\n";
+          }
+
+          else {
+            $pod-doc-items ~= "=item $raku-arg-type \$$arg; \n";
+          }
+
+          $pod-doc-items ~~ s/^ \s+ $//;
+
         }
 
         # add argument to list for sub declaration
@@ -235,13 +317,14 @@ sub get-subroutines( Str:D $include-content, Str:D $source-content ) {
       $first-arg = False;
     }
 
-#    note "2 >> $sub-name";
-#    note "3 >> $args";
-#    note "4 >> $return-type";
+#note "2 >> $sub-name";
+#note "3 >> $args";
+#note "4 >> $return-type";
 
     $sub-doc = cleanup-source-doc($sub-doc);
 
-    my Str $pod-doc-return = '';
+    my Str $return-dot-comma = '';
+#    my Str $pod-doc-return = '';
     my Str $pod-returns = '';
     my Str $returns = '';
     if ?$return-type and $return-type !~~ m/ void / {
@@ -253,30 +336,154 @@ sub get-subroutines( Str:D $include-content, Str:D $source-content ) {
     my Str $end-comment = ''; # $variable-args-list ?? "\n" ~ '}}' !! '';
 
     my $pod-sub-name = pod-sub-name($sub-name);
-    my Str $sub = Q:qq:to/EOSUB/;
+    my Str $sub = '';
+    my Str $pod-doc-key;
+    my Str $return-conversion = '';
+    given $raku-return-type {
+      when 'Bool' { $return-conversion = '.Bool'; }
+    }
 
-      $start-comment#-------------------------------------------------------------------------------
-      #TM:0:$sub-name:
-      =begin pod
-      =head2 $pod-sub-name
+    # process new subroutines. they will be sorted to the end and do not get a
+    # method because they are accessed from BUILD. Also doc is commented out.
+#`{{
+    if $sub-name ~~ m/^ $*base-sub-name '_new' / {
+      $pod-doc-key = "_$sub-name";
+#      note "get sub as $pod-doc-key";
+      $sub = Q:qq:to/EOSUB/;
 
-      $sub-doc
+        $start-comment#-------------------------------------------------------------------------------
+        #TM:1:_$sub-name:
+        #`\{\{
+        =begin pod
+        =head2 _$sub-name
 
-        method $sub-name ($pod-args$pod-returns )
+        $sub-doc
 
-      $pod-doc-items$pod-doc-return
-      =end pod
+          method _$sub-name ($pod-args$pod-returns )
 
-      sub $sub-name ( $args $returns )
-        is native($library)
-        \{ * \}$end-comment
-      EOSUB
+        $pod-doc-items=end pod
+        \}\}
 
+        sub _$sub-name ( $args $returns )
+          is native($*library)
+          is symbol\('$sub-name')
+          \{ * \}$end-comment
+        EOSUB
+    }
 
-#    note $sub;
+    # process methods in leaf classes. they do not need casting
+    elsif $class-is-leaf {
+}}
 
-    $output-file.IO.spurt( $sub, :append);
+    if $class-is-leaf {
+      $pod-doc-key = $pod-sub-name;
+
+      $sub = Q:qq:to/EOSUB/;
+
+        $start-comment#-------------------------------------------------------------------------------
+        #TM:0:$pod-sub-name:
+        =begin pod
+        =head2 $pod-sub-name
+
+        $sub-doc
+
+          method $pod-sub-name ($pod-args$pod-returns )
+
+        $pod-doc-items=end pod
+
+        method $pod-sub-name ($method-args$pod-returns ) \{
+        $convert-lines
+          $sub-name\(
+            self\._get-native-object-no-reffing,$call-args
+          )$return-conversion$return-dot-comma
+        \}
+
+        sub $sub-name (
+          $args $returns
+        ) is native($*library)
+          \{ * \}$end-comment
+        EOSUB
+#`{{
+      $sub = Q:qq:to/EOSUB/;
+
+        $start-comment#-------------------------------------------------------------------------------
+        #TM:0:$sub-name:
+        =begin pod
+        =head2 $pod-sub-name
+
+        $sub-doc
+
+          method $sub-name ($pod-args$pod-returns )
+
+        $pod-doc-items=end pod
+
+        method $pod-sub-name ($method-args$pod-returns ) \{
+        $convert-lines
+          $sub-name\(
+            self\._get-native-object-no-reffing,$call-args
+          )$return-conversion$return-dot-comma
+        \}
+
+        sub $sub-name ( $args $returns )
+          is native($library)
+          \{ * \}$end-comment
+        EOSUB
+}}
+    }
+
+    # process methods in other classes. they do need casting
+    else {
+      $pod-doc-key = $pod-sub-name;
+#      note "get sub as $pod-sub-name";
+
+      $sub = Q:qq:to/EOSUB/;
+
+        $start-comment#-------------------------------------------------------------------------------
+        #TM:0:$pod-sub-name:
+        =begin pod
+        =head2 $pod-sub-name
+
+        $sub-doc
+
+          method $pod-sub-name ($pod-args$pod-returns )
+
+        $pod-doc-items=end pod
+
+        method $pod-sub-name ($method-args$pod-returns ) \{
+        $convert-lines
+          $sub-name\(
+            self\._f\('$*lib-class-name'),$call-args
+          )$return-conversion$return-dot-comma
+        \}
+
+        sub $sub-name (
+          $args $returns
+        ) is native($*library)
+          \{ * \}$end-comment
+        EOSUB
+    }
+
+    #    note $sub;
+
+    #    $output-file.IO.spurt( $sub, :append);
+    $sub-documents{$pod-doc-key} = $sub;
   }
+  print "\n";
+
+  # place all non-new modules at the end
+  for $sub-documents.keys.sort -> $key {
+#    next if $key ~~ m/^ '_' /;
+    note "save doc for sub $key";
+    $output-file.IO.spurt( $sub-documents{$key}, :append);
+  }
+#`{{
+  # place all new modules at the end
+  for $sub-documents.keys.sort -> $key {
+    next unless $key ~~ m/^ '_' /;
+    note "save doc for sub $key";
+    $output-file.IO.spurt( $sub-documents{$key}, :append);
+  }
+}}
 }
 
 #`{{
@@ -327,7 +534,7 @@ sub get-type( Str:D $declaration is copy --> List ) {
         <alnum>+ \s*
     ]
   /;
-#note "type found: $declaration ---> ", $/.Str;
+note "type found: $declaration ---> ", $/.Str;
 
 
   #[ [const]? \s* <alnum>+ \s* \*? ]*
@@ -338,11 +545,25 @@ sub get-type( Str:D $declaration is copy --> List ) {
 
   # drop the const if any and rename the void pointer
   $type ~~ s:g/ const //;
-  $type ~~ s:g/ void \s* '*' \s* /OpaquePointer /;
+#  $type ~~ s:g/ void \s* '*' \s* /OpaquePointer /;
 
   # convert a pointer char type
-  $type ~~ s/ [unsigned]? \s+ char \s* '*'*/Str/;
+#  $type ~~ s/ [unsigned]? \s+ char \s* '*'*/Str/;
+  $type ~~ s/ g?char \s* '*' \s* '*' \s* '*' /gchar-ppptr/;
+  $type ~~ s/ g?char \s* '*' \s* '*' /gchar-pptr/;
+  $type ~~ s/ g?char \s* '*' /gchar-ptr/;
 
+  # convert other pointer types
+  $type ~~ s/ void \s* '*' /void-ptr/;
+  $type ~~ s/ g?int \s* '*' /gint-ptr/;
+
+  # convert unsigned types
+  $type ~~ s:s/ unsigned char /guint8/;
+  $type ~~ s:s/ unsigned int32 /guint32/;
+  $type ~~ s:s/ unsigned int64 /guint64/;
+  $type ~~ s:s/ unsigned int /guint/;
+
+#`{{
   # if there is still another pointer, make a CArray
 #  $type = "CArray[$type]" if $type ~~ m/ '*' /;
   $type ~~ s:g/ '*' //;
@@ -354,82 +575,31 @@ sub get-type( Str:D $declaration is copy --> List ) {
     $declaration = 'any = Any';
   }
 }}
+}}
 
 #note "\nType: $type";
   # cleanup
-#  $type ~~ s:g/ '*' //;
+  $type ~~ s:g/ '*' //;
   $type ~~ s/ \s+ / /;
   $type ~~ s/ \s+ $//;
   $type ~~ s/^ \s+ //;
   $type ~~ s/^ \s* $//;
-#note "Cleaned type: $type";
+note "Cleaned type: $type";
 
   # check type for its class name
-  my Bool $type-is-class = $type eq $no-type-name;
+  my Bool $type-is-class = $type eq $*no-type-name;
 
-  $type = 'int32' if $type ~~ m/ cairo_bool_t /;
-  $type = 'num32' if $type ~~ m/ real /;
-  $type = 'num64' if $type ~~ m/ double /;
+  $type = 'gint32' if $type ~~ m/ cairo_bool_t /;
+  $type = 'gfloat' if $type ~~ m/ real /;
+  $type = 'gdouble' if $type ~~ m/ double /;
 
   if $type ~~ any(@enum-list) {
-    $type = 'int32';
+    $type = 'gint32';
   }
 
-#`{{
-  # convert to native perl types
-#note "Type: $type";
-  $type = 'N-GError' if $type ~~ m/GError/;
-  $type = 'N-GList' if $type ~~ m/GList/;
-  $type = 'N-GSList' if $type ~~ m/GSList/;
-  $type = 'N-PangoItem' if $type ~~ m/PangoItem/;
-  $type = 'N-Variant' if $type ~~ m/Variant/;
-  $type = 'N-VariantBuilder' if $type ~~ m/VariantBuilder/;
-  $type = 'N-VariantType' if $type ~~ m/VariantType/;
-  $type = 'N-VariantIter' if $type ~~ m/VariantIter/;
-  $type = 'N-GtkTreeIter' if $type ~~ m/GtkTreeIter/;
-  $type = 'N-GtkTreePath' if $type ~~ m/GtkTreePath/;
-
-#  $type = 'int32' if $type ~~ m/GType/;
-  $type = 'uint64' if $type ~~ m/GType/;
-
-  $type = 'int32' if $type ~~ m/GQuark/;
-#  $type = 'N-GObject' if is-n-gobject($type);
-
-  # copy to Raku type for independent convertions
+  # convert to Raku types
   my Str $raku-type = $type;
-
-  # convert to native perl types
-  #$type ~~ s/ g?char \s+ '*' /str/;
-
-  # process all types from GtkEnum and some
-  # use bin/gather-enums.pl6 to create a list in
-  # doc/Design-docs/scim-tool-enum-list.txt
-  if $type ~~ any(@enum-list) {
-    $type = 'int32';
-  }
-
-  $type ~~ s:s/ gboolean || gint || gint32 /int32/;
-  $type ~~ s:s/ g?char || gint8 /int8/;
-  $type ~~ s:s/ gshort || gint16 /int16/;
-  $type ~~ s:s/ glong || gint64 /int64/;
-
-  $type ~~ s:s/ guint || guint32 /uint32/;
-  $type ~~ s:s/ guchar || guint8 /byte/;
-  $type ~~ s:s/ gushort || guint16 /uint16/;
-  $type ~~ s:s/ gulong || guint64 /uint64/;
-
-  $type ~~ s:s/ gssize || goffset /int64/;
-  $type ~~ s:s/ gsize /uint64/;
-  $type ~~ s:s/ gfloat /num32/;
-  $type ~~ s:s/ gdouble /num64/;
-
-  $type ~~ s:s/ int /int32/;
-  $type ~~ s:s/ gpointer /Pointer/;
-
-}}
-
-  # convert to perl types
-  my Str $raku-type = $type;
+##`{{
   $raku-type = 'UInt' if $raku-type ~~ m:s/ unsigned [int || long ]/;
   $raku-type = 'Int' if $raku-type ~~ m:s/ int32 || int64 || int /;
   $raku-type = 'Num' if $raku-type ~~ m:s/ num32 || num64 /;
@@ -442,8 +612,9 @@ sub get-type( Str:D $declaration is copy --> List ) {
   $type = 'int64' if $type ~~ m:s/ [unsigned]? long /;
 #  $type = 'int32' if $type ~~ m:s/ int /;
 #  $type = 'int64' if $type ~~ m:s/ long /;
+#}}
 
-#`{{
+##`{{
   #$raku-type ~~ s/ 'gchar' \s+ '*' /Str/;
   #$raku-type ~~ s/ str /Str/;
 
@@ -464,7 +635,7 @@ sub get-type( Str:D $declaration is copy --> List ) {
 
   $raku-type ~~ s:s/ gfloat || gdouble /Num/;
 
-}}
+#}}
 
 $declaration ~~ s/ \s+ / /;
 $declaration ~~ s/ \s+ $//;
@@ -477,16 +648,15 @@ $declaration ~~ s/^ \s* $//;
 }
 
 #-------------------------------------------------------------------------------
-sub setup-names ( Str:D $base-sub-name --> List ) {
-  my Str $include-file = $base-sub-name;
+sub setup-names ( Str:D $*base-sub-name --> List ) {
+  my Str $include-file = $*base-sub-name;
   $include-file ~~ s:g/ '_' /-/;
 
-  my @parts = $base-sub-name.split(/<[_-]>/);
-  my Str $lib-class = @parts>>.tc.join;
+  my @parts = $*base-sub-name.split(/<[_-]>/);
+  $*lib-class-name = @parts>>.tc.join;
+  $*raku-class-name = @parts>>.tc.join;
 
-  my Str $raku-class = @parts[1..*-1]>>.tc.join;
-
-note "Files etc.: $base-sub-name, $include-file, $lib-class, $raku-class";
+note "Files etc.: $include-file, $*base-sub-name, $*lib-class-name, $*raku-class-name, @parts.raku()";
 
   my $source-root = '/home/marcel/Software/Packages/Sources/Gnome';
 
@@ -497,12 +667,12 @@ note "Files etc.: $base-sub-name, $include-file, $lib-class, $raku-class";
 #note "Include $path/$include-file.h";
   if "$path/$include-file.h".IO.r {
     $file-found = True;
-    if $include-file eq 'gdk-pixbuf' and "$path/{$include-file}-core.h".IO.r {
-      $include-content = "$path/{$include-file}-core.h".IO.slurp;
-    }
-    else {
+#    if $include-file eq 'gdk-pixbuf' and "$path/{$include-file}-core.h".IO.r {
+#      $include-content = "$path/{$include-file}-core.h".IO.slurp;
+#    }
+#    else {
       $include-content = "$path/$include-file.h".IO.slurp;
-    }
+#    }
 
     $source-content = "$path/$include-file.c".IO.slurp
       if "$path/$include-file.c".IO.r;
@@ -517,62 +687,21 @@ note "Files etc.: $base-sub-name, $include-file, $lib-class, $raku-class";
   }
 
   if $file-found {
-    given $path {
-#`{{
-      when / 'gtk+-' <-[/]>+ '/gtk' / {
-        $library = '&gtk-lib';
-        $raku-lib-name = 'Gtk3';
-      }
-
-      when / 'gdk-pixbuf' / {
-        $library = '&gdk-pixbuf-lib';
-        $raku-lib-name = 'Gdk3';
-      }
-
-      when / 'gtk+-' <-[/]>+ '/gdk' / {
-        $library = "&gdk-lib";
-        $raku-lib-name = 'Gdk3';
-      }
-
-      when / 'glib-' <-[/]>+ '/glib' / {
-        $library = "&glib-lib";
-        $raku-lib-name = 'Glib';
-      }
-
-      when / 'glib-' <-[/]>+ '/gio' / {
-        $library = "&gio-lib";
-        $raku-lib-name = 'Gio';
-      }
-
-      when / 'glib-' <-[/]>+ '/gobject' / {
-        $library = "&gobject-lib";
-        $raku-lib-name = 'GObject';
-      }
-
-      when / 'pango-' <-[/]>+ '/pango' / {
-        $library = "&pango-lib";
-        $raku-lib-name = 'Pango';
-      }
-}}
-      when / 'cairo-' <-[/]>+ '/src' / {
-        $library = "&cairo-lib";
-        $raku-lib-name = 'Cairo';
-      }
-
-#        when $gio-path {
-#          $library = "&glib-lib";
-#          $raku-lib-name = 'Glib';
-#        }
-    }
+    $*library = "&cairo-lib";
+    $*raku-lib-name = 'Cairo';
   }
 
-note "Library: $library, $lib-class, $raku-lib-name";
+#note "Library: $library, $lib-class, $*raku-lib-name";
 
-  my Str $no-type-name = $base-sub-name ~ '_t';
+  $*no-type-name = $*base-sub-name ~ '_t';
 
-  ( $file-found, $include-file, $lib-class, $raku-class, $raku-lib-name,
-    $include-content, $source-content, $no-type-name
+#`{{
+  ( $file-found, $include-file, $lib-class, $raku-class, $*raku-lib-name,
+    $include-content, $source-content, $*no-type-name
   )
+}}
+
+  ( $include-content, $source-content)
 }
 
 #-------------------------------------------------------------------------------
@@ -581,54 +710,35 @@ sub pod-sub-name ( Str:D $sub-name --> Str ) {
   my Str $pod-sub-name = $sub-name;
 
   # sometimes the sub name does not start with the base name
-  if $sub-name ~~ m/ ^ $base-sub-name / {
+  if $sub-name ~~ m/ ^ $*base-sub-name / {
+    $pod-sub-name = $sub-name;
+
+    # remove base subname and an '_', then test if there is another '_' to
+    # see if a part could be made optional by circumventing with '[' and ']'.
+    $pod-sub-name ~~ s/^ $*base-sub-name '_' //;
+  }
+
+  # and replace '_' with '-'
+  $pod-sub-name ~~ s:g/ '_' /-/;
+
+#note "psn: $sub-name, $pod-sub-name, $*base-sub-name";
+  $pod-sub-name
+
+#`{{
+  my Str $pod-sub-name = $sub-name;
+
+  # sometimes the sub name does not start with the base name
+  if $sub-name ~~ m/ ^ $*base-sub-name / {
     my Str $s = $sub-name;
-    $s ~~ s/^ $base-sub-name '_' //;
+    $s ~~ s/^ $*base-sub-name '_' //;
     if $s ~~ m/ '_' / {
-      $pod-sub-name = [~] '[', $base-sub-name, '_] ', $s;
+      $pod-sub-name = [~] '[', $*base-sub-name, '_] ', $s;
     }
   }
 
   $pod-sub-name
-}
-
-#`{{
-#-------------------------------------------------------------------------------
-sub is-n-gobject ( Str:D $type-name is copy --> Bool ) {
-  my Bool $is-n-gobject = False;
-
-  $type-name .= lc;
-#note "TN: $type-name";
-
-  given $type-name {
-    when /^ 'gtk' / {
-      $is-n-gobject = $type-name ~~ any(|@gtkdirlist);
-    }
-
-    when /^ 'gdk' / {
-      $is-n-gobject = $type-name ~~ any(|@gdkdirlist);
-    }
-
-    when /^ 'g' / {
-
-      $is-n-gobject = $type-name ~~ any(|@glibdirlist);
-      $is-n-gobject = $type-name ~~ any(|@gobjectdirlist) unless $is-n-gobject;
-#      $is-n-gobject = $type-name ~~ any(|@giodirlist) unless $is-n-gobject;
-#      $is-n-gobject = $type-name ~~ any(|@cairodirlist) unless $is-n-gobject;
-    }
-
-    when /^ 'pango' / {
-      state @modified-pangodirlist = map(
-        { .subst( / '-' /, ''); }, @pangodirlist
-      );
-
-      $is-n-gobject = $type-name ~~ any(|@modified-pangodirlist);
-    }
-  }
-
-  $is-n-gobject
-}
 }}
+}
 
 #`{{
 #-------------------------------------------------------------------------------
@@ -688,6 +798,7 @@ sub substitute-in-template (
     use Gnome::N::X;
     use Gnome::N::NativeLib;
     use Gnome::N::TopLevelClassSupport;
+    use Gnome::N::GlibToRakuTypes;
 
     use Gnome::Cairo::Types;
     use Gnome::Cairo::Enums;
@@ -704,14 +815,14 @@ sub substitute-in-template (
 #    $t2 = 'also is Gnome::N::TopLevelClassSupport;';
 #  }
 
-#  $template-text ~~ s:g/ 'MODULENAME' /$raku-class-name/;
-  if ?$raku-class-name {
+#  $template-text ~~ s:g/ 'MODULENAME' /$*raku-class-name/;
+  if ?$*raku-class-name {
     $template-text ~~
-      s:g/ 'LIBRARYMODULE' /{$raku-lib-name}::{$raku-class-name}/;
+      s:g/ 'LIBRARYMODULE' /{$*raku-lib-name}::{$*raku-class-name}/;
   }
   else {
     $template-text ~~
-      s:g/ 'LIBRARYMODULE' /$raku-lib-name/;
+      s:g/ 'LIBRARYMODULE' /$*raku-lib-name/;
   }
 
 #  $template-text ~~ s:g/ 'USE-LIBRARY-PARENT' /$t1/;
@@ -722,11 +833,11 @@ sub substitute-in-template (
   $template-text ~~ s:g/ 'MODULE-SEEALSO' /$see-also/;
   $template-text ~~ s:g/ 'LIBCLASSNAME' /$lib-class-name/;
 
-  if ?$raku-class-name {
-    $output-file = "xt/NewModules/$raku-class-name.pm6";
+  if ?$*raku-class-name {
+    $output-file = "xt/NewModules/$*raku-class-name.rakumod";
   }
   else {
-    $output-file = "xt/NewModules/$raku-lib-name.pm6";
+    $output-file = "xt/NewModules/$*raku-lib-name.rakumod";
   }
 
   $output-file.IO.spurt($template-text);
@@ -834,11 +945,11 @@ sub substitute-in-template (
 
       EOTEMPLATE
 
-    $template-text ~~ s:g/ 'NO-TYPE-NAME' /$no-type-name/;
-    $template-text ~~ s:g/ 'RAKU-CLASS-NAME' /$raku-class-name/;
-    $template-text ~~ s:g/ 'LIBRARYMODULE' /{$raku-lib-name}::{$raku-class-name}/;
-    $template-text ~~ s:g/ 'BASE-SUBNAME' /$base-sub-name/;
-    $template-text ~~ s:g/ 'LIBCLASSNAME' /$lib-class-name/;
+    $template-text ~~ s:g/ 'NO-TYPE-NAME' /$*no-type-name/;
+    $template-text ~~ s:g/ 'RAKU-CLASS-NAME' /$*raku-class-name/;
+    $template-text ~~ s:g/ 'LIBRARYMODULE' /{$*raku-lib-name}::{$*raku-class-name}/;
+    $template-text ~~ s:g/ 'BASE-SUBNAME' /$*base-sub-name/;
+    $template-text ~~ s:g/ 'LIBCLASSNAME' /$*lib-class-name/;
     $output-file.IO.spurt( $template-text, :append);
   }
 }
@@ -1555,7 +1666,7 @@ sub get-vartypes ( Str:D $include-content ) {
 
 #-------------------------------------------------------------------------------
 sub get-enumerations ( Str:D $include-content is copy ) {
-
+#`{{
   my Str $enums-doc = Q:qq:to/EODOC/;
 
     #-------------------------------------------------------------------------------
@@ -1563,9 +1674,10 @@ sub get-enumerations ( Str:D $include-content is copy ) {
     =head1 Types
     =end pod
     EODOC
-
+}}
 
   my Bool $found-doc = False;
+  my Hash $enum-docs = %();
 
   loop {
     my Str $enum-name = '';
@@ -1583,7 +1695,7 @@ sub get-enumerations ( Str:D $include-content is copy ) {
 
     # if no enums are found, clear the string
     if !?$enum-type-section {
-      $enums-doc = '' unless $found-doc;
+#      $enums-doc = '' unless $found-doc;
       last;
     }
 
@@ -1677,7 +1789,20 @@ sub get-enumerations ( Str:D $include-content is copy ) {
     $enum-doc = cleanup-source-doc($enum-doc);
     $items-doc = primary-doc-changes($items-doc);
 
+#`{{
     $enums-doc ~= Q:qq:to/EODOC/;
+      #-------------------------------------------------------------------------------
+      =begin pod
+      =head2 enum $enum-name
+
+      $enum-doc
+
+      $items-doc
+
+      $enum-spec
+      EODOC
+}}
+    $enum-docs{$enum-name} = Q:qq:to/EODOC/;
       #-------------------------------------------------------------------------------
       =begin pod
       =head2 enum $enum-name
@@ -1690,9 +1815,21 @@ sub get-enumerations ( Str:D $include-content is copy ) {
       EODOC
   }
 
-  $output-file.IO.spurt( $enums-doc, :append);
+#  $output-file.IO.spurt( $enums-doc, :append);
+   $output-file.IO.spurt( Q:qq:to/EODOC/, :append);
+
+    #-------------------------------------------------------------------------------
+    =begin pod
+    =head1 Types
+    =end pod
+    EODOC
+
+  for $enum-docs.keys.sort -> $enum-name {
+    $output-file.IO.spurt( $enum-docs{$enum-name}, :append);
+  }
 }
 
+#`{{
 #-------------------------------------------------------------------------------
 sub get-structures ( Str:D $include-content is copy ) {
 
@@ -1855,6 +1992,7 @@ sub get-structures ( Str:D $include-content is copy ) {
 
   $output-file.IO.spurt( $structs-doc, :append);
 }
+}}
 
 #-------------------------------------------------------------------------------
 sub cleanup-source-doc ( Str:D $text is copy --> Str ) {
@@ -2007,4 +2145,53 @@ sub adjust-image-path ( Str:D $text is copy --> Str ) {
               /\!\[$/[0]\]\(images\/$/[1]\)/;
 
   $text
+}
+
+#-------------------------------------------------------------------------------
+sub generate-test ( ) {
+
+  # create var name named after classname. E.g. TextBuffer -> $tb.
+  my Str $m = '$' ~ $*raku-class-name.comb(/<[A..Z]>/).join.lc;
+  my Str $class = [~] 'Gnome::', $*raku-lib-name, '::', $*raku-class-name;
+#note "GT: $*raku-class-name, $*raku-lib-name, $m, $class";
+
+  my Str $test-content = Q:q:s:b:to/EOTEST/;
+    use v6;
+    use NativeCall;
+    use Test;
+
+    use $class;
+
+    #use Gnome::N::X;
+    #Gnome::N::debug(:on);
+
+    #-------------------------------------------------------------------------------
+    my $class $m;
+    #-------------------------------------------------------------------------------
+    subtest 'ISA test', {
+      $m .= new;
+      isa-ok $m, $class, '.new()';
+    }
+
+    #-------------------------------------------------------------------------------
+    done-testing;
+
+    =finish
+
+
+    #-------------------------------------------------------------------------------
+    # set environment variable 'raku-test-all' if rest must be tested too.
+    unless %*ENV<raku_test_all>:exists {
+      done-testing;
+      exit;
+    }
+
+    #-------------------------------------------------------------------------------
+    subtest 'Manipulations', {
+    }
+
+    EOTEST
+
+  "xt/NewModules/$*raku-class-name.rakutest".IO.spurt($test-content);
+  note "generate tests in xt/NewModules/$*raku-class-name.rakutest";
 }
