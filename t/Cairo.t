@@ -35,6 +35,15 @@ subtest 'Manipulations', {
   $p .= new( :format(CAIRO_FORMAT_ARGB32), :width(128), :height(128));
   $c .= new(:surface($p));
   is cairo_status_t($c.cairo-status), CAIRO_STATUS_SUCCESS, '.cairo-status()';
+
+  $c.set-antialias(CAIRO_ANTIALIAS_GRAY);
+  is $c.get-antialias, CAIRO_ANTIALIAS_GRAY,
+   '.set-antialias() / .get-antialias()';
+
+  $c.new-path;
+  my Num ( $x, $y);
+  ( $x, $y) = $c.get-current-point;
+  is-deeply ( $x, $y), ( 0e0, 0e0), '.new-path() / .get-current-point()';
 }
 
 #-------------------------------------------------------------------------------

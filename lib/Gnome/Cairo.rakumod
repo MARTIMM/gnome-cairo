@@ -664,21 +664,18 @@ sub cairo_font_extents (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:get-antialias:
+#TM:1:get-antialias:
 =begin pod
 =head2 get-antialias
 
 Gets the current shape antialiasing mode, as set by C<cairo_set_antialias()>.  Return value: the current shape antialiasing mode.
 
-  method get-antialias ( --> Int )
+  method get-antialias ( --> cairo_antialias_t )
 
 =end pod
 
-method get-antialias ( --> Int ) {
-
-  cairo_get_antialias(
-    self._get-native-object-no-reffing,
-  )
+method get-antialias ( --> cairo_antialias_t ) {
+  cairo_antialias_t(cairo_get_antialias(self._get-native-object-no-reffing))
 }
 
 sub cairo_get_antialias (
@@ -691,23 +688,31 @@ sub cairo_get_antialias (
 =begin pod
 =head2 get-current-point
 
-Gets the current point of the current path, which is conceptually the final point reached by the path so far.  The current point is returned in the user-space coordinate system. If there is no defined current point or if I<cr> is in an error status, I<x> and I<y> will both be set to 0.0. It is possible to check this in advance with C<cairo_has_current_point()>.  Most path construction functions alter the current point. See the following for details on how they affect the current point: C<cairo_new_path()>, C<cairo_new_sub_path()>, C<cairo_append_path()>, C<cairo_close_path()>, C<cairo_move_to()>, C<cairo_line_to()>, C<cairo_curve_to()>, C<cairo_rel_move_to()>, C<cairo_rel_line_to()>, C<cairo_rel_curve_to()>, C<cairo_arc()>, C<cairo_arc_negative()>, C<cairo_rectangle()>, C<cairo_text_path()>, C<cairo_glyph_path()>, C<cairo_stroke_to_path()>.  Some functions use and alter the current point but do not otherwise change current path: C<cairo_show_text()>.  Some functions unset the current path and as a result, current point: C<cairo_fill()>, C<cairo_stroke()>.
+Gets the current point of the current path, which is conceptually the final point reached by the path so far.  The current point is returned in the user-space coordinate system. If there is no defined current point or if this object is not valid, I<$x> and I<$y> will both be set to 0.0. It is possible to check this in advance with C<has_current_point()>.  Most path construction functions alter the current point.
 
-  method get-current-point ( Num $x_ret, Num $y_ret )
+See the following for details on how they affect the current point: C<new_path()>, C<new_sub_path()>, C<append_path()>, C<close_path()>, C<move_to()>, C<line_to()>, C<curve_to()>, C<rel_move_to()>, C<rel_line_to()>, C<rel_curve_to()>, C<arc()>, C<arc_negative()>, C<rectangle()>, C<text_path()>, C<glyph_path()>, C<stroke_to_path()>.
 
-=item Num $x_ret; a cairo context
-=item Num $y_ret; return value for X coordinate of the current point
+Some functions use and alter the current point but do not otherwise change current path: C<show_text()>.  Some functions unset the current path and as a result, current point: C<fill()>, C<stroke()>.
+
+  method get-current-point ( --> List )
+
+The returned list has;
+=item Num $x; a cairo context
+=item Num $y; return value for X coordinate of the current point
 =end pod
 
-method get-current-point ( Num $x_ret, Num $y_ret ) {
-
+method get-current-point ( --> List ) {
+  my gdouble $x_ret;
+  my gdouble $y_ret;
   cairo_get_current_point(
     self._get-native-object-no-reffing, $x_ret, $y_ret
-  )
+  );
+
+  ( $x_ret, $y_ret);
 }
 
 sub cairo_get_current_point (
-  cairo_t $cr, gdouble $x_ret, gdouble $y_ret
+  cairo_t $cr, gdouble $x_ret is rw, gdouble $y_ret is rw
 ) is native(&cairo-lib)
   { * }
 
@@ -1953,7 +1958,7 @@ sub cairo_select_font_face (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:set-antialias:
+#TM:1:set-antialias:
 =begin pod
 =head2 set-antialias
 
@@ -1965,10 +1970,7 @@ Set the antialiasing mode of the rasterizer used for drawing shapes. This value 
 =end pod
 
 method set-antialias ( Int $antialias ) {
-
-  cairo_set_antialias(
-    self._get-native-object-no-reffing, $antialias
-  )
+  cairo_set_antialias( self._get-native-object-no-reffing, $antialias)
 }
 
 sub cairo_set_antialias (
