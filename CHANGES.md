@@ -1,4 +1,7 @@
 ## Release notes
+* 2021-12-16 0.2.3
+  *
+
 * 2021-12-12 0.2.2
   * Changes for renamed methods in **Gnome::N::TopLevelClassSupport**.
 
