@@ -49,14 +49,14 @@ B<cairo_content_t> is used to describe the content that a surface will contain, 
  Note: The large values here are designed to keep B<cairo_content_t> values distinct from B<cairo_format_t> values so that the implementation can detect the error if users confuse the two types.
 
 
-=item CAIRO_CONTENT_COLOR: The surface will hold color content only. (Since 1.0)
-=item CAIRO_CONTENT_ALPHA: The surface will hold alpha content only. (Since 1.0)
+=item CAIRO_CONTENT_COLOR: The surface will hold color content only.
+=item CAIRO_CONTENT_ALPHA: The surface will hold alpha content only.
 =item CAIRO_CONTENT_COLOR_ALPHA: The surface will hold color and alpha content. (Since 1.0)
 
 
 =end pod
 
-#TE:0:cairo_content_t:
+#TE:1:cairo_content_t:
 enum cairo_content_t is export (
   'CAIRO_CONTENT_COLOR'		=> 0x1000,
   'CAIRO_CONTENT_ALPHA'		=> 0x2000,
@@ -74,15 +74,15 @@ B<cairo_device_type_t> is used to describe the type of a given device. The devic
  New entries may be added in future versions.
 
 
-=item CAIRO_DEVICE_TYPE_DRM: The device is of type Direct Render Manager, since 1.10
-=item CAIRO_DEVICE_TYPE_GL: The device is of type OpenGL, since 1.10
-=item CAIRO_DEVICE_TYPE_SCRIPT: The device is of type script, since 1.10
-=item CAIRO_DEVICE_TYPE_XCB: The device is of type xcb, since 1.10
-=item CAIRO_DEVICE_TYPE_XLIB: The device is of type xlib, since 1.10
-=item CAIRO_DEVICE_TYPE_XML: The device is of type XML, since 1.10
-=item CAIRO_DEVICE_TYPE_COGL: The device is of type cogl, since 1.12
-=item CAIRO_DEVICE_TYPE_WIN32: The device is of type win32, since 1.12
-=item CAIRO_DEVICE_TYPE_INVALID: The device is invalid, since 1.10
+=item CAIRO_DEVICE_TYPE_DRM: The device is of type Direct Render Manager
+=item CAIRO_DEVICE_TYPE_GL: The device is of type OpenGL
+=item CAIRO_DEVICE_TYPE_SCRIPT: The device is of type script
+=item CAIRO_DEVICE_TYPE_XCB: The device is of type xcb
+=item CAIRO_DEVICE_TYPE_XLIB: The device is of type xlib
+=item CAIRO_DEVICE_TYPE_XML: The device is of type XML
+=item CAIRO_DEVICE_TYPE_COGL: The device is of type cogl
+=item CAIRO_DEVICE_TYPE_WIN32: The device is of type win32
+=item CAIRO_DEVICE_TYPE_INVALID: The device is invalid
 
 
 =end pod
@@ -1043,7 +1043,7 @@ Specifies the type of antialiasing to do when rendering text or shapes. As it is
 
 =end pod
 
-#TE:0:cairo_antialias_t:
+#TE:1:cairo_antialias_t:
 enum cairo_antialias_t is export (
   'CAIRO_ANTIALIAS_DEFAULT',
   'CAIRO_ANTIALIAS_NONE',
