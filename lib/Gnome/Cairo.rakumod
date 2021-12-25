@@ -12,8 +12,8 @@ The cairo drawing context
 
 =head1 Description
 
- B<cairo_t> is the main object used when drawing with cairo. To draw with cairo, you create a B<cairo_t>, set the target surface, and drawing options for the B<cairo_t>, create shapes with functions like C<cairo_move_to()> and C<cairo_line_to()>, and then draw shapes with C<cairo_stroke()> or C<cairo_fill()>.
- B<cairo_t> 's can be pushed to a stack via C<cairo_save()>. They may then safely be changed, without losing the current state. Use C<cairo_restore()> to restore to the saved state.
+B<cairo_t> is the main object used when drawing with cairo. To draw with cairo, you create a B<cairo_t>, set the target surface, and drawing options for the B<cairo_t>, create shapes with functions like C<cairo_move_to()> and C<cairo_line_to()>, and then draw shapes with C<cairo_stroke()> or C<cairo_fill()>.
+B<cairo_t> 's can be pushed to a stack via C<cairo_save()>. They may then safely be changed, without losing the current state. Use C<cairo_restore()> to restore to the saved state.
 
 
 =head2 See Also
