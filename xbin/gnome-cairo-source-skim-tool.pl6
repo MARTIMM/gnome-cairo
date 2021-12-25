@@ -4,24 +4,12 @@ use v6;
 
 #-------------------------------------------------------------------------------
 my Str $library = '';
-
 my Str $include-filename;
-my Str $lib-class-name;
-
-#my Str $*base-sub-name;
-#my Str $*raku-lib-name;
-#my Str $*raku-class-name;
-#my Str $*no-type-name;
-
-#my Str $raku-parentlib-name;
-#my Str $raku-parentclass-name;
-
-my Str $output-file;
-
 my Str ( $section-doc, $short-description, $see-also);
 
 my Str $root-dir = '/home/marcel/Languages/Raku/Projects/gnome-cairo';
 my @cairodirlist = "$root-dir/xbin/cairo-list.txt".IO.slurp.lines;
+
 $root-dir = '/home/marcel/Languages/Raku/Projects/gnome-gtk3';
 my @enum-list = "$root-dir/Design-docs/skim-tool-enum-list".IO.slurp.lines;
 
@@ -41,13 +29,10 @@ sub MAIN (
   my Str $*lib-class-name;
   my Str $*raku-class-name;
   my Str $*no-type-name;
-#  my Str $*raku-parentlib-name = '';
-#  my Str $*raku-parentclass-name = '';
+  my Str $*output-file;
 
   my Bool $do-all = !( [or] $main, $sub, $types, $test );
   $class-is-leaf = $leaf;
-
-#  load-dir-lists();
 
   $*base-sub-name = $*base-sub-name // $base-name;
 
@@ -55,86 +40,15 @@ sub MAIN (
   my Str ( $include-content, $source-content);
   $*base-sub-name = $*base-sub-name // $base-name;
 
-#  ( $file-found, $include-filename, $lib-class-name, $*raku-class-name,
-#    $*raku-lib-name, $include-content, $source-content, $*no-type-name
-#  ) = setup-names($base-name);
   ( $include-content, $source-content) = setup-names($base-name);
 
-#  if $file-found {
-    # test for dir 'xt'
-    mkdir( 'xt', 0o766) unless 'xt'.IO.e;
-    mkdir( 'xt/NewModules', 0o766) unless 'xt/NewModules'.IO.e;
+  mkdir( 'xt', 0o766) unless 'xt'.IO.e;
+  mkdir( 'xt/NewModules', 0o766) unless 'xt/NewModules'.IO.e;
 
-#    ( $raku-parentclass-name, $raku-parentlib-name) =
-#       parent-class($include-content);
+  ( $section-doc, $short-description, $see-also) = get-section($source-content);
 
-    ( $section-doc, $short-description, $see-also) =
-      get-section($source-content);
-
-    substitute-in-template( $do-all, $main, $types, $include-content);
-
-    get-subroutines( $include-content, $source-content) if $do-all or $sub;
-#    get-signals($source-content) if $do-all or $sig;
-#    get-properties($source-content) if $do-all or $prop;
-#`{{
-    if $test or $do-all {
-      # create var name named after classname. E.g. TextBuffer -> $tb.
-      my Str $m = '$' ~
-        (?$*raku-class-name ?? $*raku-class-name !! $*raku-lib-name).comb(
-          /<[A..Z]>/
-        ).join.lc;
-
-      my Str $class;
-      if ?$*raku-class-name {
-        $class = [~] 'Gnome::', $*raku-lib-name, '::', $*raku-class-name;
-      }
-      else {
-        $class = [~] 'Gnome::', $*raku-lib-name;
-      }
-
-      my Str $test-content = Q:q:s:b:to/EOTEST/;
-        use v6;
-        use NativeCall;
-        use Test;
-
-        use $class;
-
-        #use Gnome::N::X;
-        #Gnome::N::debug(:on);
-
-        #-------------------------------------------------------------------------------
-        my $class $m;
-        #-------------------------------------------------------------------------------
-        subtest 'ISA test', {
-          $m .= new;
-          isa-ok $m, $class, '.new()';
-        }
-
-        #`{{
-        #-------------------------------------------------------------------------------
-        subtest 'Manipulations', {
-        }
-        }}
-
-        #-------------------------------------------------------------------------------
-        done-testing;
-
-        EOTEST
-
-      if ?$*raku-class-name {
-        "xt/NewModules/$*raku-class-name.rakutest".IO.spurt($test-content);
-      }
-      else {
-        "xt/NewModules/$*raku-lib-name.rakutest".IO.spurt($test-content);
-      }
-    }
-}}
-#  }
-
-#  else {
-#    note "Include file '$include-filename' is not found";
-#  }
-
+  substitute-in-template( $do-all, $main, $types, $include-content);
+  get-subroutines( $include-content, $source-content) if $do-all or $sub;
   generate-test if $test or $do-all;
 }
 
@@ -143,7 +57,6 @@ sub get-subroutines( Str:D $include-content, Str:D $source-content ) {
 
   my Str $sub-doc = '';
   my Array $items-src-doc = [];
-#  my Bool $variable-args-list;
 
   # get all subroutines starting with '/** ... **/ sub declaration'. body is
   # skipped. sometimes there is a declaration of structures using { }. because
@@ -159,8 +72,6 @@ sub get-subroutines( Str:D $include-content, Str:D $source-content ) {
   print "Find subroutines ";
   my Hash $sub-documents = %();
   for @$results -> $r {
-#    $variable-args-list = False;
-#note "\n $r";
 
     my Str $comment-doc = ~$r<comment-doc>;
     my Str $declaration = ~$r<declaration>;
@@ -170,29 +81,7 @@ sub get-subroutines( Str:D $include-content, Str:D $source-content ) {
 
     # sometime there is extra doc for the routine which must be removed
     # this ends up in the declaration
-#    $declaration ~~ s:g/ '/**' .*? '**/'? //;
     $declaration ~~ s:g/ '/*' .*? '*/' //;
-
-#next unless $declaration ~~ m:s/ const gchar \* /;
-    # skip constants and subs with variable argument lists
-#    next if $declaration ~~ m/ 'G_GNUC_CONST' /;
-#    $variable-args-list = True if $declaration ~~ m/ 'G_GNUC_NULL_TERMINATED' /;
-
-    # remove some macros
-#    $declaration ~~ s/ \s* 'G_GNUC_WARN_UNUSED_RESULT' \s* //;
-
-    # remove prefix and tidy up a bit
-#    $declaration ~~ s/^ ['GDK_PIXBUF' || 'GDK' || 'GTK' || 'GLIB' || 'PANGO']
-#                        '_AVAILABLE_IN_' .*?  \n
-#                    //;
-#    $declaration ~~ s:g/ \s* \n \s* / /;
-#    $declaration ~~ s:g/ \s+ / /;
-#    $declaration ~~ s/\s* 'G_GNUC_PURE' \s*//;
-
-#if $comment-doc ~~ m/ CAIRO_MIME_TYPE */ {
-#  note "\n0 >> $comment-doc";
-#  note "\n1 >> $declaration";
-#}
 
     next if $declaration ~~ m/^ \s* '/**' /;
     next if $declaration ~~ m/ static /;
@@ -217,7 +106,6 @@ sub get-subroutines( Str:D $include-content, Str:D $source-content ) {
     $declaration ~~ s:g/ <[();]> //;
 
     # get subroutine documentation from c source
-#    ( $sub-doc, $items-src-doc) = get-sub-doc( $sub-name, $source-content);
     ( $sub-doc, $items-src-doc) = get-sub-doc($comment-doc);
 
 #note "Pod items: $items-src-doc.elems()\n  ", $items-src-doc.join("\n  ");
@@ -248,10 +136,6 @@ sub get-subroutines( Str:D $include-content, Str:D $source-content ) {
 
         else {
           # make arguments pod doc
-#          $pod-args ~= ',' if ?$pod-args;
-#          $pod-args ~= " $raku-arg-type \$$arg";
-#          $pod-doc-items ~= "=item $raku-arg-type \$$arg; {$pod-doc-item-doc//''}\n";
-
           if $raku-arg-type ~~ any(
             < N-GObject N-GSList N-GList N-GOptionContext N-GOptionGroup
               N-GOptionEntry N-GError
@@ -345,36 +229,6 @@ sub get-subroutines( Str:D $include-content, Str:D $source-content ) {
 
     # process new subroutines. they will be sorted to the end and do not get a
     # method because they are accessed from BUILD. Also doc is commented out.
-#`{{
-    if $sub-name ~~ m/^ $*base-sub-name '_new' / {
-      $pod-doc-key = "_$sub-name";
-#      note "get sub as $pod-doc-key";
-      $sub = Q:qq:to/EOSUB/;
-
-        $start-comment#-------------------------------------------------------------------------------
-        #TM:1:_$sub-name:
-        #`\{\{
-        =begin pod
-        =head2 _$sub-name
-
-        $sub-doc
-
-          method _$sub-name ($pod-args$pod-returns )
-
-        $pod-doc-items=end pod
-        \}\}
-
-        sub _$sub-name ( $args $returns )
-          is native($*library)
-          is symbol\('$sub-name')
-          \{ * \}$end-comment
-        EOSUB
-    }
-
-    # process methods in leaf classes. they do not need casting
-    elsif $class-is-leaf {
-}}
-
     if $class-is-leaf {
       $pod-doc-key = $pod-sub-name;
 
@@ -403,38 +257,12 @@ sub get-subroutines( Str:D $include-content, Str:D $source-content ) {
         ) is native($*library)
           \{ * \}$end-comment
         EOSUB
-#`{{
-      $sub = Q:qq:to/EOSUB/;
-
-        $start-comment#-------------------------------------------------------------------------------
-        #TM:0:$sub-name:
-        =begin pod
-        =head2 $pod-sub-name
-
-        $sub-doc
-
-          method $sub-name ($pod-args$pod-returns )
-
-        $pod-doc-items=end pod
-
-        method $pod-sub-name ($method-args$pod-returns ) \{
-        $convert-lines
-          $sub-name\(
-            self\._get-native-object-no-reffing,$call-args
-          )$return-conversion$return-dot-comma
-        \}
-
-        sub $sub-name ( $args $returns )
-          is native($library)
-          \{ * \}$end-comment
-        EOSUB
-}}
     }
 
     # process methods in other classes. they do need casting
     else {
       $pod-doc-key = $pod-sub-name;
-#      note "get sub as $pod-sub-name";
+#note "get sub as $pod-sub-name";
 
       $sub = Q:qq:to/EOSUB/;
 
@@ -463,56 +291,18 @@ sub get-subroutines( Str:D $include-content, Str:D $source-content ) {
         EOSUB
     }
 
-    #    note $sub;
+#    note $sub;
 
-    #    $output-file.IO.spurt( $sub, :append);
     $sub-documents{$pod-doc-key} = $sub;
   }
   print "\n";
 
   # place all non-new modules at the end
   for $sub-documents.keys.sort -> $key {
-#    next if $key ~~ m/^ '_' /;
     note "save doc for sub $key";
-    $output-file.IO.spurt( $sub-documents{$key}, :append);
+    $*output-file.IO.spurt( $sub-documents{$key}, :append);
   }
-#`{{
-  # place all new modules at the end
-  for $sub-documents.keys.sort -> $key {
-    next unless $key ~~ m/^ '_' /;
-    note "save doc for sub $key";
-    $output-file.IO.spurt( $sub-documents{$key}, :append);
-  }
-}}
 }
-
-#`{{
-#-------------------------------------------------------------------------------
-sub parent-class ( Str:D $include-content --> List ) {
-
-  $include-content ~~ m/
-    ^^ \s*
-    $<lib-parent> = [<alnum>+]
-    \s+ 'parent_class'
-  /;
-
-  my Str $raku-lib-parentclass = ~($<lib-parent> // '');
-  my Str $raku-parentlib-name = '';
-  given $raku-lib-parentclass {
-    when /^ Gtk / {
-      $raku-parentlib-name = 'Gtk3';
-    }
-
-    when /^ Gdk / {
-      $raku-parentlib-name = 'Gdk3';
-    }
-  }
-
-  $raku-lib-parentclass ~~ s:g/ ['Gtk' || 'Gdk'|| 'Class'] //;
-
-  ( $raku-lib-parentclass, $raku-parentlib-name);
-}
-}}
 
 #-------------------------------------------------------------------------------
 # Get the type from the start of the declaration and remove it from that
@@ -534,7 +324,7 @@ sub get-type( Str:D $declaration is copy --> List ) {
         <alnum>+ \s*
     ]
   /;
-note "type found: $declaration ---> ", $/.Str;
+#note "type found: $declaration ---> ", $/.Str;
 
 
   #[ [const]? \s* <alnum>+ \s* \*? ]*
@@ -584,7 +374,7 @@ note "type found: $declaration ---> ", $/.Str;
   $type ~~ s/ \s+ $//;
   $type ~~ s/^ \s+ //;
   $type ~~ s/^ \s* $//;
-note "Cleaned type: $type";
+#note "Cleaned type: $type";
 
   # check type for its class name
   my Bool $type-is-class = $type eq $*no-type-name;
@@ -654,9 +444,12 @@ sub setup-names ( Str:D $*base-sub-name --> List ) {
 
   my @parts = $*base-sub-name.split(/<[_-]>/);
   $*lib-class-name = @parts>>.tc.join;
+  $*lib-class-name ~~ s/^ Cairo(\w) /$/[0]/;
   $*raku-class-name = @parts>>.tc.join;
+  $*raku-class-name ~~ s/^ Cairo(\w) /$/[0]/;
 
-note "Files etc.: $include-file, $*base-sub-name, $*lib-class-name, $*raku-class-name, @parts.raku()";
+#note "Files etc.: $include-file, $*base-sub-name, $*lib-class-name, $*raku-class-name, @parts.raku()";
+#exit(0);
 
   my $source-root = '/home/marcel/Software/Packages/Sources/Gnome';
 
@@ -723,41 +516,7 @@ sub pod-sub-name ( Str:D $sub-name --> Str ) {
 
 #note "psn: $sub-name, $pod-sub-name, $*base-sub-name";
   $pod-sub-name
-
-#`{{
-  my Str $pod-sub-name = $sub-name;
-
-  # sometimes the sub name does not start with the base name
-  if $sub-name ~~ m/ ^ $*base-sub-name / {
-    my Str $s = $sub-name;
-    $s ~~ s/^ $*base-sub-name '_' //;
-    if $s ~~ m/ '_' / {
-      $pod-sub-name = [~] '[', $*base-sub-name, '_] ', $s;
-    }
-  }
-
-  $pod-sub-name
-}}
 }
-
-#`{{
-#-------------------------------------------------------------------------------
-sub load-dir-lists ( ) {
-
-  my Str $root-dir = '/home/marcel/Languages/Raku/Projects/gnome-gtk3';
-#  @gtkdirlist = "$root-dir/Design-docs/gtk3-list.txt".IO.slurp.lines;
-#  @gdkdirlist = "$root-dir/Design-docs/gdk3-list.txt".IO.slurp.lines;
-#  @gdkpixbufdirlist = "$root-dir/Design-docs/gdk3-pixbuf-list.txt".IO.slurp.lines;
-#  @gobjectdirlist = "$root-dir/Design-docs/gobject-list.txt".IO.slurp.lines;
-#  @glibdirlist = "$root-dir/Design-docs/glib-list.txt".IO.slurp.lines;
-#  @giodirlist = "$root-dir/Design-docs/gio-list.txt".IO.slurp.lines;
-
-#  @pangodirlist = "$root-dir/Design-docs/pango-list.txt".IO.slurp.lines;
-  @cairodirlist = "$root-dir/Design-docs/cairo-list.txt".IO.slurp.lines;
-
-  @enum-list = "$root-dir/Design-docs/skim-tool-enum-list".IO.slurp.lines;
-}
-}}
 
 #-------------------------------------------------------------------------------
 sub substitute-in-template (
@@ -831,16 +590,16 @@ sub substitute-in-template (
   $template-text ~~ s:g/ 'MODULE-SHORTDESCRIPTION' /$short-description/;
   $template-text ~~ s:g/ 'MODULE-DESCRIPTION' /$section-doc/;
   $template-text ~~ s:g/ 'MODULE-SEEALSO' /$see-also/;
-  $template-text ~~ s:g/ 'LIBCLASSNAME' /$lib-class-name/;
+  $template-text ~~ s:g/ 'LIBCLASSNAME' /$*lib-class-name/;
 
   if ?$*raku-class-name {
-    $output-file = "xt/NewModules/$*raku-class-name.rakumod";
+    $*output-file = "xt/NewModules/$*raku-class-name.rakumod";
   }
   else {
-    $output-file = "xt/NewModules/$*raku-lib-name.rakumod";
+    $*output-file = "xt/NewModules/$*raku-lib-name.rakumod";
   }
 
-  $output-file.IO.spurt($template-text);
+  $*output-file.IO.spurt($template-text);
 
   get-vartypes($include-content) if $do-all or $types;
 
@@ -860,11 +619,18 @@ sub substitute-in-template (
       =head1 Methods
       =head2 new
 
-      =head3 new()
+      =head3 default, no options
 
       Create a new RAKU-CLASS-NAME object.
 
         multi method new ( )
+
+
+      =head3 :native-object
+
+      Create a RAKU-CLASS-NAME object using a native object from elsewhere. See also B<Gnome::N::TopLevelClassSupport>.
+
+        multi method new ( N-GObject :$native-object! )
 
       =end pod
 
@@ -888,8 +654,7 @@ sub substitute-in-template (
             my $no;
             if ? %options<> {
               $no = %options<>;
-              $no .= _get-native-object-no-reffing
-                if $no.^can('_get-native-object-no-reffing');
+              $no .= _get-native-object-no-reffing unless $no ~~ BASE-SUBNAME_t;
               $no = _.BASE-SUBNAME_new_..($no);
             }
 
@@ -950,7 +715,7 @@ sub substitute-in-template (
     $template-text ~~ s:g/ 'LIBRARYMODULE' /{$*raku-lib-name}::{$*raku-class-name}/;
     $template-text ~~ s:g/ 'BASE-SUBNAME' /$*base-sub-name/;
     $template-text ~~ s:g/ 'LIBCLASSNAME' /$*lib-class-name/;
-    $output-file.IO.spurt( $template-text, :append);
+    $*output-file.IO.spurt( $template-text, :append);
   }
 }
 
@@ -1053,607 +818,6 @@ sub get-section ( Str:D $source-content --> List ) {
   )
 }
 
-#`{{
-#-------------------------------------------------------------------------------
-sub get-signals ( Str:D $source-content is copy ) {
-
-  return unless $source-content;
-
-  my Array $items-src-doc;
-  my Str $signal-name;
-  my Str $signal-doc = '';
-  my Hash $signal-classes = %();
-
-  loop {
-    $items-src-doc = [];
-    $signal-name = '';
-
-    $source-content ~~ m/
-      $<signal-doc> = [ '/**' \s+ '*' \s+ $lib-class-name '::'  .*? '*/' ]
-    /;
-
-    # save doc and remove from source but stop if none left
-    my Str $sdoc = ~($<signal-doc> // '');
-#note "SDoc 0 $lib-class-name: ", ?$sdoc;
-    my Bool $has-doc = ($sdoc ~~ m/ '/**' / ?? True !! False);
-
-    # possibly no documentation
-    if $has-doc {
-      $source-content ~~ s/$sdoc//;
-
-      # get lib class name and remove line from source
-      $sdoc ~~ m/
-        ^^ \s+ '*' \s+ $lib-class-name '::' $<signal-name> = [ [<alnum> || '-']+ ]
-      /;
-      $signal-name = ~($<signal-name> // '');
-      $sdoc ~~ s/ ^^ \s+ '*' \s+ $lib-class-name '::' $signal-name ':'? //;
-#note "SDoc 1 ", $sdoc;
-    }
-
-    # get some more info from the function call
-    $source-content ~~ m/
-      'g_signal_new' '_class_handler'? \s* '('
-      $<signal-args> = [
-        [ <[A..Z]> '_('                     || # gtk sources
-          'g_intern_static_string' \s* '('     # gdk sources
-        ]
-        '"' <-[\"]>+ '"' .*?
-      ] ');'
-    /;
-#note "SDoc 2 ",  ~($<signal-args>//'-');
-
-    # save and remove from source but stop if there isn't any left
-    my Str $sig-args = ~($<signal-args>//'');
-    if !$sig-args {
-      $sdoc = '';
-      last;
-    }
-    $source-content ~~
-       s/ 'g_signal_new' '_class_handler'? \s* '(' $sig-args ');' //;
-
-#note "sig args: ", $sig-args;
-    # when there's no doc, signal name must be retrieved from function argument
-    unless $signal-name {
-      $sig-args ~~ m/ '"' $<signal-name> = [ <-[\"]>+ ] '"' /;
-      $signal-name = ($<signal-name>//'').Str;
-    }
-
-#note "SA $signal-name: ", $sig-args;
-
-    # start pod doc
-    $signal-doc ~= "\n=comment #TS:0:$signal-name:\n=head3 $signal-name\n";
-    note "get signal $signal-name";
-
-    # process g_signal_new arguments, remove commas from specific macro
-    # by removing the complete argument list. it's not needed.
-    $sig-args ~~ s/ 'G_STRUCT_OFFSET' \s* \( <-[\)]>+ \) /G_STRUCT_OFFSET/;
-    my @args = ();
-    for $sig-args.split(/ \s* ',' \s* /) -> $arg is copy {
-#note "arg: '$arg'";
-      @args.push($arg);
-    }
-
-#note "Args: ", @args[7..*-1];
-    # get a return type
-    my Str $return-type = '';
-    given @args[7] {
-      # most of the time it is a boolean ( == c int32)
-      when 'G_TYPE_BOOLEAN' { $return-type = 'Int'; }
-      when 'G_TYPE_INT' { $return-type = 'Int'; }
-      when 'G_TYPE_UINT' { $return-type = 'Int'; }
-      when 'G_TYPE_STRING' { $return-type = 'Str'; }
-      when 'G_TYPE_NONE' { $return-type = ''; }
-      when 'GTK_TYPE_TREE_ITER' { $return-type = 'N-GtkTreeIter'; }
-      # show that there is something
-      default { $return-type = "Unknown type @args[7]"; }
-    }
-
-    my Int $item-count = 0;
-
-    # create proper variable name when not available from the doc
-    my Str $iname = $lib-class-name;
-    $iname ~~ s:i/^ [ gtk || gdk || g ] //;
-    $iname .= lc;
-    $items-src-doc.push: %(
-      :item-type<Gnome::GObject::Object>, :item-name($iname),
-      :item-doc('')
-    );
-
-    my Array $signal-args = ['Gnome::GObject::Object'];
-    my Int $arg-count = @args[8].Int;
-    loop ( my $i = 0; $i < $arg-count; $i++ ) {
-
-      my Str $arg-type = '';
-      given @args[9 + $i] {
-        when 'G_TYPE_BOOLEAN' { $arg-type = 'Int'; }
-        when 'G_TYPE_INT' { $arg-type = 'Int'; }
-        when 'G_TYPE_UINT' { $return-type = 'Int'; }
-        when 'G_TYPE_LONG' { $arg-type = 'int64 #`{ use NativeCall }'; }
-        when 'G_TYPE_FLOAT' { $arg-type = 'Num'; }
-        when 'G_TYPE_DOUBLE' { $arg-type = 'num64 #`{ use NativeCall }'; }
-        when 'G_TYPE_STRING' { $arg-type = 'Str'; }
-        when 'G_TYPE_ERROR' { $arg-type = 'N-GError'; }
-
-        when 'GTK_TYPE_OBJECT' { $arg-type = 'N-GObject #`{ is object }'; }
-        when 'GTK_TYPE_WIDGET' { $arg-type = 'N-GObject #`{ is widget }'; }
-        when 'GTK_TYPE_TEXT_ITER' {
-          $arg-type = 'N-GObject #`{ native Gnome::Gtk3::TextIter }';
-        }
-        when 'GTK_TYPE_TREE_ITER' {
-          $arg-type = 'N-GtkTreeIter #`{ native Gnome::Gtk3::TreeIter }';
-        }
-
-        when 'GDK_TYPE_DISPLAY' {
-          $arg-type = 'N-GObject #`{ native Gnome::Gdk3::Display }';
-        }
-        when 'GDK_TYPE_DEVICE' {
-          $arg-type = 'N-GObject #`{ native Gnome::Gdk3::Device }';
-        }
-        when 'GDK_TYPE_DEVICE_TOOL' {
-          $arg-type = 'N-GObject #`{ native Gnome::Gdk3::DeviceTool }';
-        }
-        when 'GDK_TYPE_MONITOR' {
-          $arg-type = 'N-GObject #`{ native Gnome::Gdk3::Monitor }';
-        }
-        when 'GDK_TYPE_SCREEN' {
-          $arg-type = 'N-GObject #`{ native Gnome::Gdk3::Screen }';
-        }
-        when 'GDK_TYPE_SEAT' {
-          $arg-type = 'N-GObject #`{ native Gnome::Gdk3::Seat }';
-        }
-        when 'GDK_TYPE_MODIFIER_TYPE' {
-          $arg-type = 'GdkModifierType #`{ from Gnome::Gdk3::Window }';
-        }
-        default { $arg-type = "Unknown type @args[{9 + $i}]"; }
-      }
-
-      my Str $item-name = $arg-type.lc;
-      $item-name ~~ s/ 'gnome::gtk3::' //;
-      $items-src-doc.push: %(
-        :item-type($arg-type), :$item-name,
-        :item-doc('')
-      );
-
-#note "AT: $i, $arg-type";
-      $signal-args.push: $arg-type;
-    }
-
-    # we know the number of extra arguments and signal name
-    my Str $sig-class = "w$arg-count";
-    $signal-classes{$sig-class} = [] unless $signal-classes{$sig-class}:exists;
-    $signal-classes{$sig-class}.push: $signal-name;
-
-    # get arguments for this signal handler
-    my Str ( $item-doc, $item-name, $spart-doc) = ( '', '', '');
-    my Bool $item-scan = True;
-    #my Bool $first-arg = True;
-
-    $item-count = 0;
-    if $has-doc {
-      $items-src-doc = [];
-      for $sdoc.lines -> $line {
-#note "L: $line";
-
-        # argument doc start
-        if $item-scan and $line ~~ m/^ \s* '*' \s+ '@' / {
-
-          # push when 2nd arg is found
-#note "ISD 0: $item-count, $item-name, $signal-args[$item-count]" if ?$item-name;
-          $items-src-doc.push: %(
-            :item-type($signal-args[$item-count++]), :$item-name, :$item-doc
-          ) if ?$item-name;
-
-          # get the info from the current line
-          $line ~~ m/ '*' \s+ '@' $<item-name> = [<alnum>+] ':'
-                      \s* $<item-doc> = [ .* ]
-                    /;
-
-          $item-name = ~($<item-name> // '');
-          $item-doc = primary-doc-changes(~($<item-doc> // '')) ~ "\n";
-#note "n, d: $item-name, $item-doc";
-        }
-
-        # continue previous argument doc
-        elsif $item-scan and
-              $line ~~ m/^ \s* '*' \s ** 2..* $<item-doc> = [ .* ] / {
-          my Str $s = ~($<item-doc> // '');
-          $item-doc ~= primary-doc-changes($s);
-#note "d: $item-doc";
-        }
-
-        # on empty line after '*' start sub doc
-        elsif $line ~~ m/^ \s* '*' \s* $/ {
-          # push last arg
-#note "ISD 1: $item-count, $item-name, $signal-args[$item-count]"
-#if $item-scan and ?$item-name;
-          $items-src-doc.push: %(
-            :item-type($signal-args[$item-count]), :$item-name, :$item-doc
-          ) if $item-scan and ?$item-name;
-
-          $spart-doc ~= "\n";
-          $item-scan = False;
-        }
-
-        # rest is sub doc
-        elsif !$item-scan {
-          # skip end of document
-          next if $line ~~ m/ '*/' /;
-
-          my Str $l = $line;
-          $l ~~ s/^ \s* '*' \s* //;
-          $spart-doc ~= $l ~ "\n";
-        }
-      }
-
-      # when there is no sub doc, it might end a bit abdrupt
-      #note "ISD 2: $item-count, $item-name, $signal-args[$item-count]"
-      #if $item-scan and ?$item-name;
-
-      $items-src-doc.push: %(
-      :item-type($signal-args[$item-count]), :$item-name, :$item-doc
-      ) if $item-scan and ?$item-name;
-
-      $signal-doc ~= primary-doc-changes($spart-doc);
-    }
-
-
-    $signal-doc ~= "\n  method handler (\n";
-    $item-count = 0;
-    my Str $first-arg = '';
-    for @$items-src-doc -> $idoc {
-#note "IDoc: $item-count, ", $idoc;
-      if $item-count == 0 {
-        $first-arg =
-          "$idoc<item-type> \:widget\(\$$idoc<item-name>\)";
-      }
-
-      else {
-        $signal-doc ~= "    {$idoc<item-type>//'-'} \$$idoc<item-name>,\n";
-      }
-
-      $item-count++;
-    }
-
-    $signal-doc ~= "    $first-arg,\n    \*\%user-options\n";
-    $signal-doc ~= "    --> $return-type\n" if ?$return-type;
-    $signal-doc ~= "  );\n\n";
-
-    for @$items-src-doc -> $idoc {
-      $signal-doc ~= "=item \$$idoc<item-name>; $idoc<item-doc>\n";
-    }
-#note "next signal";
-  }
-#note "last signal";
-
-  my Str $bool-signals-added = '';
-  my Str $build-add-signals = '';
-  if ?$signal-doc {
-
-    $signal-doc = Q:q:to/EOSIGDOC/ ~ $signal-doc ~ "\n=end pod\n\n";
-
-      #-------------------------------------------------------------------------------
-      =begin pod
-      =head1 Signals
-
-      There are two ways to connect to a signal. The first option you have is to use C<register-signal()> from B<Gnome::GObject::Object>. The second option is to use C<g_signal_connect_object()> directly from B<Gnome::GObject::Signal>.
-
-      =head2 First method
-
-      The positional arguments of the signal handler are all obligatory as well as their types. The named attributes C<:$widget> and user data are optional.
-
-        # handler method
-        method mouse-event ( GdkEvent $event, :$widget ) { ... }
-
-        # connect a signal on window object
-        my Gnome::Gtk3::Window $w .= new( ... );
-        $w.register-signal( self, 'mouse-event', 'button-press-event');
-
-      =head2 Second method
-
-        my Gnome::Gtk3::Window $w .= new( ... );
-        my Callable $handler = sub (
-          N-GObject $native, GdkEvent $event, OpaquePointer $data
-        ) {
-          ...
-        }
-
-        $w.connect-object( 'button-press-event', $handler);
-
-      Also here, the types of positional arguments in the signal handler are important. This is because both methods C<register-signal()> and C<g_signal_connect_object()> are using the signatures of the handler routines to setup the native call interface.
-
-      =head2 Supported signals
-
-      EOSIGDOC
-
-    # create the class string to substitute in the source
-    my Str $sig-class-str = '';
-    for $signal-classes.kv -> $class, $signals {
-      $sig-class-str ~= "\:$class\<";
-      $sig-class-str ~= $signals.join(' ');
-      $sig-class-str ~= '>, ';
-    }
-
-    $bool-signals-added = Q:q:to/EOBOOL/;
-      my Bool $signals-added = False;
-      #-------------------------------------------------------------------------------
-      EOBOOL
-
-    $build-add-signals = Q:q:to/EOBUILD/;
-        # add signal info in the form of w*<signal-name>.
-        unless $signals-added {
-          $signals-added = self.add-signal-types( $?CLASS.^name,
-            SIG_CLASS_STR
-          );
-
-          # signals from interfaces
-          #_add_..._signal_types($?CLASS.^name);
-        }
-      EOBUILD
-      $build-add-signals ~~ s/SIG_CLASS_STR/$sig-class-str/;
-
-    # and append signal data to result module
-    $output-file.IO.spurt( $signal-doc, :append);
-  }
-
-  # load the module for substitutions
-  my Str $module = $output-file.IO.slurp;
-
-  # substitute
-  $module ~~ s/ 'BOOL-SIGNALS-ADDED' /$bool-signals-added/;
-  $module ~~ s/ 'BUILD-ADD-SIGNALS' /$build-add-signals/;
-
-  # rewrite
-  $output-file.IO.spurt($module);
-}
-}}
-#`{{
-#-------------------------------------------------------------------------------
-sub get-properties ( Str:D $source-content is copy ) {
-
-  return unless $source-content;
-
-  my Str $property-name;
-  my Str $property-doc = '';
-
-  loop {
-    $property-name = '';
-
-#`{{
-    $source-content ~~ m/
-      $<property-doc> = [
-          [ '/**'                           # start c-comment block
-            \s+ '*' \s+ [<alnum>||'-']+     # first line has Gtk class name
-           ':' [<alnum>||'-']+ ':'          # and a :property name:
-            [^^ \s+ '*' <!before '/'> .*? $$ ]*    # anything else but '*/'
-            \s* '*/'                        # till the end of c-comment
-          ]?                                # sometimes there's no comment block
-          \s+ [ 'g_object_interface_install_property' .*? ||
-                                            # sometimes a call for interfaces
-            'props[' <-[\]]>+ ']' \s* '=' \s*
-                                            # sometimes there's an array def
-          ]                             # anything else
-        'g_param_spec_'                     # till prop spec starts
-        .*? ');'                            # till the spec ends
-      ]
-    /;
-}}
-    $source-content ~~ m/
-      $<property-doc> = [
-        [ '/**'                           # start c-comment block
-          \s+ '*' \s+ [<alnum>||'-']+     # first line has Gtk class name
-         ':' [<alnum>||'-']+ ':'          # and a :property name:
-          .*? '*/'                        # till the end of c-comment
-        ]?                                # sometimes there's no comment block
-                                          # optional comment block
-        \s+ [ 'g_object_interface_install_property' .*? ||
-                                          # sometimes a call for interfaces
-         'g_object_class_install_property' .*? ||
-                                          # sometimes a call for classes
-          <alnum>*? 'props[' <-[\]]>+ ']' \s* '=' \s*
-                                          # sometimes there's an array def
-        ]                                 # anything else
-        'g_param_spec_'                   # till prop spec starts
-        .*? ');'                          # till the spec ends
-      ]
-    /;
-
-    my Str $sdoc = ~($<property-doc> // '');
-#note "sdoc: ", ?$sdoc;
-    last unless ?$sdoc;
-
-    # remove from source
-    $source-content ~~ s/$sdoc//;
-
-    # skip deprecated properties
-    next if $sdoc ~~ m/ '*' \s+ 'Deprecated:' /;
-
-    my Bool $has-doc = ($sdoc ~~ m/ '/**' / ?? True !! False);
-#note "\nHD: $has-doc: ", $sdoc;
-
-    unless ?$property-doc {
-      $property-doc ~= Q:to/EODOC/;
-
-        #-------------------------------------------------------------------------------
-        =begin pod
-        =head1 Properties
-
-        An example of using a string type property of a B<Gnome::Gtk3::Label> object. This is just showing how to set/read a property, not that it is the best way to do it. This is because a) The class initialization often provides some options to set some of the properties and b) the classes provide many methods to modify just those properties. In the case below one can use B<new(:label('my text label'))> or B<gtk_label_set_text('my text label')>.
-
-          my Gnome::Gtk3::Label $label .= new;
-          my Gnome::GObject::Value $gv .= new(:init(G_TYPE_STRING));
-          $label.g-object-get-property( 'label', $gv);
-          $gv.g-value-set-string('my text label');
-
-        =head2 Supported properties
-        EODOC
-
-    }
-#note "Property sdoc 1:\n", $sdoc;
-
-    if $has-doc {
-      $sdoc ~~ m/
-        ^^ \s+ '*' \s+ $lib-class-name ':'
-        $<prop-name> = [ <-[:]> [<alnum> || '-']+ ]
-      /;
-      $property-name = ~($<prop-name> // '');
-    }
-# $property-name must come from call to param_spec
-
-# note "sdoc 2: $sdoc";
-
-    # modify and cleanup
-    $sdoc ~~ s/ ^^ \s+ '*' \s+ <alnum>+ ':' [ <alnum> || '-' ]+ ':' \n //
-      if $has-doc;
-
-    $sdoc ~~ m/ ^^ \s+ 'g_param_spec_' $<prop-type> = [ <alnum>+ ] \s* '(' /;
-    my Str $spec-type = ~($<prop-type> // '' );
-    my Str $prop-type = 'G_TYPE_' ~ $spec-type.uc;
-
-    my Str $prop-args = $sdoc;
-    my Str ( $prop-name, $prop-nick, $prop-blurp);
-
-    if $has-doc {
-#      $prop-name = $property-name;
-      $sdoc = primary-doc-changes($sdoc);
-      $sdoc = cleanup-source-doc($sdoc);
-    }
-
-    else {
-      $sdoc = '';
-    }
-
-
-    $prop-args ~~ s/ .*? 'g_param_spec_' $spec-type \s* '(' //;
-    $prop-args ~~ s/ '));' //;
-
-    # process arguments. first rename commas in string into _COMMA_
-    my Bool $in-string = False;
-    my Str $temp-prop-args = $prop-args;
-    $prop-args = '';
-    for $temp-prop-args.split('')[1..*-2] -> $c {
-#note "C: '$c'";
-      if $c eq '"' {
-        $in-string = !$in-string;
-        $prop-args ~= '"';
-        next;
-      }
-
-      if $in-string and $c eq ',' {
-        $prop-args ~= '_COMMA_';
-      }
-
-      else {
-        $prop-args ~= $c;
-      }
-    }
-#note $prop-args;
-
-    my @args = ();
-    for $prop-args.split(/ \s* ',' \s* /) -> $arg is copy {
-      $arg ~~ s/ '_COMMA_' /,/;
-      $arg ~~ s/ 'P_(' //;
-      $arg ~~ s/ ')' //;
-      $arg ~~ s:g/ \" \s+ \" //;
-      $arg ~~ s:g/ \" //;
-      @args.push($arg);
-    }
-#note "args: ", @args.join(', ');
-
-    $prop-name = @args[0];
-    $prop-nick = @args[1];
-    $prop-blurp = $has-doc ?? $sdoc !! @args[2];
-
-    my Str $flags;
-    my Str $gtype-string;
-    my $prop-default;
-    my Str $prop-doc = '';
-    given $spec-type {
-
-      when 'boolean' {
-        $prop-default = @args[3] ~~ 'TRUE' ?? True !! False;
-        $flags = @args[4];
-
-        $prop-doc = Q:qq:to/EOP/;
-          $prop-blurp
-
-          Default value: $prop-default
-          EOP
-      }
-
-      when 'string' {
-        $prop-default = @args[3] ~~ 'NULL' ?? 'Any' !! @args[3];
-        $flags = @args[4];
-
-        $prop-doc = Q:qq:to/EOP/;
-          $prop-blurp
-
-          Default value: $prop-default
-          EOP
-      }
-
-      when 'enum' {
-        $gtype-string = @args[3];
-        $prop-default = @args[4] ~~ 'TRUE' ?? True !! False;
-        $flags = @args[5];
-
-        $prop-doc = Q:qq:to/EOP/;
-          $prop-blurp
-
-          Default value: $prop-default
-          EOP
-      }
-
-      when 'object' {
-        $gtype-string = @args[3];
-        $flags = @args[4];
-
-        $prop-doc = Q:qq:to/EOP/;
-          $prop-blurp
-
-          Widget type: $gtype-string
-          EOP
-      }
-
-      when '' {
-      }
-
-    }
-
-    if $has-doc {
-      $sdoc ~= "Widget type: $gtype-string\n" if ?$gtype-string;
-#      $sdoc ~= "Flags: $flags\n" if ?$flags;
-    }
-
-    else {
-      $sdoc = $prop-doc;
-      $sdoc = primary-doc-changes($sdoc);
-      $sdoc = cleanup-source-doc($sdoc);
-    }
-
-    $sdoc ~~ s:g/\n\n/\n/;;
-
-
-#note "sdoc 3: ", $sdoc if $has-doc;
-
-    note "get property $prop-name";
-    $property-doc ~= Q:qq:to/EOHEADER/;
-
-      =comment #TP:0:$prop-name:
-      =head3 $prop-nick
-
-      $sdoc
-      The B<Gnome::GObject::Value> type of property I<$prop-name> is C<$prop-type>.
-      EOHEADER
-#note "end prop";
-  }
-#note "end of all props";
-
-  $property-doc ~= "=end pod\n" if ?$property-doc;
-
-  $output-file.IO.spurt( $property-doc, :append);
-}
-}}
-
 #-------------------------------------------------------------------------------
 sub get-vartypes ( Str:D $include-content ) {
 
@@ -1666,15 +830,6 @@ sub get-vartypes ( Str:D $include-content ) {
 
 #-------------------------------------------------------------------------------
 sub get-enumerations ( Str:D $include-content is copy ) {
-#`{{
-  my Str $enums-doc = Q:qq:to/EODOC/;
-
-    #-------------------------------------------------------------------------------
-    =begin pod
-    =head1 Types
-    =end pod
-    EODOC
-}}
 
   my Bool $found-doc = False;
   my Hash $enum-docs = %();
@@ -1815,8 +970,8 @@ sub get-enumerations ( Str:D $include-content is copy ) {
       EODOC
   }
 
-#  $output-file.IO.spurt( $enums-doc, :append);
-   $output-file.IO.spurt( Q:qq:to/EODOC/, :append);
+#  $*output-file.IO.spurt( $enums-doc, :append);
+   $*output-file.IO.spurt( Q:qq:to/EODOC/, :append);
 
     #-------------------------------------------------------------------------------
     =begin pod
@@ -1825,180 +980,15 @@ sub get-enumerations ( Str:D $include-content is copy ) {
     EODOC
 
   for $enum-docs.keys.sort -> $enum-name {
-    $output-file.IO.spurt( $enum-docs{$enum-name}, :append);
+    $*output-file.IO.spurt( $enum-docs{$enum-name}, :append);
   }
 }
-
-#`{{
-#-------------------------------------------------------------------------------
-sub get-structures ( Str:D $include-content is copy ) {
-
-  my Str $structs-doc = '';
-  my Bool $found-doc = False;
-
-  # now we try again to get structs
-  loop {
-    my Str $struct-name = '';
-    my Str $items-doc = '';
-    my Str $struct-doc = '';
-    my Str $struct-spec = '';
-    my Str ( $entry-type, $raku-entry-type);
-    my Bool $type-is-class;
-
-    $include-content ~~ m:s/
-      $<struct-type-section> = [
-          '/**' .*? '*/' struct <-[{]>+ '{' <-[}]>+ '};'
-      ]
-    /;
-
-    my Str $struct-type-section = ~($<struct-type-section> // '');
-#note $struct-type-section;
-
-    # if no structs are found, clear the string
-    if !?$struct-type-section {
-      $structs-doc = '' unless $found-doc;
-      last;
-    }
-
-    # this match "m:g/'/**' .*? '*/' ...etc... /" can fail. It can gather
-    # too many comment blocks to stop at a final struct. So try to find the
-    # last doc section.
-    my Int $start-doc = 1;  # There is a '/**' string at 0!
-    my Int $x;
-    while ?($x = $struct-type-section.index( '/**', $start-doc)) {
-      $start-doc = $x + 1;
-    }
-
-    $start-doc -= 1;
-    $struct-type-section = $struct-type-section.substr(
-      $start-doc, $struct-type-section.chars - $start-doc
-    );
-#note $struct-type-section;
-
-
-    # remove struct info for next search
-    $include-content ~~ s/$struct-type-section//;
-
-    # structs found
-    $found-doc = True;
-    my Bool $struct-skip = False;
-
-    my Bool ( $get-item-doc, $get-struct-doc, $process-struct) =
-            ( False, False, False);
-
-    for $struct-type-section.lines -> $line {
-      next if $line ~~ m/ '/**' /;
-
-      if $line ~~ m/^ \s+ '*' \s+ $<struct-name> = [<alnum>+] ':' \s* $/ {
-        $struct-name = 'N-' ~ ~($<struct-name> // '');
-
-        # skip this structure if it is about this classes structure
-        if $struct-name ~~ m/ \w+ Class $/ {
-          $struct-skip = True;
-          last;
-        }
-        note "get structure $struct-name";
-        $get-item-doc = True;
-      }
-
-      elsif $line ~~ m/^ \s+ '*' \s+ '@' $<item> = [ <alnum>+ ':' .* ] $ / {
-        # Add extra characters to insert type information later on
-        $items-doc ~= "\n=item ___" ~ ~($<item>//'');
-#note "Item: $items-doc";
-      }
-
-      # on empty line swith from item to enum doc
-      elsif $line ~~ m/ ^ \s+ '*' \s* $ / {
-        $get-item-doc = False;
-        $get-struct-doc = True;
-
-        $struct-doc ~= "\n";
-      }
-
-      # end of type documentation
-      elsif $line ~~ m/ ^ \s+ '*'*? '*/' \s* $ / {
-        $get-item-doc = False;
-        $get-struct-doc = False;
-        $process-struct = True;
-
-        $struct-spec = "\n=end pod\n\n#TT:0:$struct-name:\n" ~
-          "class $struct-name is export is repr\('CStruct') \{\n";
-      }
-
-      elsif $line ~~ m/ ^ \s+ '*' \s* 'Since:' .* $ / {
-        # ignore
-      }
-
-      elsif $line ~~ m/ ^ \s+ '*' \s+ $<doc> = [ \S .* ] $ / {
-        if $get-item-doc {
-          $items-doc ~= " " ~ ~($<doc>//'');
-        }
-
-        elsif $get-struct-doc {
-          $struct-doc ~= "\n" ~ ~($<doc>//'');
-        }
-      }
-
-      elsif $line ~~ m:s/ '};' / {
-        $struct-spec ~= "}\n";
-      }
-
-      elsif $line ~~ m/^ \s+ $<struct-entry> = [ .*? ] ';' $/ {
-        my Str $s = ~($<struct-entry> // '');
-        ( $s, $entry-type, $raku-entry-type, $type-is-class) =
-          get-type($s);
-
-        # entry type Str must be converted to str
-        $entry-type ~~ s/Str/str/;
-
-        # if there is a comma separated list then split vars up
-        if $s ~~ m/ ',' / {
-          my @varlist = $s.split( / \s* ',' \s* /);
-          for @varlist -> $var {
-            $struct-spec ~= "  has $entry-type \$.$var;\n";
-            $items-doc ~~ s/ 'item ___' $var /item $raku-entry-type \$.$var/;
-          }
-        }
-
-        # $s is holding a single var
-        else {
-          $struct-spec ~= "  has $entry-type \$.$s;\n";
-  #note "check for 'item ___$s'";
-          $items-doc ~~ s/ 'item ___' $s /item $raku-entry-type \$.$s/;
-        }
-      }
-    }
-
-    # remove first space
-    $struct-doc ~~ s/ ^ \s+ //;
-
-    $struct-doc = primary-doc-changes($struct-doc);
-    $items-doc = primary-doc-changes($items-doc);
-
-    unless $struct-skip {
-      $structs-doc ~= Q:qq:to/EODOC/;
-        #-------------------------------------------------------------------------------
-        =begin pod
-        =head2 class $struct-name
-
-        $struct-doc
-
-        $items-doc
-
-        $struct-spec
-        EODOC
-    }
-  }
-
-  $output-file.IO.spurt( $structs-doc, :append);
-}
-}}
 
 #-------------------------------------------------------------------------------
 sub cleanup-source-doc ( Str:D $text is copy --> Str ) {
 
   # remove property and signal line
-  $text ~~ s/ ^^ \s+ '*' \s+ $lib-class-name ':'+ .*? \n //;
+  $text ~~ s/ ^^ \s+ '*' \s+ $*lib-class-name ':'+ .*? \n //;
 
   $text ~~ s/ ^^ '/**' .*? \n //;                       # Doc start
   $text ~~ s/ \s* '*/' .* $ //;                         # Doc end
@@ -2081,32 +1071,6 @@ sub podding-class ( Str:D $text is copy --> Str ) {
   $text
 }
 
-#`{{
-#-------------------------------------------------------------------------------
-# change any ::signal to I<signal>
-sub podding-signal ( Str:D $text is copy --> Str ) {
-
-  loop {
-    last unless $text ~~ m/ \s '::' [<alnum> || '-']+ /;
-    $text ~~ s/ \s '::' ([<alnum> || '-']+) / I<$/[0]>/;
-  }
-
-  $text
-}
-
-#-------------------------------------------------------------------------------
-# change any :property to I<property>
-sub podding-property ( Str:D $text is copy --> Str ) {
-
-  loop {
-    last unless $text ~~ m/ \s ':' [<alnum> || '-']+ /;
-    $text ~~ s/ \s ':' ([<alnum> || '-']+) / I<$/[0]>/;
-  }
-
-  $text
-}
-}}
-
 #-------------------------------------------------------------------------------
 # change any function() to C<function()>
 sub podding-function ( Str:D $text is copy --> Str ) {
@@ -2161,6 +1125,9 @@ sub generate-test ( ) {
     use Test;
 
     use $class;
+
+    use Gnome::Cairo::Types;
+    use Gnome::Cairo::Enums;
 
     #use Gnome::N::X;
     #Gnome::N::debug(:on);
