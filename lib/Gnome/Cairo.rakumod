@@ -63,6 +63,13 @@ You can use this object normally, but no drawing will be done.
 
 =item cairo_surface_t $surface;
 
+
+=head3 :native-object
+
+Create a B<Gnome::Cairo> object using a native object from elsewhere. See also B<Gnome::N::TopLevelClassSupport>.
+
+  multi method new ( N-GObject :$native-object! )
+
 =end pod
 
 #TM:1:new(:surface):
