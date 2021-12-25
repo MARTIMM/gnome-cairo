@@ -1,0 +1,39 @@
+use v6;
+use NativeCall;
+use Test;
+
+use Gnome::Cairo::Surface;
+
+use Gnome::Cairo::Types;
+use Gnome::Cairo::Enums;
+
+#use Gnome::N::X;
+#Gnome::N::debug(:on);
+
+#-------------------------------------------------------------------------------
+my Gnome::Cairo::Surface $s;
+#-------------------------------------------------------------------------------
+subtest 'ISA test', {
+#  $s .= new;
+#  ok $s.is-valid, '.new()';
+
+  $s .= new( :similar($s), :content(CAIRO_CONTENT_COLOR_ALPHA));
+  ok $s.is-valid, '.new(:similar)';
+}
+
+#-------------------------------------------------------------------------------
+done-testing;
+
+=finish
+
+
+#-------------------------------------------------------------------------------
+# set environment variable 'raku-test-all' if rest must be tested too.
+unless %*ENV<raku_test_all>:exists {
+  done-testing;
+  exit;
+}
+
+#-------------------------------------------------------------------------------
+subtest 'Manipulations', {
+}
