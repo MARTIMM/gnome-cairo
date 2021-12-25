@@ -2,6 +2,7 @@ use v6;
 use NativeCall;
 use Test;
 
+use Gnome::Cairo::ImageSurface;
 use Gnome::Cairo::Surface;
 
 use Gnome::Cairo::Types;
@@ -12,13 +13,22 @@ use Gnome::Cairo::Enums;
 
 #-------------------------------------------------------------------------------
 my Gnome::Cairo::Surface $s;
+my Gnome::Cairo::ImageSurface $is;
 #-------------------------------------------------------------------------------
 subtest 'ISA test', {
 #  $s .= new;
 #  ok $s.is-valid, '.new()';
 
-  $s .= new( :similar($s), :content(CAIRO_CONTENT_COLOR_ALPHA));
+  $is .= new( :format(CAIRO_FORMAT_RGB24), :width(100), :height(100));
+
+  $s .= new( :similar($is), :content(CAIRO_CONTENT_COLOR_ALPHA));
   ok $s.is-valid, '.new(:similar)';
+
+  $s .= new( :image($is), :format(CAIRO_FORMAT_ARGB32));
+  ok $s.is-valid, '.new(:image)';
+
+  $s .= new( :target($is), :10x, :10y, :100width, :100height);
+  ok $s.is-valid, '.new(:target)';
 }
 
 #-------------------------------------------------------------------------------

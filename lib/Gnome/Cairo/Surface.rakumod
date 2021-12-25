@@ -122,13 +122,15 @@ The semantics of subsurfaces have not been finalized yet unless the rectangle is
 
 =head3 :native-object
 
-Create a RAKU-CLASS-NAME object using a native object from elsewhere. See also B<Gnome::N::TopLevelClassSupport>.
+Create a B<Gnome::Cairo::Surface> object using a native object from elsewhere. See also B<Gnome::N::TopLevelClassSupport>.
 
   multi method new ( N-GObject :$native-object! )
 
 =end pod
 
-#TM:0:new():
+#TM:1:new(:similar):
+#TM:1:new(:image):
+#TM:1:new(:target):
 #TM:4:new(:native-object):Gnome::N::TopLevelClassSupport
 submethod BUILD ( *%options ) {
 
@@ -167,8 +169,7 @@ submethod BUILD ( *%options ) {
         $no = %options<target>;
         $no .= _get-native-object-no-reffing unless $no ~~ cairo_surface_t;
         $no = _cairo_surface_create_for_rectangle(
-          $no, %options<format> // CAIRO_FORMAT_RGB24,
-          (%options<x> // 0).Num, (%options<y> // 0).Num,
+          $no, (%options<x> // 0).Num, (%options<y> // 0).Num,
           (%options<width> // 128).Num, (%options<height> // 128).Num
         );
       }
