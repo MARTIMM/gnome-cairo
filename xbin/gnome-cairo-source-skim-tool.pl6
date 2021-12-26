@@ -20,7 +20,9 @@ my Bool $class-is-top;
 sub MAIN (
   Str:D $base-name, Bool :$main = False,
   Bool :$sub = False, Bool :$types = False, Bool :$test = False,
-  Bool :$leaf = False
+
+# force true because cairo doesn't do casting...
+  Bool :$leaf = True
 ) {
 
   my Str $*base-sub-name;
