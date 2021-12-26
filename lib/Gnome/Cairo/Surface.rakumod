@@ -247,7 +247,7 @@ Emits the current page for backends that support multiple pages, but doesn't cle
 method copy-page ( ) {
 
   cairo_surface_copy_page(
-    self._f('Surface'),
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -284,7 +284,7 @@ Create a new surface that is as compatible as possible with an existing surface.
 method create-similar ( Int $content, Int $width, Int $height --> cairo_surface_t ) {
 
   cairo_surface_create_similar(
-    self._f('Surface'), $content, $width, $height
+    self._get-native-object-no-reffing, $content, $width, $height
   )
 }
 }}
@@ -314,7 +314,7 @@ Create a new image surface that is as compatible as possible for uploading to an
 method create-similar-image ( Int $format, Int $width, Int $height --> cairo_surface_t ) {
 
   cairo_surface_create_similar_image(
-    self._f('Surface'), $format, $width, $height
+    self._get-native-object-no-reffing, $format, $width, $height
   )
 }
 }}
@@ -340,7 +340,7 @@ Decreases the reference count on I<surface> by one. If the result is zero, then 
 method destroy ( ) {
 
   cairo_surface_destroy(
-    self._f('Surface'),
+    self._get-native-object-no-reffing,
   )
 }
 }}
@@ -365,7 +365,7 @@ This function finishes the surface and drops all references to external resource
 method finish ( ) {
 
   cairo_surface_finish(
-    self._f('Surface'),
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -388,7 +388,7 @@ Do any pending drawing for the surface and also restore any temporary modificati
 method flush ( ) {
 
   cairo_surface_flush(
-    self._f('Surface'),
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -411,7 +411,7 @@ This function returns the content type of I<surface> which indicates whether the
 method get-content ( --> Int ) {
 
   cairo_surface_get_content(
-    self._f('Surface'),
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -434,7 +434,7 @@ This function returns the device for a I<surface>. See B<cairo_device_t>.  Retur
 method get-device ( --> cairo_device_t ) {
 
   cairo_surface_get_device(
-    self._f('Surface'),
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -459,7 +459,7 @@ This function returns the previous device offset set by C<cairo_surface_set_devi
 method get-device-offset ( Num $x_offset, Num $y_offset ) {
 
   cairo_surface_get_device_offset(
-    self._f('Surface'), $x_offset, $y_offset
+    self._get-native-object-no-reffing, $x_offset, $y_offset
   )
 }
 
@@ -484,7 +484,7 @@ This function returns the previous device offset set by C<cairo_surface_set_devi
 method get-device-scale ( Num $x_scale, Num $y_scale ) {
 
   cairo_surface_get_device_scale(
-    self._f('Surface'), $x_scale, $y_scale
+    self._get-native-object-no-reffing, $x_scale, $y_scale
   )
 }
 
@@ -509,7 +509,7 @@ This function returns the previous fallback resolution set by C<cairo_surface_se
 method get-fallback-resolution ( Num $x_pixels_per_inch, Num $y_pixels_per_inch ) {
 
   cairo_surface_get_fallback_resolution(
-    self._f('Surface'), $x_pixels_per_inch, $y_pixels_per_inch
+    self._get-native-object-no-reffing, $x_pixels_per_inch, $y_pixels_per_inch
   )
 }
 
@@ -533,7 +533,7 @@ Retrieves the default font rendering options for the surface. This allows displa
 method get-font-options ( cairo_font_options_t $options ) {
 
   cairo_surface_get_font_options(
-    self._f('Surface'), $options
+    self._get-native-object-no-reffing, $options
   )
 }
 
@@ -560,7 +560,7 @@ Return mime data previously attached to I<surface> using the specified mime type
 method get-mime-data ( unsigned Int-pptr $data, UInt $length ) {
 
   cairo_surface_get_mime_data(
-    self._f('Surface'), my gint $mime_type, $data, $length
+    self._get-native-object-no-reffing, my gint $mime_type, $data, $length
   )
 }
 
@@ -584,7 +584,7 @@ Returns the current reference count of I<surface>.  Return value: the current re
 method get-reference-count ( --> Int ) {
 
   cairo_surface_get_reference_count(
-    self._f('Surface'),
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -607,7 +607,7 @@ This function returns the type of the backend used to create a surface. See B<ca
 method get-type ( --> Int ) {
 
   cairo_surface_get_type(
-    self._f('Surface'),
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -632,7 +632,7 @@ Return user data previously attached to I<surface> using the specified key.  If 
 method get-user-data ( cairo_user_data_key_t $key ) {
 
   cairo_surface_get_user_data(
-    self._f('Surface'), $key
+    self._get-native-object-no-reffing, $key
   )
 }
 
@@ -656,7 +656,7 @@ Returns whether the surface supports sophisticated C<cairo_show_text_glyphs()> o
 method has-show-text-glyphs ( --> Int ) {
 
   cairo_surface_has_show_text_glyphs(
-    self._f('Surface'),
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -681,7 +681,7 @@ Returns an image surface that is the most efficient mechanism for modifying the 
 method map-to-image ( cairo_rectangle_int_t $extents --> cairo_surface_t ) {
 
   cairo_surface_map_to_image(
-    self._f('Surface'), $extents
+    self._get-native-object-no-reffing, $extents
   )
 }
 
@@ -705,7 +705,7 @@ Tells cairo that drawing has been done to surface using means other than cairo, 
 method mark-dirty ( ) {
 
   cairo_surface_mark_dirty(
-    self._f('Surface'),
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -732,7 +732,7 @@ Like C<cairo_surface_mark_dirty()>, but drawing has been done only to the specif
 method mark-dirty-rectangle ( Int $x, Int $y, Int $width, Int $height ) {
 
   cairo_surface_mark_dirty_rectangle(
-    self._f('Surface'), $x, $y, $width, $height
+    self._get-native-object-no-reffing, $x, $y, $width, $height
   )
 }
 
@@ -756,7 +756,7 @@ Increases the reference count on I<surface> by one. This prevents I<surface> fro
 method reference ( --> cairo_surface_t ) {
 
   cairo_surface_reference(
-    self._f('Surface'),
+    self._get-native-object-no-reffing,
   )
 }
 }}
@@ -783,7 +783,7 @@ Sets an offset that is added to the device coordinates determined by the CTM whe
 method set-device-offset ( Num $x_offset, Num $y_offset ) {
 
   cairo_surface_set_device_offset(
-    self._f('Surface'), $x_offset, $y_offset
+    self._get-native-object-no-reffing, $x_offset, $y_offset
   )
 }
 
@@ -808,7 +808,7 @@ Sets a scale that is multiplied to the device coordinates determined by the CTM 
 method set-device-scale ( Num $x_scale, Num $y_scale ) {
 
   cairo_surface_set_device_scale(
-    self._f('Surface'), $x_scale, $y_scale
+    self._get-native-object-no-reffing, $x_scale, $y_scale
   )
 }
 
@@ -833,7 +833,7 @@ Set the horizontal and vertical resolution for image fallbacks.  When certain op
 method set-fallback-resolution ( Num $x_pixels_per_inch, Num $y_pixels_per_inch ) {
 
   cairo_surface_set_fallback_resolution(
-    self._f('Surface'), $x_pixels_per_inch, $y_pixels_per_inch
+    self._get-native-object-no-reffing, $x_pixels_per_inch, $y_pixels_per_inch
   )
 }
 
@@ -862,7 +862,7 @@ Attach an image in the format I<mime_type> to I<surface>. To remove the data fro
 method set-mime-data ( unsigned Int-ptr $data, UInt $length, cairo_destroy_func_t $destroy, void-ptr $closure --> Int ) {
 
   cairo_surface_set_mime_data(
-    self._f('Surface'), my gint $mime_type, $data, $length, $destroy, $closure
+    self._get-native-object-no-reffing, my gint $mime_type, $data, $length, $destroy, $closure
   )
 }
 
@@ -889,7 +889,7 @@ Attach user data to I<surface>.  To remove user data from a surface, call this f
 method set-user-data ( cairo_user_data_key_t $key, void-ptr $user_data, cairo_destroy_func_t $destroy --> Int ) {
 
   cairo_surface_set_user_data(
-    self._f('Surface'), $key, $user_data, $destroy
+    self._get-native-object-no-reffing, $key, $user_data, $destroy
   )
 }
 
@@ -913,7 +913,7 @@ Emits and clears the current page for backends that support multiple pages.  Use
 method show-page ( ) {
 
   cairo_surface_show_page(
-    self._f('Surface'),
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -923,21 +923,18 @@ sub cairo_surface_show_page (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:status:
+#TM:1:status:
 =begin pod
 =head2 status
 
 Checks whether an error has previously occurred for this surface.  Return value: C<CAIRO_STATUS_SUCCESS>, C<CAIRO_STATUS_NULL_POINTER>, C<CAIRO_STATUS_NO_MEMORY>, C<CAIRO_STATUS_READ_ERROR>, C<CAIRO_STATUS_INVALID_CONTENT>, C<CAIRO_STATUS_INVALID_FORMAT>, or C<CAIRO_STATUS_INVALID_VISUAL>.
 
-  method status ( --> Int )
+  method status ( --> cairo_status_t )
 
 =end pod
 
-method status ( --> Int ) {
-
-  cairo_surface_status(
-    self._f('Surface'),
-  )
+method status ( --> cairo_status_t ) {
+  cairo_status_t(cairo_surface_status(self._get-native-object-no-reffing))
 }
 
 sub cairo_surface_status (
@@ -945,22 +942,22 @@ sub cairo_surface_status (
 ) is native(&cairo-lib)
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:supports-mime-type:
 =begin pod
 =head2 supports-mime-type
 
-Return whether I<surface> supports I<mime_type>.  Return value: C<1> if I<surface> supports I<mime_type>, C<0> otherwise
+Return whether I<surface> supports I<mime_type>.  Return value: C<True> if I<surface> supports I<mime_type>, C<False> otherwise
 
-  method supports-mime-type ( --> Int )
+  method supports-mime-type ( --> Bool )
 
 =item Int $mime_type; a B<cairo_surface_t>
 =end pod
 
 method supports-mime-type ( --> Int ) {
-
   cairo_surface_supports_mime_type(
-    self._f('Surface'), my gint $mime_type
+    self._get-native-object-no-reffing, my gint $mime_type
   )
 }
 
@@ -968,6 +965,7 @@ sub cairo_surface_supports_mime_type (
   cairo_surface_t $surface, gchar-ptr $mime_type --> gint32
 ) is native(&cairo-lib)
   { * }
+}}
 
 #-------------------------------------------------------------------------------
 #TM:0:unmap-image:
@@ -984,7 +982,7 @@ Unmaps the image surface as returned from B<cairo_surface_map_to_image>().  The 
 method unmap-image ( cairo_surface_t $image ) {
 
   cairo_surface_unmap_image(
-    self._f('Surface'), $image
+    self._get-native-object-no-reffing, $image
   )
 }
 

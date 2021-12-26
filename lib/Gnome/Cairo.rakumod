@@ -49,7 +49,7 @@ also is Gnome::N::TopLevelClassSupport;
 =head1 Methods
 =head2 new
 
-=head3 new(:surface)
+=head3 :surface
 
 Creates a new B<cairo_t> with all graphics state parameters set to default values and with I<target> as a target surface. The target surface should be constructed with a backend-specific function such as C<cairo_image_surface_create()> (or any other C<cairo_B<backend>_surface_create( )> variant).
 
@@ -59,7 +59,7 @@ The object is cleared with C<clear-object()> when you are done using the B<cairo
 
 You can use this object normally, but no drawing will be done.
 
-  multi method new ( cairo_surface_t :$surface )
+  multi method new ( cairo_surface_t :$surface! )
 
 =item cairo_surface_t $surface;
 
@@ -2557,26 +2557,42 @@ sub cairo_show_text_glyphs (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:status:
+#TM:2:status:
 =begin pod
 =head2 status
 
 Checks whether an error has previously occurred for this context.  Returns: the current status of this context, see B<cairo_status_t>
 
-  method status ( --> Int )
+  method status ( --> cairo_status_t )
 
 =end pod
 
-method status ( --> Int ) {
-
-  cairo_status(
-    self._get-native-object-no-reffing,
-  )
+method status ( --> cairo_status_t ) {
+  cairo_status_t(cairo_status(self._get-native-object-no-reffing))
 }
 
 sub cairo_status (
   cairo_t $cr --> gint32
 ) is native(&cairo-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:2:status-to-string:
+=begin pod
+=head2 status-to-string
+
+Provides a human-readable description of a cairo_status_t.
+
+  method status-to-string ( cairo_status_t $status --> Str )
+
+=end pod
+
+method status-to-string ( cairo_status_t $status --> Str ) {
+  cairo_status_to_string($status.value)
+}
+
+sub cairo_status_to_string ( int32 $status --> Str )
+  is native(&cairo-lib)
   { * }
 
 #-------------------------------------------------------------------------------

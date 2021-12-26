@@ -34,6 +34,7 @@ use NativeCall;
 use Gnome::N::X;
 use Gnome::N::NativeLib;
 use Gnome::N::TopLevelClassSupport;
+use Gnome::N::GlibToRakuTypes;
 
 use Gnome::Cairo::Types;
 use Gnome::Cairo::Enums;
@@ -48,27 +49,34 @@ also is Gnome::Cairo::Surface;
 =head1 Methods
 =head2 new
 
-=head3 new( :format, :width, :height)
+=head3 :format, :width, :height
 
 Creates an image surface of the specified format and dimensions. Initially the surface contents are set to 0. (Specifically, within each pixel, each color or alpha channel belonging to format will be 0. The contents of bits within a pixel, but not belonging to the given format are undefined).
 
 The caller owns the surface and should call C<.clear-object()> when done with it.
 
-This function always returns a valid pointer, but it will return a pointer to a "nil" surface if an error such as out of memory occurs. You can use C<.cairo_surface_status()> to check for this.
+=comment This function always returns a valid pointer, but it will return a pointer to a "nil" surface if an error such as out of memory occurs. You can use C<.cairo_surface_status()> to check for this.
 
   multi method new (
-    cairo_format_t:D :$format!, Int:D :$width!, Int:D :$height!
+    cairo_format_t:D :$format!, Int() :$width = 128, Int() :$height = 128
   )
 
+=item Int $format; cairo_image_surface_create:
+=item Int $width; format of pixels in the surface to create
+=item Int $height; width of the surface, in pixels
 
-=head3 new(:png)
 
-Creates a new image surface and initializes the contents to the given PNG file.  Return value: a new B<cairo_surface_t> initialized with the contents of the PNG file, or a "nil" surface if any error occurred. A nil surface can be checked for with cairo_surface_status(surface) which may return one of the following values:  C<CAIRO_STATUS_NO_MEMORY> C<CAIRO_STATUS_FILE_NOT_FOUND> C<CAIRO_STATUS_READ_ERROR> C<CAIRO_STATUS_PNG_ERROR>.
+=head3 :png
+
+Creates a new image surface and initializes the contents to the given PNG file.
+
+The native object is a B<cairo_surface_t> initialized with the contents of the PNG file, or a "nil" surface if any error occurred. A nil surface can be checked for with C<.status()>. which may return one of the following values:  C<CAIRO_STATUS_NO_MEMORY> C<CAIRO_STATUS_FILE_NOT_FOUND> C<CAIRO_STATUS_READ_ERROR> C<CAIRO_STATUS_PNG_ERROR>.
 
 Alternatively, you can allow errors to propagate through the drawing operations and check the status on the context upon completion using C<cairo_status()>.
 
   multi method new ( Str:D :$png! )
 
+=item Str $png; The PNG image filename
 
 =end pod
 
@@ -208,7 +216,8 @@ sub cairo_format_stride_for_width (
 }}
 
 #-------------------------------------------------------------------------------
-#TM:0:create:
+#TM:1:_cairo_image_surface_create:
+#`{{
 =begin pod
 =head2 create
 
@@ -230,12 +239,15 @@ method create ( Int $format, Int $width, Int $height --> cairo_surface_t ) {
     self._f('ImageSurface'), $format, $width, $height
   )
 }
+}}
 
-sub cairo_image_surface_create (
+sub _cairo_image_surface_create (
   gint32 $format, int32 $width, int32 $height --> cairo_surface_t
 ) is native(&cairo-lib)
+  is symbol('cairo_image_surface_create')
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:create-for-data:
 =begin pod
@@ -259,11 +271,36 @@ method create-for-data ( unsigned Int-ptr $data, Int $format, Int $width, Int $h
   )
 }
 
-sub cairo_image_surface_create_for_data (
+sub _cairo_image_surface_create_for_data (
   unsigned gchar-ptr $data, gint32 $format, int32 $width, int32 $height, int32 $stride --> cairo_surface_t
 ) is native(&cairo-lib)
+  is symbol('cairo_image_surface_create_for_data')
+  { * }
+}}
+
+#-------------------------------------------------------------------------------
+#TM:1:_cairo_image_surface_create_from_png:
+#`{{
+=begin pod
+=head2 _cairo_image_surface_create_from_png
+
+Creates a new image surface and initializes the contents to the given PNG file.  Return value: a new B<cairo_surface_t> initialized with the contents of the PNG file, or a "nil" surface if any error occurred. A nil surface can be checked for with cairo_surface_status(surface) which may return one of the following values:  C<CAIRO_STATUS_NO_MEMORY> C<CAIRO_STATUS_FILE_NOT_FOUND> C<CAIRO_STATUS_READ_ERROR> C<CAIRO_STATUS_PNG_ERROR>.
+
+Alternatively, you can allow errors to propagate through the drawing operations and check the status on the context upon completion using C<cairo_status()>.
+
+  method cairo_image_surface_create_from_png ( Str $filename --> cairo_surface_t )
+
+=item Str $filename;  cairo_image_surface_create_from_png:
+
+=end pod
+}}
+
+sub _cairo_image_surface_create_from_png ( Str $filename --> cairo_surface_t )
+  is native(&cairo-lib)
+  is symbol('cairo_image_surface_create_from_png')
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:get-data:
 =begin pod
@@ -287,6 +324,7 @@ sub cairo_image_surface_get_data (
   cairo_surface_t $surface --> unsigned gchar-ptr
 ) is native(&cairo-lib)
   { * }
+}}
 
 #-------------------------------------------------------------------------------
 #TM:0:get-format:
