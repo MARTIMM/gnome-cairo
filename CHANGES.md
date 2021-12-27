@@ -1,6 +1,6 @@
 ## Release notes
 * 2021-12-16 0.2.3
-  * Rewrite pod doc of **Gnome::Cairo** and **Gnome::Cairo::Enums*. Most of the enums come from Cairo module
+  * Rewrite pod doc of **Gnome::Cairo**, **Gnome::Cairo::Surface**, **Gnome::Cairo::ImageSurface** and **Gnome::Cairo::Enums**. Most of the enums come from the Cairo module.
 
 * 2021-12-12 0.2.2
   * Changes for renamed methods in **Gnome::N::TopLevelClassSupport**.
