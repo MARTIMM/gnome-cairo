@@ -92,6 +92,11 @@ Initially the surface contents are all 0 (transparent if contents have transpare
     Int :$width = 32, Int :$height = 32
   )
 
+=item cairo_surface_t $similar; the surface where the new surface is created from
+=item cairo_content_t $content; used to describe the content of a surface
+=item Int $width; width of the image
+=item Int $height; height of the image
+
 
 =head3 :image
 
@@ -104,6 +109,11 @@ Initially the surface contents are all 0 (transparent if contents have transpare
     cairo_surface_t :image!, cairo_format_t :$format = CAIRO_FORMAT_RGB24,
     Int :$width = 32, Int :$height = 32
   )
+
+=item cairo_surface_t $image; the surface where the new surface is created from
+=item cairo_format_t $format; used to identify the memory format of image
+=item Int $width; width of the image
+=item Int $height; height of the image
 
 
 =head3 :target
@@ -119,6 +129,28 @@ The semantics of subsurfaces have not been finalized yet unless the rectangle is
     --> cairo_surface_t
   }
 
+=item cairo_surface_t $target; the surface where the new surface is created from
+=item Num $x; x, y, width and height describe the rectangle from which a part of the image is copied.
+=item Num $y;
+=item Num $width;
+=item Num $height;
+
+
+=head3 :map, :rectangle
+
+Creates an image surface that is the most efficient mechanism for modifying the backing store of the target surface. The region retrieved may be limited to the I<extents> or C<Any> for the whole surface.
+
+Note, the use of the original surface as a target or source whilst it is mapped is undefined. The result of mapping the surface multiple times is also undefined. Calling C<clear-object()> on the resulting image surface results in undefined behavior. Furthermore, changing the device transform of the image surface or of I<surface> before the image surface is unmapped results in undefined behavior.
+
+The caller must use C<unmap-image()> to destroy this image surface. This function always creates a valid native object, but this class will become invalid if I<$map> is already in an error state or any other error occurs. If the returned pointer does not have an error status, it is guaranteed to be an image surface whose format is not C<CAIRO_FORMAT_INVALID>.
+
+  multi method new (
+    cairo_surface_t :$map, cairo_rectangle_int_t :$rectangle
+  )
+
+=item cairo_surface_t $map; the surface where the new surface is created from
+=item cairo_rectangle_int_t $rectangle; an existing surface used to extract the image
+
 
 =head3 :native-object
 
@@ -131,6 +163,7 @@ Create a B<Gnome::Cairo::Surface> object using a native object from elsewhere. S
 #TM:1:new(:similar):
 #TM:1:new(:image):
 #TM:1:new(:target):
+#TM:1:new(:map,:rectangle):
 #TM:4:new(:native-object):Gnome::N::TopLevelClassSupport
 submethod BUILD ( *%options ) {
 
@@ -172,6 +205,12 @@ submethod BUILD ( *%options ) {
           $no, (%options<x> // 0).Num, (%options<y> // 0).Num,
           (%options<width> // 128).Num, (%options<height> // 128).Num
         );
+      }
+
+      elsif ? %options<map> and %options<rectangle>:exists {
+        $no = %options<map>;
+        $no .= _get-native-object-no-reffing unless $no ~~ cairo_surface_t;
+        $no = _cairo_surface_map_to_image( $no, %options<rectangle>);
       }
 
       ##`{{ use this when the module is not made inheritable
@@ -654,7 +693,6 @@ Returns whether the surface supports sophisticated C<cairo_show_text_glyphs()> o
 =end pod
 
 method has-show-text-glyphs ( --> Int ) {
-
   cairo_surface_has_show_text_glyphs(
     self._get-native-object-no-reffing,
   )
@@ -665,9 +703,9 @@ sub cairo_surface_has_show_text_glyphs (
 ) is native(&cairo-lib)
   { * }
 
-#`{{
 #-------------------------------------------------------------------------------
-#TM:0:map-to-image:
+#TM:1:map-to-image:
+#`{{
 =begin pod
 =head2 map-to-image
 
@@ -679,24 +717,22 @@ Returns an image surface that is the most efficient mechanism for modifying the 
 =end pod
 
 method map-to-image ( cairo_rectangle_int_t $extents --> cairo_surface_t ) {
-
-  cairo_surface_map_to_image(
-    self._get-native-object-no-reffing, $extents
-  )
+  cairo_surface_map_to_image( self._get-native-object-no-reffing, $extents)
 }
+}}
 
-sub cairo_surface_map_to_image (
+sub _cairo_surface_map_to_image (
   cairo_surface_t $surface, cairo_rectangle_int_t $extents --> cairo_surface_t
 ) is native(&cairo-lib)
+  is symbol('cairo_surface_map_to_image')
   { * }
-}}
 
 #-------------------------------------------------------------------------------
 #TM:0:mark-dirty:
 =begin pod
 =head2 mark-dirty
 
-Tells cairo that drawing has been done to surface using means other than cairo, and that cairo should reread any cached areas. Note that you must call C<cairo_surface_flush()> before doing such drawing.
+Tells cairo that drawing has been done to surface using means other than cairo, and that cairo should reread any cached areas. Note that you must call C<flush()> before doing such drawing.
 
   method mark-dirty ( )
 
@@ -968,28 +1004,55 @@ sub cairo_surface_supports_mime_type (
 }}
 
 #-------------------------------------------------------------------------------
-#TM:0:unmap-image:
+#TM:1:unmap-image:
 =begin pod
 =head2 unmap-image
 
-Unmaps the image surface as returned from B<cairo_surface_map_to_image>().  The content of the image will be uploaded to the target surface. Afterwards, the image is destroyed.  Using an image surface which wasn't returned by C<cairo_surface_map_to_image()> results in undefined behavior.
+Unmaps the image surface as returned from C<map-to-image>(). The content of the image will be uploaded to the target surface. Afterwards, the image is destroyed. Using an image surface which wasn't returned by C<map-to-image()> results in undefined behavior.
 
   method unmap-image ( cairo_surface_t $image )
 
 =item cairo_surface_t $image; the surface passed to C<cairo_surface_map_to_image()>.
 =end pod
 
-method unmap-image ( cairo_surface_t $image ) {
-
-  cairo_surface_unmap_image(
-    self._get-native-object-no-reffing, $image
-  )
+method unmap-image ( $image is copy ) {
+  $image .= _get-native-object-no-reffing unless $image ~~ cairo_surface_t;
+  cairo_surface_unmap_image( self._get-native-object-no-reffing, $image)
 }
 
 sub cairo_surface_unmap_image (
   cairo_surface_t $surface, cairo_surface_t $image
 ) is native(&cairo-lib)
   { * }
+
+#-------------------------------------------------------------------------------
+#TM:1:write-to-png:
+=begin pod
+=head2 write-to-png
+
+=comment The PNG functions allow reading PNG images into image surfaces, and writing any surface to a PNG file. It is a toy API. It only offers very simple support for reading and writing PNG files, which is sufficient for testing and demonstration purposes. Applications which need more control over the generated PNG file should access the pixel data directly, using C<cairo_image_surface_get_data()> or a backend-specific access function, and process it with another library, e.g. B<Gnome::Gdk3::Pixbuf> or libpng.
+
+=comment CAIRO_HAS_PNG_FUNCTIONS:  Defined if the PNG functions are available. This macro can be used to conditionally compile code using the cairo PNG functions.   stderr and rely on the user to check for errors via the B<cairo_status_t> return. loading the image after a warning. So we also want to return the (incorrect?) surface.  We use our own warning callback to squelch any attempts by libpng to write to stderr as we may not be in control of that output. Otherwise, we will segfault if we are writing to a stream.
+
+Writes the contents of surface to a new file filename as a PNG image.
+
+  method write-to-png ( Str $filename --> cairo_status_t )
+
+=item Str $filename; PNG Support
+
+=end pod
+
+method write-to-png ( Str $filename --> cairo_status_t ) {
+  cairo_status_t(
+    cairo_surface_write_to_png( self._get-native-object-no-reffing, $filename)
+  )
+}
+
+sub cairo_surface_write_to_png (
+  cairo_surface_t $surface, Str $filename --> int32
+) is native(&cairo-lib)
+  { * }
+
 
 
 

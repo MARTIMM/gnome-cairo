@@ -205,7 +205,7 @@ Return value: the appropriate stride to use given the desired format and width, 
 
 method format-stride-for-width ( Int $format, Int $width --> Int ) {
   cairo_format_stride_for_width(
-    self._f('ImageSurface'), $format, $width
+    self._get-native-object-no-reffing, $format, $width
   )
 }
 
@@ -236,7 +236,7 @@ Return value: a pointer to the newly created surface. The caller owns the surfac
 method create ( Int $format, Int $width, Int $height --> cairo_surface_t ) {
 
   cairo_image_surface_create(
-    self._f('ImageSurface'), $format, $width, $height
+    self._get-native-object-no-reffing, $format, $width, $height
   )
 }
 }}
@@ -267,7 +267,7 @@ Creates an image surface for the provided pixel data. The output buffer must be 
 method create-for-data ( unsigned Int-ptr $data, Int $format, Int $width, Int $height, Int $stride --> cairo_surface_t ) {
 
   cairo_image_surface_create_for_data(
-    self._f('ImageSurface'), $data, $format, $width, $height, $stride
+    self._get-native-object-no-reffing, $data, $format, $width, $height, $stride
   )
 }
 
@@ -316,7 +316,7 @@ Get a pointer to the data of the image surface, for direct inspection or modific
 method get-data ( cairo_surface_t $surface --> unsigned Int-ptr ) {
 
   cairo_image_surface_get_data(
-    self._f('ImageSurface'), $surface
+    self._get-native-object-no-reffing, $surface
   )
 }
 
@@ -327,21 +327,20 @@ sub cairo_image_surface_get_data (
 }}
 
 #-------------------------------------------------------------------------------
-#TM:0:get-format:
+#TM:1:get-format:
 =begin pod
 =head2 get-format
 
 Get the format of the surface.  Return value: the format of the surface
 
-  method get-format ( cairo_surface_t $surface --> Int )
+  method get-format ( --> cairo_format_t )
 
-=item cairo_surface_t $surface;  cairo_image_surface_get_format:
+Returns the format of the surface:
 =end pod
 
-method get-format ( cairo_surface_t $surface --> Int ) {
-
-  cairo_image_surface_get_format(
-    self._f('ImageSurface'), $surface
+method get-format ( --> cairo_format_t ) {
+  cairo_format_t(
+    cairo_image_surface_get_format(self._get-native-object-no-reffing)
   )
 }
 
@@ -351,22 +350,18 @@ sub cairo_image_surface_get_format (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:get-height:
+#TM:1:get-height:
 =begin pod
 =head2 get-height
 
 Get the height of the image surface in pixels.  Return value: the height of the surface in pixels.
 
-  method get-height ( cairo_surface_t $surface --> Int )
+  method get-height ( --> Int )
 
-=item cairo_surface_t $surface;  cairo_image_surface_get_height:
 =end pod
 
-method get-height ( cairo_surface_t $surface --> Int ) {
-
-  cairo_image_surface_get_height(
-    self._f('ImageSurface'), $surface
-  )
+method get-height ( --> Int ) {
+  cairo_image_surface_get_height(self._get-native-object-no-reffing)
 }
 
 sub cairo_image_surface_get_height (
@@ -375,22 +370,20 @@ sub cairo_image_surface_get_height (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:get-stride:
+#TM:1:get-stride:
 =begin pod
 =head2 get-stride
 
-Get the stride of the image surface in bytes  Return value: the stride of the image surface in bytes (or 0 if I<surface> is not an image surface). The stride is the distance in bytes from the beginning of one row of the image data to the beginning of the next row.
+Get the stride of the image surface in bytes.
 
-  method get-stride ( cairo_surface_t $surface --> Int )
+Return value: the stride of the image surface in bytes (or 0 if I<surface> is not an image surface). The stride is the distance in bytes from the beginning of one row of the image data to the beginning of the next row.
 
-=item cairo_surface_t $surface;  cairo_image_surface_get_stride:
+  method get-stride ( --> Int )
+
 =end pod
 
-method get-stride ( cairo_surface_t $surface --> Int ) {
-
-  cairo_image_surface_get_stride(
-    self._f('ImageSurface'), $surface
-  )
+method get-stride ( --> Int ) {
+  cairo_image_surface_get_stride(self._get-native-object-no-reffing)
 }
 
 sub cairo_image_surface_get_stride (
@@ -399,22 +392,18 @@ sub cairo_image_surface_get_stride (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:get-width:
+#TM:1:get-width:
 =begin pod
 =head2 get-width
 
 Get the width of the image surface in pixels.  Return value: the width of the surface in pixels.
 
-  method get-width ( cairo_surface_t $surface --> Int )
+  method get-width ( --> Int )
 
-=item cairo_surface_t $surface;  cairo_image_surface_get_width:
 =end pod
 
-method get-width ( cairo_surface_t $surface --> Int ) {
-
-  cairo_image_surface_get_width(
-    self._f('ImageSurface'), $surface
-  )
+method get-width ( --> Int ) {
+  cairo_image_surface_get_width(self._get-native-object-no-reffing)
 }
 
 sub cairo_image_surface_get_width (

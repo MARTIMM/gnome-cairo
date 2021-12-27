@@ -31,11 +31,6 @@ subtest 'ISA test', {
   ok $s.is-valid, '.new(:target)';
 }
 
-#-------------------------------------------------------------------------------
-done-testing;
-
-=finish
-
 
 #-------------------------------------------------------------------------------
 # set environment variable 'raku-test-all' if rest must be tested too.
@@ -46,4 +41,23 @@ unless %*ENV<raku_test_all>:exists {
 
 #-------------------------------------------------------------------------------
 subtest 'Manipulations', {
+  $is .= new(:png<t/data/Add.png>);
+  is $is.write-to-png('t/data/Add2.png'), CAIRO_STATUS_SUCCESS,
+    '.write-to-png()';
+  't/data/Add2.png'.IO.unlink;
+
+  my cairo_rectangle_int_t $rectangle .= new( :8x, :0y, :8width, :16height);
+  $s .= new( :map($is), :$rectangle);
+  is $is.write-to-png('t/data/Add2.png'), CAIRO_STATUS_SUCCESS,
+    '.new( :map, :rectangle)';
+  't/data/Add2.png'.IO.unlink;
+
+  $s.unmap-image($is);
+  $s.clear-object;
 }
+
+
+#-------------------------------------------------------------------------------
+done-testing;
+
+=finish
