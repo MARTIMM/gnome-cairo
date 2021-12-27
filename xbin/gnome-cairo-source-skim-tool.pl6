@@ -13,16 +13,16 @@ my @cairodirlist = "$root-dir/xbin/cairo-list.txt".IO.slurp.lines;
 $root-dir = '/home/marcel/Languages/Raku/Projects/gnome-gtk3';
 my @enum-list = "$root-dir/Design-docs/skim-tool-enum-list".IO.slurp.lines;
 
-my Bool $class-is-leaf;
-my Bool $class-is-role; # is leaf implicitly
-my Bool $class-is-top;
+#my Bool $class-is-leaf;
+#my Bool $class-is-role; # is leaf implicitly
+#my Bool $class-is-top;
 #-------------------------------------------------------------------------------
 sub MAIN (
   Str:D $base-name, Bool :$main = False,
   Bool :$sub = False, Bool :$types = False, Bool :$test = False,
 
 # force true because cairo doesn't do casting...
-  Bool :$leaf = True
+#  Bool :$leaf = True
 ) {
 
   my Str $*base-sub-name;
@@ -34,7 +34,7 @@ sub MAIN (
   my Str $*output-file;
 
   my Bool $do-all = !( [or] $main, $sub, $types, $test );
-  $class-is-leaf = $leaf;
+#  $class-is-leaf = $leaf;
 
   $*base-sub-name = $*base-sub-name // $base-name;
 
@@ -231,7 +231,7 @@ sub get-subroutines( Str:D $include-content, Str:D $source-content ) {
 
     # process new subroutines. they will be sorted to the end and do not get a
     # method because they are accessed from BUILD. Also doc is commented out.
-    if $class-is-leaf {
+#    if $class-is-leaf {
       $pod-doc-key = $pod-sub-name;
 
       $sub = Q:qq:to/EOSUB/;
@@ -259,8 +259,9 @@ sub get-subroutines( Str:D $include-content, Str:D $source-content ) {
         ) is native($*library)
           \{ * \}$end-comment
         EOSUB
-    }
+#    }
 
+#`{{
     # process methods in other classes. they do need casting
     else {
       $pod-doc-key = $pod-sub-name;
@@ -292,7 +293,7 @@ sub get-subroutines( Str:D $include-content, Str:D $source-content ) {
           \{ * \}$end-comment
         EOSUB
     }
-
+}}
 #    note $sub;
 
     $sub-documents{$pod-doc-key} = $sub;
