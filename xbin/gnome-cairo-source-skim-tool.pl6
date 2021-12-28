@@ -692,23 +692,8 @@ sub substitute-in-template (
           }}
 
           # only after creating the native-object
-          self._set-class-info('LIBCLASSNAME');
+      #    self._set-class-info('LIBCLASSNAME');
         }
-      }
-
-      #-------------------------------------------------------------------------------
-      # no pod. user does not have to know about it.
-      method _fallback ( $native-sub is copy --> Callable ) {
-
-        my Callable $s;
-        try { $s = &::("BASE-SUBNAME_$native-sub"); };
-        try { $s = &::("cairo_$native-sub"); } unless ?$s;
-        try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'cairo_' /;
-
-        self._set-class-name-of-sub('LIBCLASSNAME');
-        $s = callsame unless ?$s;
-
-        $s;
       }
 
       EOTEMPLATE

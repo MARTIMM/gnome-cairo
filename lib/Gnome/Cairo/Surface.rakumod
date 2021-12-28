@@ -243,7 +243,7 @@ submethod BUILD ( *%options ) {
     }
 
     # only after creating the native-object
-    self._set-class-info('Surface');
+#    self._set-class-info('Surface');
   }
 }
 
@@ -256,7 +256,7 @@ method _fallback ( $native-sub is copy --> Callable ) {
   try { $s = &::("cairo_$native-sub"); } unless ?$s;
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'cairo_' /;
 
-  self._set-class-name-of-sub('Surface');
+#  self._set-class-name-of-sub('Surface');
   $s = callsame unless ?$s;
 
   $s;

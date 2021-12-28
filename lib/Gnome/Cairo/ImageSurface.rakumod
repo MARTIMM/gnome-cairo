@@ -144,11 +144,10 @@ submethod BUILD ( *%options ) {
       }
       }}
 
-#note "IS: $?LINE  $no.raku()";
       self._set-native-object($no);
     }
 
-    self._set-class-info('CairoImageSurface');
+#    self._set-class-info('ImageSurface');
   }
 }
 
@@ -161,7 +160,7 @@ method _fallback ( $native-sub is copy --> Callable ) {
   try { $s = &::("cairo_$native-sub"); } unless ?$s;
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'cairo_' /;
 
-  self._set-class-name-of-sub('CairoImageSurface');
+#  self._set-class-name-of-sub('ImageSurface');
   $s = callsame unless ?$s;
 
   $s;
@@ -242,7 +241,7 @@ method create ( Int $format, Int $width, Int $height --> cairo_surface_t ) {
 }}
 
 sub _cairo_image_surface_create (
-  gint32 $format, int32 $width, int32 $height --> cairo_surface_t
+  gint32 $format, gint $width, gint $height --> cairo_surface_t
 ) is native(&cairo-lib)
   is symbol('cairo_image_surface_create')
   { * }
@@ -272,7 +271,7 @@ method create-for-data ( unsigned Int-ptr $data, Int $format, Int $width, Int $h
 }
 
 sub _cairo_image_surface_create_for_data (
-  unsigned gchar-ptr $data, gint32 $format, int32 $width, int32 $height, int32 $stride --> cairo_surface_t
+  unsigned gchar-ptr $data, gint32 $format, gint $width, gint $height, gint $stride --> cairo_surface_t
 ) is native(&cairo-lib)
   is symbol('cairo_image_surface_create_for_data')
   { * }
@@ -345,7 +344,7 @@ method get-format ( --> cairo_format_t ) {
 }
 
 sub cairo_image_surface_get_format (
-  cairo_surface_t $surface --> gint32
+  cairo_surface_t $surface --> gint
 ) is native(&cairo-lib)
   { * }
 
@@ -365,7 +364,7 @@ method get-height ( --> Int ) {
 }
 
 sub cairo_image_surface_get_height (
-  cairo_surface_t $surface --> int32
+  cairo_surface_t $surface --> gint
 ) is native(&cairo-lib)
   { * }
 
@@ -387,7 +386,7 @@ method get-stride ( --> Int ) {
 }
 
 sub cairo_image_surface_get_stride (
-  cairo_surface_t $surface --> int32
+  cairo_surface_t $surface --> gint
 ) is native(&cairo-lib)
   { * }
 
@@ -407,7 +406,7 @@ method get-width ( --> Int ) {
 }
 
 sub cairo_image_surface_get_width (
-  cairo_surface_t $surface --> int32
+  cairo_surface_t $surface --> gint
 ) is native(&cairo-lib)
   { * }
 

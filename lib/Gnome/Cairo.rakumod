@@ -93,7 +93,6 @@ submethod BUILD ( *%options ) {
       if %options<surface>:exists {
         $no = %options<surface>;
         $no .= _get-native-object-no-reffing unless $no ~~ cairo_surface_t;
-#note "C: $?LINE  $no.raku()";
         $no = _cairo_create($no);
       }
 
@@ -123,13 +122,10 @@ submethod BUILD ( *%options ) {
       }
       }}
 
-#note "C: $?LINE  $no.raku()";
       self._set-native-object($no);
     }
 
-#note "C: $?LINE";
-    self._set-class-info('Cairo');
-#note "C: $?LINE";
+#    self._set-class-info('Cairo');
   }
 }
 
@@ -142,7 +138,7 @@ method _fallback ( $native-sub is copy --> Callable ) {
   try { $s = &::("cairo_$native-sub"); } unless ?$s;
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'cairo_' /;
 
-  self._set-class-name-of-sub('Cairo');
+#  self._set-class-name-of-sub('Cairo');
   $s = callsame unless ?$s;
 
   $s;

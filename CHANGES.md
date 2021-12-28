@@ -1,4 +1,7 @@
 ## Release notes
+* 2021-12-16 0.2.4
+  * Change generator to not insert commands for glib type system. Modules are changed. Also type casting is not used in Cairo.
+
 * 2021-12-16 0.2.3
   * Rewrite pod doc of **Gnome::Cairo**, **Gnome::Cairo::Surface**, **Gnome::Cairo::ImageSurface** and **Gnome::Cairo::Enums**. Most of the enums come from the Cairo module.
 
