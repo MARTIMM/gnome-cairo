@@ -1,0 +1,61 @@
+use v6;
+use NativeCall;
+use Test;
+
+use Gnome::Cairo::Types;
+use Gnome::Cairo::Enums;
+use Gnome::Cairo::ImageSurface;
+use Gnome::Cairo::Path;
+use Gnome::Cairo;
+
+#use Gnome::N::X;
+#Gnome::N::debug(:on);
+
+#-------------------------------------------------------------------------------
+my Gnome::Cairo $c;
+my Gnome::Cairo::ImageSurface $is;
+my Gnome::Cairo::Path $p;
+#-------------------------------------------------------------------------------
+subtest 'ISA test', {
+  $is .= new( :format(CAIRO_FORMAT_RGB24), :width(128), :height(128));
+  $c .= new(:surface($is));
+
+  $p .= new(:native-object($c.copy-path));
+  isa-ok $p, Gnome::Cairo::Path, '.new(:native-object)';
+  $p.clear-object;
+}
+
+#-------------------------------------------------------------------------------
+# set environment variable 'raku-test-all' if rest must be tested too.
+unless %*ENV<raku_test_all>:exists {
+  done-testing;
+  exit;
+}
+
+#-------------------------------------------------------------------------------
+class PathParts {
+  method move ( cairo_path_data_point_t $dp ) {
+  }
+}
+
+subtest 'Manipulations', {
+  $c.new-path;
+  $c.move-to( 10, 20);
+  $c.line-to( 20, 10);
+  is-deeply $c.get-current-point, ( 20e0, 10e0),
+    '.new-path() / .move-to() / .line-to()';
+
+  $p .= new(:native-object($c.copy-path));
+  is $p.status, CAIRO_STATUS_SUCCESS, '.status()';
+  is $p.length, 4, '.length()';
+
+  $c.stroke;
+  $p.clear-object;
+  $p .= new(:native-object($c.copy-path));
+  is $p.length, 0, '.stroke()';
+}
+
+#-------------------------------------------------------------------------------
+done-testing;
+
+=finish
