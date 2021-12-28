@@ -356,20 +356,6 @@ sub get-type( Str:D $declaration is copy --> List ) {
   $type ~~ s:s/ unsigned int64 /guint64/;
   $type ~~ s:s/ unsigned int /guint/;
 
-#`{{
-  # if there is still another pointer, make a CArray
-#  $type = "CArray[$type]" if $type ~~ m/ '*' /;
-  $type ~~ s:g/ '*' //;
-#  $type ~~ s:g/ \s+ //;
-
-#`{{
-  if $declaration ~~ m/ ^ '...' / {
-    $type = 'Any';
-    $declaration = 'any = Any';
-  }
-}}
-}}
-
 #note "\nType: $type";
   # cleanup
   $type ~~ s:g/ '*' //;
@@ -382,17 +368,18 @@ sub get-type( Str:D $declaration is copy --> List ) {
   # check type for its class name
   my Bool $type-is-class = $type eq $*no-type-name;
 
-  $type = 'gint32' if $type ~~ m/ cairo_bool_t /;
+  $type = 'gboolean' if $type ~~ m/ cairo_bool_t /;
   $type = 'gfloat' if $type ~~ m/ real /;
   $type = 'gdouble' if $type ~~ m/ double /;
 
-  if $type ~~ any(@enum-list) {
-    $type = 'gint32';
-  }
-
   # convert to Raku types
   my Str $raku-type = $type;
-##`{{
+
+  # process all types from GtkEnum and some
+  # use bin/gather-enums.pl6 to create a list in
+  # doc/Design-docs/skim-tool-enum-list.txt
+  $type = 'GEnum' if $type ~~ any(@enum-list);
+
   $raku-type = 'UInt' if $raku-type ~~ m:s/ unsigned [int || long ]/;
   $raku-type = 'Int' if $raku-type ~~ m:s/ int32 || int64 || int /;
   $raku-type = 'Num' if $raku-type ~~ m:s/ num32 || num64 /;
@@ -405,9 +392,7 @@ sub get-type( Str:D $declaration is copy --> List ) {
   $type = 'int64' if $type ~~ m:s/ [unsigned]? long /;
 #  $type = 'int32' if $type ~~ m:s/ int /;
 #  $type = 'int64' if $type ~~ m:s/ long /;
-#}}
 
-##`{{
   #$raku-type ~~ s/ 'gchar' \s+ '*' /Str/;
   #$raku-type ~~ s/ str /Str/;
 
@@ -428,12 +413,10 @@ sub get-type( Str:D $declaration is copy --> List ) {
 
   $raku-type ~~ s:s/ gfloat || gdouble /Num/;
 
-#}}
-
-$declaration ~~ s/ \s+ / /;
-$declaration ~~ s/ \s+ $//;
-$declaration ~~ s/^ \s+ //;
-$declaration ~~ s/^ \s* $//;
+  $declaration ~~ s/ \s+ / /;
+  $declaration ~~ s/ \s+ $//;
+  $declaration ~~ s/^ \s+ //;
+  $declaration ~~ s/^ \s* $//;
 
 #note "Result type: $declaration, $type, raku type: $raku-type, is class = $type-is-class";
 
@@ -743,7 +726,6 @@ sub get-sub-doc ( Str:D $doc --> List ) {
         $sub-doc ~= " " ~ ~($<doc> // '');
       }
     }
-
 
     # an empty line is end of items doc and starts/continues sub doc
     elsif $line ~~ m/ ^ \s+ '*' \s* $ / {
