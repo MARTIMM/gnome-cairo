@@ -1,4 +1,4 @@
-#TL:0:Gnome::Cairo::Path:
+#TL:1:Gnome::Cairo::Path:
 
 use v6;
 #-------------------------------------------------------------------------------
@@ -12,9 +12,7 @@ Creating paths and manipulating path data
 
 =head1 Description
 
- Paths are the most basic drawing tools and are primarily used to implicitly generate simple masks.
-
-
+Paths are the most basic drawing tools and are primarily used to implicitly generate simple masks.
 
 
 =head1 Synopsis
@@ -23,7 +21,20 @@ Creating paths and manipulating path data
   unit class Gnome::Cairo::Path;
   also is Gnome::N::TopLevelClassSupport;
 
-=comment head2 Example
+
+=head2 Example
+
+  my Gnome::Cairo $context;
+  my Gnome::Cairo::ImageSurface $surface;
+  my Gnome::Cairo::Path $path;
+
+  $surface .= new(
+    :format(CAIRO_FORMAT_RGB24), :width(128), :height(128)
+  );
+  $context .= new(:$surface);
+
+  $path .= new(:native-object($context.copy-path));
+
 
 =end pod
 #-------------------------------------------------------------------------------
@@ -48,10 +59,15 @@ also is Gnome::N::TopLevelClassSupport;
 =head3 :native-object
 
 There is only one way to create a Path object and that is by importing a native object.
+
+  multi method new ( N-GObject :$native-object! )
+
 =end pod
 
 #TM:4:new(:native-object):Gnome::N::TopLevelClassSupport
 submethod BUILD ( *%options ) {
+
+#print "\n", '-' x 80, "\nThis class is deprecated. All path operations can be done with Gnome::Cairo::Cairo\n", '-' x 80, "\n";
 
   # prevent creating wrong native-objects
   if self.^name eq 'Gnome::Cairo::Path' #`{{ or %options<CairoPath> }} {
@@ -63,17 +79,17 @@ submethod BUILD ( *%options ) {
 
     # check if common options are handled by some parent
     elsif %options<native-object>:exists { }
-#`{{
+
     else {
       my $no;
-      # if ? %options<> {
-      #   $no = %options<>;
-      #   $no .= _get-native-object-no-reffing
-      #     if $no.^can('_get-native-object-no-reffing');
-      #   $no = ...($no);
-      # }
+      if ? %options<_x_> {
+        #$no = %options<_x_>;
+        #$no .= _get-native-object-no-reffing
+        #   if $no.^can('_get-native-object-no-reffing');
+        #$no = ...($no);
+      }
 
-      #`{{ use this when the module is not made inheritable
+      ##`{{ use this when the module is not made inheritable
       # check if there are unknown options
       elsif %options.elems {
         die X::Gnome.new(
@@ -83,14 +99,14 @@ submethod BUILD ( *%options ) {
           )
         );
       }
-      }}
+      #}}
 
-      #`{{ when there are no defaults use this
+      ##`{{ when there are no defaults use this
       # check if there are any options
       elsif %options.elems == 0 {
         die X::Gnome.new(:message('No options specified ' ~ self.^name));
       }
-      }}
+      #}}
 
       #`{{ when there are defaults use this instead
       # create default object
@@ -101,10 +117,9 @@ submethod BUILD ( *%options ) {
 
       self._set-native-object($no);
     }
-}}
 
     # only after creating the native-object
-    self._set-class-info('CairoPath');
+#    self._set-class-info('Path');
   }
 }
 
@@ -117,7 +132,7 @@ method _fallback ( $native-sub is copy --> Callable ) {
   try { $s = &::("cairo_$native-sub"); } unless ?$s;
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'cairo_' /;
 
-  self._set-class-name-of-sub('CairoPath');
+#  self._set-class-name-of-sub('Path');
   $s = callsame unless ?$s;
 
   $s;
@@ -131,6 +146,21 @@ method native-object-ref ( $no ) {
 #-------------------------------------------------------------------------------
 method native-object-unref ( $no ) {
   _cairo_path_destroy($no);
+}
+
+#-------------------------------------------------------------------------------
+#TM:1:length:
+=begin pod
+=head2 length
+
+Return the length of the data array in the C<cairo_path_t> structure.
+
+  method length ( --> UInt )
+
+=end pod
+
+method length ( --> UInt ) {
+  self._get-native-object-no-reffing.num_data
 }
 
 #-----------------------------------------------------------------------------
@@ -197,20 +227,37 @@ method walk-path (
 }
 
 #-------------------------------------------------------------------------------
+#TM:1:status:
+=begin pod
+=head2 status
+
+Return status from the path structure C<cairo_path_t>.
+
+  method status ( --> cairo_status_t )
+
+=end pod
+
+method status ( --> cairo_status_t ) {
+  cairo_status_t(self._get-native-object-no-reffing.status)
+}
+
+#-------------------------------------------------------------------------------
 #TM:0:_cairo_path_destroy:
 #`{{
 =begin pod
 =head2 cairo_path_destroy
 
-Paths are the most basic drawing tools and are primarily used to implicitly generate simple masks. cairo_path_destroy: C<cairo_copy_path_flat()>.  Immediately releases all memory associated with I<path>. After a call to C<cairo_path_destroy()> the I<path> pointer is no longer valid and should not be used further.  Note: C<cairo_path_destroy()> should only be called with a pointer to a B<cairo_path_t> returned by a cairo function. Any path that is created manually (ie. outside of cairo) should be destroyed manually as well.
+Immediately releases all memory associated with path. After a call to cairo_path_destroy() the path pointer is no longer valid and should not be used further.
 
-  method cairo_path_destroy ( --> void )
+Note: cairo_path_destroy() should only be called with a pointer to a cairo_path_t returned by a cairo function. Any path that is created manually (ie. outside of cairo) should be destroyed manually as well.
+
+  method cairo_path_destroy ( )
 
 
 =end pod
 }}
 
-sub _cairo_path_destroy ( cairo_path_t $path --> void )
+sub _cairo_path_destroy ( cairo_path_t $path )
   is native(&cairo-lib)
   is symbol('cairo_path_destroy')
   { * }
