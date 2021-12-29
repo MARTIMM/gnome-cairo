@@ -111,7 +111,7 @@ class cairo_path_data_t is repr('CUnion') is export {
 =head2 cairo_path_t
 =end pod
 
-#TT:0:cairo_path_t
+#TT:1:cairo_path_t
 class cairo_path_t is repr('CStruct') is export {
   has uint32 $.status;                # enum cairo_status_t
   has Pointer[cairo_path_data_t] $.data;
@@ -178,7 +178,7 @@ A data structure for holding a rectangle with integer coordinates.
 
 =end pod
 
-#TT:0:cairo_rectangle_int_t
+#TT:1:cairo_rectangle_int_t
 class cairo_rectangle_int_t is repr('CStruct') is export {
   has int32 $.x;
   has int32 $.y;
@@ -200,7 +200,7 @@ A data structure for holding a rectangle using doubles this time.
 =item Num $.height; height of the rectangle
 =end pod
 
-#TT:0:cairo_rectangle_t
+#TT:1:cairo_rectangle_t
 class cairo_rectangle_t is repr('CStruct') is export {
   has num64 $.x;
   has num64 $.y;
