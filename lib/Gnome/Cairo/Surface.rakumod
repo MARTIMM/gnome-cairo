@@ -84,7 +84,7 @@ also is Gnome::N::TopLevelClassSupport;
 Create a new surface that is as compatible as possible with an existing surface. For example the new surface will have the same device scale, fallback resolution and font options as I<other>. Generally, the new surface will also use the same backend as I<other>, unless that is not possible for some reason. The type of the returned surface may be examined with C<get_type()>.
 
 Initially the surface contents are all 0 (transparent if contents have transparency, black otherwise.)  Use C<create_similar_image()> if you need an image surface which can be painted quickly to the target surface.  Return value: a pointer to the newly allocated surface. The caller owns the surface and should call C<clear-object()> when done with it.
-=commentThis function always returns a valid pointer, but it will return a pointer to a "nil" surface if I<other> is already in an error state or any other error occurs.
+=comment This function always returns a valid pointer, but it will return a pointer to a "nil" surface if I<other> is already in an error state or any other error occurs.
 
   multi method new (
     cairo_surface_t :$similar!,
