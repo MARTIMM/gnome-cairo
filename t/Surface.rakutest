@@ -4,6 +4,7 @@ use Test;
 
 use Gnome::Cairo::ImageSurface;
 use Gnome::Cairo::Surface;
+#use Gnome::Cairo;
 
 use Gnome::Cairo::Types;
 use Gnome::Cairo::Enums;
@@ -12,6 +13,7 @@ use Gnome::Cairo::Enums;
 #Gnome::N::debug(:on);
 
 #-------------------------------------------------------------------------------
+#my Gnome::Cairo $c;
 my Gnome::Cairo::Surface $s;
 my Gnome::Cairo::ImageSurface $is;
 #-------------------------------------------------------------------------------
@@ -30,7 +32,6 @@ subtest 'ISA test', {
   $s .= new( :target($is), :10x, :10y, :100width, :100height);
   ok $s.is-valid, '.new(:target)';
 }
-
 
 #-------------------------------------------------------------------------------
 # set environment variable 'raku-test-all' if rest must be tested too.
@@ -52,10 +53,11 @@ subtest 'Manipulations', {
     '.new( :map, :rectangle)';
   't/data/Add2.png'.IO.unlink;
 
+#  $c .= new(:surface($is));
+
   $s.unmap-image($is);
   $s.clear-object;
 }
-
 
 #-------------------------------------------------------------------------------
 done-testing;
