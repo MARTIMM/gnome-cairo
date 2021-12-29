@@ -14,7 +14,7 @@
     "Gnome::Cairo::FontOptions": "lib/Gnome/Cairo/FontOptions.pm6",
     "Gnome::Cairo::ImageSurface": "lib/Gnome/Cairo/ImageSurface.rakumod",
     "Gnome::Cairo::Matrix": "lib/Gnome/Cairo/Matrix.pm6",
-    "Gnome::Cairo::Path": "lib/Gnome/Cairo/Path.pm6",
+    "Gnome::Cairo::Path": "lib/Gnome/Cairo/Path.rakumod",
     "Gnome::Cairo::Pattern": "lib/Gnome/Cairo/Pattern.pm6",
     "Gnome::Cairo::ScaledFont": "lib/Gnome/Cairo/ScaledFont.pm6",
     "Gnome::Cairo::Surface": "lib/Gnome/Cairo/Surface.rakumod",
