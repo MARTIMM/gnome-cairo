@@ -1,9 +1,14 @@
 ## Release notes
 * 2021-12-16 0.2.4
-  * Change generator to not insert commands for glib type system. Modules are changed. Also type casting is not used in Cairo.
+  * Change generator to not insert commands for glib type system. Modules are changed. Also type casting is not used in **Gnome::Cairo::Cairo**.
+
+<!--
+  * **Gnome::Cairo::Path** is deprecated because the structure `cairo_path_t` is enough to work with. Furthermore there are no specific native functions to manipulate paths. These are all done in **Gnome::Cairo::Cairo**.
+-->
 
 * 2021-12-16 0.2.3
   * Rewrite pod doc of **Gnome::Cairo**, **Gnome::Cairo::Surface**, **Gnome::Cairo::ImageSurface** and **Gnome::Cairo::Enums**. Most of the enums come from the Cairo module.
+  * I've seen that the documentation is quite buggy. Need to work on this…
 
 * 2021-12-12 0.2.2
   * Changes for renamed methods in **Gnome::N::TopLevelClassSupport**.
