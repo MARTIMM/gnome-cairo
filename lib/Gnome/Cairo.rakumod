@@ -392,21 +392,24 @@ sub cairo_copy_page (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:copy-path:
+#TM:2:copy-path:
 =begin pod
 =head2 copy-path
 
-Creates a copy of the current path and returns it to the user as a B<cairo_path_t>. See B<cairo_path_data_t> for hints on how to iterate over the returned data structure.  This function will always return a valid pointer, but the result will have no data (<literal>data==C<Any></literal> and <literal>num_data==0</literal>), if either of the following conditions hold:  <orderedlist> <listitem>If there is insufficient memory to copy the path. In this case <literal>path->status</literal> will be set to C<CAIRO_STATUS_NO_MEMORY>.</listitem> <listitem>If I<cr> is already in an error state. In this case <literal>path->status</literal> will contain the same status that would be returned by C<cairo_status()>.</listitem> </orderedlist>  Return value: the copy of the current path. The caller owns the returned object and should call C<cairo_path_destroy()> when finished with it.
+Creates a copy of the current path and returns it to the user as a B<cairo_path_t>. See B<cairo_path_data_t> for hints on how to iterate over the returned data structure.
+
+This function will always return a valid pointer, but the result will have no data, if either of the following conditions hold:
+=item If there is insufficient memory to copy the path. In this case C<$path.status> will be set to C<CAIRO_STATUS_NO_MEMORY>.
+=item If the context is already in an error state. In this case C<$path.status> will contain the same status that would be returned by C<.status()>.
+
+Return value: the copy of the current path. The caller owns the returned object and should call C<clear-object()> when finished with it.
 
   method copy-path ( --> cairo_path_t )
 
 =end pod
 
 method copy-path ( --> cairo_path_t ) {
-
-  cairo_copy_path(
-    self._get-native-object-no-reffing,
-  )
+  cairo_copy_path(self._get-native-object-no-reffing)
 }
 
 sub cairo_copy_path (
@@ -415,21 +418,24 @@ sub cairo_copy_path (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:copy-path-flat:
+#TM:2:copy-path-flat:
 =begin pod
 =head2 copy-path-flat
 
-Gets a flattened copy of the current path and returns it to the user as a B<cairo_path_t>. See B<cairo_path_data_t> for hints on how to iterate over the returned data structure.  This function is like C<cairo_copy_path()> except that any curves in the path will be approximated with piecewise-linear approximations, (accurate to within the current tolerance value). That is, the result is guaranteed to not have any elements of type C<CAIRO_PATH_CURVE_TO> which will instead be replaced by a series of C<CAIRO_PATH_LINE_TO> elements.  This function will always return a valid pointer, but the result will have no data (<literal>data==C<Any></literal> and <literal>num_data==0</literal>), if either of the following conditions hold:  <orderedlist> <listitem>If there is insufficient memory to copy the path. In this case <literal>path->status</literal> will be set to C<CAIRO_STATUS_NO_MEMORY>.</listitem> <listitem>If I<cr> is already in an error state. In this case <literal>path->status</literal> will contain the same status that would be returned by C<cairo_status()>.</listitem> </orderedlist>  Return value: the copy of the current path. The caller owns the returned object and should call C<cairo_path_destroy()> when finished with it.
+Gets a flattened copy of the current path and returns it to the user as a B<cairo_path_t>. See B<cairo_path_data_t> for hints on how to iterate over the returned data structure.  This function is like C<copy-path()> except that any curves in the path will be approximated with piecewise-linear approximations, (accurate to within the current tolerance value). That is, the result is guaranteed to not have any elements of type C<CAIRO_PATH_CURVE_TO> which will instead be replaced by a series of C<CAIRO_PATH_LINE_TO> elements.
+
+This function will always return a valid pointer, but the result will have no data, if either of the following conditions hold:
+=item If there is insufficient memory to copy the path. In this case C<$path.status> will be set to C<CAIRO_STATUS_NO_MEMORY>.
+=item If the context is already in an error state. In this case C<$path.status> will contain the same status that would be returned by C<.status()>.
+
+Return value: the copy of the current path. The caller owns the returned object and should call C<clear-object()> when finished with it.
 
   method copy-path-flat ( --> cairo_path_t )
 
 =end pod
 
 method copy-path-flat ( --> cairo_path_t ) {
-
-  cairo_copy_path_flat(
-    self._get-native-object-no-reffing,
-  )
+  cairo_copy_path_flat(self._get-native-object-no-reffing)
 }
 
 sub cairo_copy_path_flat (
@@ -533,10 +539,7 @@ Transform a coordinate from device space to user space by multiplying the given 
 =end pod
 
 method device-to-user ( Num $x, Num $y ) {
-
-  cairo_device_to_user(
-    self._get-native-object-no-reffing, $x, $y
-  )
+  cairo_device_to_user( self._get-native-object-no-reffing, $x, $y)
 }
 
 sub cairo_device_to_user (
@@ -581,10 +584,7 @@ A drawing operator that fills the current path according to the current fill rul
 =end pod
 
 method fill ( ) {
-
-  cairo_fill(
-    self._get-native-object-no-reffing,
-  )
+  cairo_fill(self._get-native-object-no-reffing)
 }
 
 sub cairo_fill (
@@ -599,7 +599,7 @@ sub cairo_fill (
 
 Computes a bounding box in user coordinates covering the area that would be affected, (the "inked" area), by a C<cairo_fill()> operation given the current path and fill parameters. If the current path is empty, returns an empty rectangle ((0,0), (0,0)). Surface dimensions and clipping are not taken into account.  Contrast with C<cairo_path_extents()>, which is similar, but returns non-zero extents for some paths with no inked area, (such as a simple line segment).  Note that C<cairo_fill_extents()> must necessarily do more work to compute the precise inked areas in light of the fill rule, so C<cairo_path_extents()> may be more desirable for sake of performance if the non-inked path extents are desired.  See C<cairo_fill()>, C<cairo_set_fill_rule()> and C<cairo_fill_preserve()>.
 
-  method fill-extents ( Num $x1, Num $y1, Num $x2, Num $y2 )
+  method fill-extents ( Num() $x1, Num() $y1, Num() $x2, Num() $y2 )
 
 =item Num $x1; a cairo context
 =item Num $y1; left of the resulting extents
@@ -607,11 +607,8 @@ Computes a bounding box in user coordinates covering the area that would be affe
 =item Num $y2; right of the resulting extents
 =end pod
 
-method fill-extents ( Num $x1, Num $y1, Num $x2, Num $y2 ) {
-
-  cairo_fill_extents(
-    self._get-native-object-no-reffing, $x1, $y1, $x2, $y2
-  )
+method fill-extents ( Num() $x1, Num() $y1, Num() $x2, Num() $y2 ) {
+  cairo_fill_extents( self._get-native-object-no-reffing, $x1, $y1, $x2, $y2)
 }
 
 sub cairo_fill_extents (
@@ -631,10 +628,7 @@ A drawing operator that fills the current path according to the current fill rul
 =end pod
 
 method fill-preserve ( ) {
-
-  cairo_fill_preserve(
-    self._get-native-object-no-reffing,
-  )
+  cairo_fill_preserve( self._get-native-object-no-reffing)
 }
 
 sub cairo_fill_preserve (
@@ -655,10 +649,7 @@ Gets the font extents for the currently selected font.
 =end pod
 
 method font-extents ( cairo_font_extents_t $extents ) {
-
-  cairo_font_extents(
-    self._get-native-object-no-reffing, $extents
-  )
+  cairo_font_extents( self._get-native-object-no-reffing, $extents)
 }
 
 sub cairo_font_extents (
@@ -687,7 +678,7 @@ sub cairo_get_antialias (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:get-current-point:
+#TM:1:get-current-point:
 =begin pod
 =head2 get-current-point
 
@@ -896,10 +887,7 @@ Gets the current line cap style, as set by C<cairo_set_line_cap()>.  Return valu
 =end pod
 
 method get-line-cap ( --> Int ) {
-
-  cairo_get_line_cap(
-    self._get-native-object-no-reffing,
-  )
+  cairo_get_line_cap(self._get-native-object-no-reffing)
 }
 
 sub cairo_get_line_cap (
@@ -1348,10 +1336,7 @@ Tests whether the given point is inside the area that would be affected by a C<c
 =end pod
 
 method in-stroke ( Num $x, Num $y --> Int ) {
-
-  cairo_in_stroke(
-    self._get-native-object-no-reffing, $x, $y
-  )
+  cairo_in_stroke( self._get-native-object-no-reffing, $x, $y)
 }
 
 sub cairo_in_stroke (
@@ -1360,23 +1345,20 @@ sub cairo_in_stroke (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:line-to:
+#TM:1:line-to:
 =begin pod
 =head2 line-to
 
 Adds a line to the path from the current point to position (I<x>, I<y>) in user-space coordinates. After this call the current point will be (I<x>, I<y>).  If there is no current point before the call to C<cairo_line_to()> this function will behave as cairo_move_to(I<cr>, I<x>, I<y>).
 
-  method line-to ( Num $x, Num $y )
+  method line-to ( Num() $x, Num() $y )
 
 =item Num $x; a cairo context
 =item Num $y; the X coordinate of the end of the new line
 =end pod
 
-method line-to ( Num $x, Num $y ) {
-
-  cairo_line_to(
-    self._get-native-object-no-reffing, $x, $y
-  )
+method line-to ( Num() $x, Num() $y ) {
+  cairo_line_to( self._get-native-object-no-reffing, $x, $y)
 }
 
 sub cairo_line_to (
@@ -1422,8 +1404,9 @@ A drawing operator that paints the current source using the alpha channel of I<s
 =item Num $surface_y; X coordinate at which to place the origin of I<surface>
 =end pod
 
-method mask-surface ( cairo_surface_t $surface, Num $surface_x, Num $surface_y ) {
-
+method mask-surface (
+  cairo_surface_t $surface, Num() $surface_x, Num() $surface_y
+) {
   cairo_mask_surface(
     self._get-native-object-no-reffing, $surface, $surface_x, $surface_y
   )
@@ -1435,23 +1418,20 @@ sub cairo_mask_surface (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:move-to:
+#TM:2:move-to:
 =begin pod
 =head2 move-to
 
 Begin a new sub-path. After this call the current point will be (I<x>, I<y>).
 
-  method move-to ( Num $x, Num $y )
+  method move-to ( Num() $x, Num() $y )
 
 =item Num $x; a cairo context
 =item Num $y; the X coordinate of the new position
 =end pod
 
-method move-to ( Num $x, Num $y ) {
-
-  cairo_move_to(
-    self._get-native-object-no-reffing, $x, $y
-  )
+method move-to ( Num() $x, Num() $y ) {
+  cairo_move_to( self._get-native-object-no-reffing, $x, $y)
 }
 
 sub cairo_move_to (
@@ -1460,7 +1440,7 @@ sub cairo_move_to (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:new-path:
+#TM:2:new-path:
 =begin pod
 =head2 new-path
 
@@ -1471,10 +1451,7 @@ Clears the current path. After this call there will be no path and no current po
 =end pod
 
 method new-path ( ) {
-
-  cairo_new_path(
-    self._get-native-object-no-reffing,
-  )
+  cairo_new_path(self._get-native-object-no-reffing)
 }
 
 sub cairo_new_path (
@@ -2592,11 +2569,17 @@ sub cairo_status_to_string ( int32 $status --> Str )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:stroke:
+#TM:1:stroke:
 =begin pod
 =head2 stroke
 
-A drawing operator that strokes the current path according to the current line width, line join, line cap, and dash settings. After C<cairo_stroke()>, the current path will be cleared from the cairo context. See C<cairo_set_line_width()>, C<cairo_set_line_join()>, C<cairo_set_line_cap()>, C<cairo_set_dash()>, and C<cairo_stroke_preserve()>.  Note: Degenerate segments and sub-paths are treated specially and provide a useful result. These can result in two different situations:  1. Zero-length "on" segments set in C<cairo_set_dash()>. If the cap style is C<CAIRO_LINE_CAP_ROUND> or C<CAIRO_LINE_CAP_SQUARE> then these segments will be drawn as circular dots or squares respectively. In the case of C<CAIRO_LINE_CAP_SQUARE>, the orientation of the squares is determined by the direction of the underlying path.  2. A sub-path created by C<cairo_move_to()> followed by either a C<cairo_close_path()> or one or more calls to C<cairo_line_to()> to the same coordinate as the C<cairo_move_to()>. If the cap style is C<CAIRO_LINE_CAP_ROUND> then these sub-paths will be drawn as circular dots. Note that in the case of C<CAIRO_LINE_CAP_SQUARE> a degenerate sub-path will not be drawn at all, (since the correct orientation is indeterminate).  In no case will a cap style of C<CAIRO_LINE_CAP_BUTT> cause anything to be drawn in the case of either degenerate segments or sub-paths.
+A drawing operator that strokes the current path according to the current line width, line join, line cap, and dash settings. After C<stroke()>, the current path will be cleared from the cairo context. See C<set_line_width()>, C<set_line_join()>, C<cset_line_cap()>, C<set_dash()>, and C<stroke_preserve()>.
+
+Note: Degenerate segments and sub-paths are treated specially and provide a useful result. These can result in two different situations:
+=item Zero-length "on" segments set in C<set_dash()>. If the cap style is C<CAIRO_LINE_CAP_ROUND> or C<CAIRO_LINE_CAP_SQUARE> then these segments will be drawn as circular dots or squares respectively. In the case of C<CAIRO_LINE_CAP_SQUARE>, the orientation of the squares is determined by the direction of the underlying path.
+=item A sub-path created by C<cairo_move_to()> followed by either a C<cairo_close_path()> or one or more calls to C<cairo_line_to()> to the same coordinate as the C<cairo_move_to()>. If the cap style is C<CAIRO_LINE_CAP_ROUND> then these sub-paths will be drawn as circular dots.
+
+Note that in the case of C<CAIRO_LINE_CAP_SQUARE> a degenerate sub-path will not be drawn at all, (since the correct orientation is indeterminate).  In no case will a cap style of C<CAIRO_LINE_CAP_BUTT> cause anything to be drawn in the case of either degenerate segments or sub-paths.
 
   method stroke ( )
 
