@@ -1,4 +1,4 @@
-#TL:0:Gnome::Cairo::Pattern:
+#TL:4:Gnome::Cairo::Pattern:
 
 use v6;
 #-------------------------------------------------------------------------------
@@ -735,7 +735,7 @@ sub cairo_mesh_pattern_set_corner_color_rgba ( cairo_pattern_t $pattern, int32 $
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:cairo_pattern_add_color_stop_rgb:
+#TM:4:cairo_pattern_add_color_stop_rgb:
 =begin pod
 =head2 [cairo_pattern_] add_color_stop_rgb
 
@@ -753,6 +753,14 @@ Note: If the pattern is not a gradient pattern, (eg. a linear or radial pattern)
 =item Num $blue; green component of color
 
 =end pod
+
+method add-color-stop-rgb(
+  Num() $offset, Num() $red, Num() $green, Num() $blue
+) {
+  cairo_pattern_add_color_stop_rgb(
+    self._get-native-object-no-reffing, $offset, $red, $green, $blue
+  )
+}
 
 sub cairo_pattern_add_color_stop_rgb ( cairo_pattern_t $pattern, num64 $offset, num64 $red, num64 $green, num64 $blue )
   is native(&cairo-lib)
@@ -774,6 +782,14 @@ Adds a translucent color stop to a gradient pattern. The offset specifies the lo
 =item Num $alpha; blue component of color
 
 =end pod
+
+method add-color-stop-rgba(
+  Num() $offset, Num() $red, Num() $green, Num() $blue, Num() $alpha
+) {
+  cairo_pattern_add_color_stop_rgb(
+    self._get-native-object-no-reffing, $offset, $red, $green, $blue, $alpha
+  )
+}
 
 sub cairo_pattern_add_color_stop_rgba ( cairo_pattern_t $pattern, num64 $offset, num64 $red, num64 $green, num64 $blue, num64 $alpha )
   is native(&cairo-lib)
