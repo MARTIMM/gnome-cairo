@@ -47,20 +47,29 @@ subtest 'ISA test', {
 }
 
 #-------------------------------------------------------------------------------
+# set environment variable 'raku-test-all' if rest must be tested too.
+unless %*ENV<raku_test_all>:exists {
+  done-testing;
+  exit;
+}
+
+#-------------------------------------------------------------------------------
 subtest 'Manipulations', {
   $p .= new(:mesh);
 
-  $p.cairo_mesh_pattern_begin_patch;
-  $p.cairo_mesh_pattern_move_to( 100e0, 100e0);
-  $p.cairo_mesh_pattern_line_to( 130e0, 130e0);
-  $p.cairo_mesh_pattern_line_to( 130e0,  70e0);
-  $p.cairo_mesh_pattern_set_corner_color_rgb( 0, 1e0, 0e0, 0e0);
-  $p.cairo_mesh_pattern_set_corner_color_rgb( 1, 0e0, 1e0, 0e0);
-  $p.cairo_mesh_pattern_set_corner_color_rgb( 2, 0e0, 0e0, 1e0);
-  $p.cairo_mesh_pattern_end_patch;
+  $p.mesh-pattern-begin-patch;
+  $p.mesh-pattern-move-to( 100e0, 100e0);
+  $p.mesh-pattern-line-to( 130e0, 130e0);
+  $p.mesh-pattern-line-to( 130e0,  70e0);
+  $p.mesh-pattern-set-corner-color-rgb( 0, 1e0, 0e0, 0e0);
+  $p.mesh-pattern-set-corner-color-rgb( 1, 0e0, 1e0, 0e0);
+  $p.mesh-pattern-set-corner-color-rgb( 2, 0e0, 0e0, 1e0);
+  $p.mesh-pattern-end-patch;
 
   $p.clear-object;
 }
 
 #-------------------------------------------------------------------------------
 done-testing;
+
+=finish
