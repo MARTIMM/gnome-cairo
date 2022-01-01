@@ -162,22 +162,20 @@ method native-object-unref ( $no ) {
 
 
 #-------------------------------------------------------------------------------
-#TM:0:append-path:
+#TM:1:append-path:
 =begin pod
 =head2 append-path
 
-Append the I<path> onto the current path. The I<path> may be either the return value from one of C<cairo_copy_path()> or C<cairo_copy_path_flat()> or it may be constructed manually.  See B<cairo_path_t> for details on how the path data structure should be initialized, and note that <literal>path->status</literal> must be initialized to C<CAIRO_STATUS_SUCCESS>.
+Append the I<$path> onto the current path. Note that C<Gnome::Cairo::Path.status()> must be C<CAIRO_STATUS_SUCCESS>.
 
   method append-path ( cairo_path_t $path )
 
 =item cairo_path_t $path; a cairo context
 =end pod
 
-method append-path ( cairo_path_t $path ) {
-
-  cairo_append_path(
-    self._get-native-object-no-reffing, $path
-  )
+method append-path ( $path is copy ) {
+  $path .= get-native-object-no-reffing unless $path ~~ cairo_path_t;
+  cairo_append_path( self._get-native-object-no-reffing, $path);
 }
 
 sub cairo_append_path (
@@ -186,19 +184,29 @@ sub cairo_append_path (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:arc:
+#TM:1:arc:
 =begin pod
 =head2 arc
 
-Adds a circular arc of the given I<radius> to the current path.  The arc is centered at (I<xc>, I<yc>), begins at I<angle1> and proceeds in the direction of increasing angles to end at I<angle2>. If I<angle2> is less than I<angle1> it will be progressively increased by <literal>2*M_PI</literal> until it is greater than I<angle1>.  If there is a current point, an initial line segment will be added to the path to connect the current point to the beginning of the arc. If this initial line is undesired, it can be avoided by calling C<cairo_new_sub_path()> before calling C<cairo_arc()>.  Angles are measured in radians. An angle of 0.0 is in the direction of the positive X axis (in user space). An angle of <literal>M_PI/2.0</literal> radians (90 degrees) is in the direction of the positive Y axis (in user space). Angles increase in the direction from the positive X axis toward the positive Y axis. So with the default transformation matrix, angles increase in a clockwise direction.  (To convert from degrees to radians, use <literal>degrees * (M_PI / 180.)</literal>.)  This function gives the arc in the direction of increasing angles; see C<cairo_arc_negative()> to get the arc in the direction of decreasing angles.  The arc is circular in user space. To achieve an elliptical arc, you can scale the current transformation matrix by different amounts in the X and Y directions. For example, to draw an ellipse in the box given by I<x>, I<y>, I<width>, I<height>:
+Adds a circular arc of the given I<$radius> to the current path. The arc is centered at (I<$xc>, I<$yc>), begins at I<$angle1> and proceeds in the direction of increasing angles to end at I<$angle2>. If I<$angle2> is less than I<$angle1> it will be progressively increased by C<2*M_PI> until it is greater than I<$angle1>.
 
- cairo_save (cr); cairo_translate (cr, x + width / 2., y + height / 2.); cairo_scale (cr, width / 2., height / 2.); cairo_arc (cr, 0., 0., 1., 0., 2 * M_PI); cairo_restore (cr);
+If there is a current point, an initial line segment will be added to the path to connect the current point to the beginning of the arc. If this initial line is undesired, it can be avoided by calling C<new_sub_path()> before calling C<arc()>.
 
+Angles are measured in radians. An angle of 0.0 is in the direction of the positive X axis (in user space). An angle of C<M_PI/2.0> radians (90 degrees) is in the direction of the positive Y axis (in user space). Angles increase in the direction from the positive X axis toward the positive Y axis. So with the default transformation matrix, angles increase in a clockwise direction.  (To convert from degrees to radians, use C<degrees * (M_PI / 180.)>.)  This function gives the arc in the direction of increasing angles; see C<arc_negative()> to get the arc in the direction of decreasing angles.  The arc is circular in user space. To achieve an elliptical arc, you can scale the current transformation matrix by different amounts in the X and Y directions. For example, to draw an ellipse in the box given by I<$x>, I<$y>, I<$width>, I<$height>:
 
+=begin code
+  $cairo.save;
+  $cairo.translate( $x + $width / 2, $y + $height / 2);
+  $cairo.scale( $width / 2, $height / 2);
+  $cairo.arc( 0, 0, 1, 0, 2 * π);
+  $cairo.restore;
+=end code
 
+=begin code
   method arc (
-    Num $xc, Num $yc, Num $radius, Num $angle1, Num $angle2
+    Num() $xc, Num() $yc, Num() $radius, Num() $angle1, Num() $angle2
   )
+=end code
 
 =item $xc; a cairo context
 =item $yc; X position of the center of the arc
@@ -207,8 +215,9 @@ Adds a circular arc of the given I<radius> to the current path.  The arc is cent
 =item $angle2; the start angle, in radians
 =end pod
 
-method arc ( Num $xc, Num $yc, Num $radius, Num $angle1, Num $angle2 ) {
-
+method arc (
+  Num() $xc, Num() $yc, Num() $radius, Num() $angle1, Num() $angle2
+) {
   cairo_arc(
     self._get-native-object-no-reffing, $xc, $yc, $radius, $angle1, $angle2
   )

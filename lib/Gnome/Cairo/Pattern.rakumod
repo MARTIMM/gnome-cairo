@@ -518,7 +518,7 @@ Returned List holds;
 =item cairo_status_t; The status, C<CAIRO_STATUS_SUCCESS>, or C<CAIRO_STATUS_PATTERN_TYPE_MISMATCH> if I<pattern> is not a mesh pattern.
 =end pod
 
-method mesh-pattern-get-patch-count ( Int $count --> cairo_status_t ) {
+method mesh-pattern-get-patch-count ( --> List ) {
   my guint $count;
   my cairo_status_t $s = cairo_status_t(
     cairo_mesh_pattern_get_patch_count(
@@ -1170,6 +1170,7 @@ sub cairo_pattern_get_type (
 ) is native(&cairo-lib)
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:get-user-data:
 =begin pod
@@ -1193,6 +1194,7 @@ sub cairo_pattern_get_user_data (
   cairo_pattern_t $pattern, cairo_user_data_key_t $key
 ) is native(&cairo-lib)
   { * }
+}}
 
 #-------------------------------------------------------------------------------
 #TM:0:reference:
@@ -1297,6 +1299,7 @@ sub cairo_pattern_set_matrix (
 ) is native(&cairo-lib)
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:set-user-data:
 =begin pod
@@ -1322,6 +1325,7 @@ sub cairo_pattern_set_user_data (
   cairo_pattern_t $pattern, cairo_user_data_key_t $key, void-ptr $user_data, cairo_destroy_func_t $destroy --> GEnum
 ) is native(&cairo-lib)
   { * }
+}}
 
 #-------------------------------------------------------------------------------
 #TM:0:status:
@@ -1344,6 +1348,44 @@ method status ( --> cairo_status_t ) {
 sub cairo_pattern_status (
   cairo_pattern_t $pattern --> GEnum
 ) is native(&cairo-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:2:_cairo_pattern_reference:native-object-ref
+#`{{
+=begin pod
+=head2 cairo_pattern_reference
+
+Increases the reference count on I<pattern> by one. This prevents I<pattern> from being destroyed until a matching call to C<cairo_pattern_destroy()> is made.  Use C<cairo_pattern_get_reference_count()> to get the number of references to a B<cairo_pattern_t>.  Return value: the referenced B<cairo_pattern_t>.
+
+  method cairo_pattern_reference ( --> cairo_pattern_t )
+
+
+=end pod
+}}
+
+sub _cairo_pattern_reference ( cairo_pattern_t $pattern --> cairo_pattern_t )
+  is native(&cairo-lib)
+  is symbol('cairo_pattern_reference')
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:2:_cairo_pattern_destroy:native-object-unref
+#`{{
+=begin pod
+=head2 cairo_pattern_destroy
+
+Decreases the reference count on I<pattern> by one. If the result is zero, then I<pattern> and all associated resources are freed.  See C<cairo_pattern_reference()>.
+
+  method cairo_pattern_destroy ( )
+
+
+=end pod
+}}
+
+sub _cairo_pattern_destroy ( cairo_pattern_t $pattern )
+  is native(&cairo-lib)
+  is symbol('cairo_pattern_destroy')
   { * }
 
 
