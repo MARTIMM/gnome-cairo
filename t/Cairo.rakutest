@@ -44,6 +44,9 @@ subtest 'Manipulations', {
   my Num ( $x, $y);
   ( $x, $y) = $c.get-current-point;
   is-deeply ( $x, $y), ( 0e0, 0e0), '.new-path() / .get-current-point()';
+
+
+  lives-ok { $c.arc( 0, 0, 1, 0, 2 * π) }, '.arc()';
 }
 
 #-------------------------------------------------------------------------------

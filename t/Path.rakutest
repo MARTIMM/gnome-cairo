@@ -53,6 +53,14 @@ subtest 'Manipulations', {
   $p.clear-object;
   $p .= new(:native-object($c.copy-path));
   is $p.length, 0, '.stroke()';
+
+  $c.new-path;
+  $c.move-to( 10, 20);
+  $c.line-to( 20, 10);
+  $p .= new(:native-object($c.copy-path));
+  $c.append-path($p);
+  $p .= new(:native-object($c.copy-path));
+  is $p.length, 8, '.append-path()';
 }
 
 #-------------------------------------------------------------------------------
