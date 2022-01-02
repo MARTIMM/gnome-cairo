@@ -35,6 +35,24 @@ unless %*ENV<raku_test_all>:exists {
 #-------------------------------------------------------------------------------
 class PathParts {
   method move ( cairo_path_data_point_t $dp ) {
+    diag 'move: ' ~ $dp.raku;
+  }
+
+  method line ( cairo_path_data_point_t $dp ) {
+    diag 'line: ' ~ $dp.raku;
+  }
+
+  method curve (
+    cairo_path_data_point_t $dp1, cairo_path_data_point_t $dp2,
+    cairo_path_data_point_t $dp3,
+  ) {
+    diag 'curve p1: ' ~ $dp1.raku;
+    diag 'curve p2: ' ~ $dp2.raku;
+    diag 'curve p3: ' ~ $dp3.raku;
+  }
+
+  method close ( ) {
+    diag 'close';
   }
 }
 
@@ -61,6 +79,8 @@ subtest 'Manipulations', {
   $c.append-path($p);
   $p .= new(:native-object($c.copy-path));
   is $p.length, 8, '.append-path()';
+
+  $p.walk-path( PathParts.new, 'move', 'line', 'curve', 'close');
 }
 
 #-------------------------------------------------------------------------------

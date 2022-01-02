@@ -179,7 +179,7 @@ C<$move-to>, C<$line-to>, C<$curve-to> and C<$close-path> are the names of the m
 
 =end pod
 
-#TM:0:walk-path:
+#TM:1:walk-path:
 method walk-path (
   Any:D $user-object, Str:D $move-to, Str:D $line-to,
   Str:D $curve-to, Str:D $close-path
@@ -197,7 +197,7 @@ method walk-path (
 
     my cairo_path_data_header_t $dh = $path.data[$i].header;
 
-    given $$dh.type {
+    with $dh.type {
       when CAIRO_PATH_MOVE_TO {
         my cairo_path_data_point_t $dp = $path.data[$i+1].point;
         $user-object."$move-to"($dp);
