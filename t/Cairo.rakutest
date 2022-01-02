@@ -46,7 +46,18 @@ subtest 'Manipulations', {
   is-deeply ( $x, $y), ( 0e0, 0e0), '.new-path() / .get-current-point()';
 
 
-  lives-ok { $c.arc( 0, 0, 1, 0, 2 * π) }, '.arc()';
+  lives-ok {
+    with $c {
+      .save;
+      .arc( 0, 0, 1, 0, 2 * π);
+      .arc-negative( 0, 0, 1, 0, 2 * π);
+      .clip;
+      diag "extends: " ~ .clip-extents.raku;
+      .clip-preserve;
+      .restore;
+    }
+  }, '.save(), .arc(), .arc-negative(), .clip(), .clip-extents(), .restore, ' ~
+     '.clip-preserve()';
 }
 
 #-------------------------------------------------------------------------------
