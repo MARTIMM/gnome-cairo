@@ -411,7 +411,8 @@ sub get-type( Str:D $declaration is copy --> List ) {
 #  $raku-type ~~ s:s/ uint /UInt/;
   $raku-type ~~ s:s/ gpointer /Pointer/;
 
-  $raku-type ~~ s:s/ gfloat || gdouble /Num/;
+  $raku-type ~~ s:s/ gfloat || gdouble /Num\(\)/;
+  $raku-type ~~ s/ '-->' \s+ Num\(\) /--> Num/;
 
   $declaration ~~ s/ \s+ / /;
   $declaration ~~ s/ \s+ $//;
@@ -980,6 +981,9 @@ sub cleanup-source-doc ( Str:D $text is copy --> Str ) {
   $text ~~ s:g/ '</programlisting>' /\n\n/;
   $text ~~ s:g/ '<screen>' /\n\n/;
   $text ~~ s:g/ '</screen>' /\n\n/;
+  $text ~~ s:g/ '<literal>' /C</;
+  $text ~~ s:g/ '</literal>' />/;
+  $text ~~ s:g/ M_PI /π/;
 
   # keep a space, otherwise other subs will change it
   $text ~~ s:g/ '<!--' .*? '-->' / /;
@@ -1048,6 +1052,8 @@ sub podding-function ( Str:D $text is copy --> Str ) {
   # change any function() to C<function()>. first change to [[function]] to
   # prevent nested substitutions.
   $text ~~ s:g/ ([<alnum> || '_']+) \s* '()' /\[\[$/[0]\]\]/;
+  $text ~~ s/ $*base-sub-name '_' //;
+  $text ~~ s:g/ '_' /-/;
   $text ~~ s:g/ '[[' ([<alnum> || '_']+ )']]' /C<$/[0]\()>/;
 
   $text
