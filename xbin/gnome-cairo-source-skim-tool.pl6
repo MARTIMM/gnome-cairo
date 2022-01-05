@@ -54,6 +54,7 @@ sub MAIN (
   generate-test if $test or $do-all;
 }
 
+
 #-------------------------------------------------------------------------------
 sub get-subroutines( Str:D $include-content, Str:D $source-content ) {
 
@@ -101,8 +102,10 @@ sub get-subroutines( Str:D $include-content, Str:D $source-content ) {
 
     # assume that sub names starting with '_' are private
     next if $sub-name ~~ m/ ^ '_' /;
-    note "get sub $sub-name";
     $declaration ~~ s/ $sub-name \s* //;
+
+    #note "get sub $sub-name";
+    print '.';
 
     # remove any brackets, and other stuff left before arguments are processed
     $declaration ~~ s:g/ <[();]> //;
@@ -121,12 +124,12 @@ sub get-subroutines( Str:D $include-content, Str:D $source-content ) {
     # process arguments
     for $args-declaration.split(/ \s* ',' \s* /) -> $raw-arg {
       my Str ( $arg, $arg-type, $raku-arg-type);
-      ( $arg, $arg-type, $raku-arg-type, $type-is-class) =
-        get-type($raw-arg);
+      ( $arg, $arg-type, $raku-arg-type, $type-is-class) = get-type($raw-arg);
 
       if ?$arg {
         my Str $pod-doc-item-doc = $items-src-doc.shift if $items-src-doc.elems;
-#note "pod info: $raku-arg-type, $arg, $pod-doc-item-doc";
+note "pod info: $raku-arg-type, $arg, $pod-doc-item-doc";
+exit(1);
 
         # skip first argument when type is also the class name
         if $first-arg and $type-is-class {
@@ -138,11 +141,7 @@ sub get-subroutines( Str:D $include-content, Str:D $source-content ) {
 
         else {
           # make arguments pod doc
-          if $raku-arg-type ~~ any(
-            < N-GObject N-GSList N-GList N-GOptionContext N-GOptionGroup
-              N-GOptionEntry N-GError
-            >
-          ) {
+          if $raku-arg-type ~~ / 'N-GObject' || cairo_ <alpha>+? _t / {
 
             $convert-lines ~= "  \$$arg .= _get-native-object-no-reffing unless \$$arg ~~ $raku-arg-type;\n";
 
@@ -173,7 +172,6 @@ sub get-subroutines( Str:D $include-content, Str:D $source-content ) {
           }
 
 
-
           # remove some c-oriented remarks
           if ?$pod-doc-item-doc {
             $pod-doc-item-doc ~~ s:g/'(' [
@@ -192,8 +190,8 @@ sub get-subroutines( Str:D $include-content, Str:D $source-content ) {
           }
 
           $pod-doc-items ~~ s/^ \s+ $//;
-
         }
+note $pod-doc-items;
 
         # add argument to list for sub declaration
         $args ~= ', ' if ?$args;
@@ -366,6 +364,7 @@ sub get-type( Str:D $declaration is copy --> List ) {
 #note "Cleaned type: $type";
 
   # check type for its class name
+#note "type check: $type === $*no-type-name";
   my Bool $type-is-class = $type eq $*no-type-name;
 
   $type = 'gboolean' if $type ~~ m/ cairo_bool_t /;
