@@ -33,6 +33,7 @@ B<cairo_surface_t>
 use NativeCall;
 
 use Gnome::N::X;
+use Gnome::N::N-GObject;
 use Gnome::N::NativeLib;
 use Gnome::N::TopLevelClassSupport;
 use Gnome::N::GlibToRakuTypes;
@@ -543,49 +544,54 @@ sub _cairo_destroy (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:device-to-user:
+#TM:1:device-to-user:
 =begin pod
 =head2 device-to-user
 
 Transform a coordinate from device space to user space by multiplying the given point by the inverse of the current transformation matrix (CTM).
 
-  method device-to-user ( Num() $x, Num() $y )
+  method device-to-user ( Num() $x is rw, Num() $y is rw )
 
-=item $x; a cairo
-=item $y; X value of coordinate (in/out parameter)
+=item $x; X value of coordinate
+=item $y; Y value of coordinate
 =end pod
 
-method device-to-user ( Num() $x, Num() $y ) {
-  cairo_device_to_user( self._get-native-object-no-reffing, $x, $y)
+method device-to-user ( Num() $x is rw, Num() $y is rw ) {
+  my gdouble $xx = $x;
+  my gdouble $yy = $y;
+  cairo_device_to_user( self._get-native-object-no-reffing, $xx, $yy);
+  $x = $xx;
+  $y = $yy;
 }
 
 sub cairo_device_to_user (
-  cairo_t $cr, gdouble $x, gdouble $y
+  cairo_t $cr, gdouble $x is rw, gdouble $y is rw
 ) is native(&cairo-lib)
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:device-to-user-distance:
+#TM:1:device-to-user-distance:
 =begin pod
 =head2 device-to-user-distance
 
 Transform a distance vector from device space to user space. This function is similar to C<device-to-user()> except that the translation components of the inverse CTM will be ignored when transforming (I<dx>,I<dy>).
 
-  method device-to-user-distance ( Num() $dx, Num() $dy )
+  method device-to-user-distance ( Num() $dx is rw, Num() $dy is rw )
 
-=item $dx; a cairo context
-=item $dy; X component of a distance vector (in/out parameter)
+=item $dx; y component of a distance vector
+=item $dy; X component of a distance vector
 =end pod
 
-method device-to-user-distance ( Num() $dx, Num() $dy ) {
-
-  cairo_device_to_user_distance(
-    self._get-native-object-no-reffing, $dx, $dy
-  )
+method device-to-user-distance ( Num() $dx is rw, Num() $dy is rw ) {
+  my gdouble $x = $dx;
+  my gdouble $y = $dy;
+  cairo_device_to_user_distance( self._get-native-object-no-reffing, $x, $y);
+  $dx = $x;
+  $dy = $y;
 }
 
 sub cairo_device_to_user_distance (
-  cairo_t $cr, gdouble $dx, gdouble $dy
+  cairo_t $cr, gdouble $dx is rw, gdouble $dy is rw
 ) is native(&cairo-lib)
   { * }
 
@@ -660,13 +666,15 @@ sub cairo_fill_preserve (
 
 Gets the font extents for the currently selected font.
 
-  method font-extents ( cairo_font_extents_t $extents )
+  method font-extents ( --> cairo_font_extents_t )
 
-=item cairo_font_extents_t $extents; a B<cairo_t>
+Returns B<a cairo_font_extents_t> structure
 =end pod
 
-method font-extents ( cairo_font_extents_t $extents ) {
-  cairo_font_extents( self._get-native-object-no-reffing, $extents)
+method font-extents ( --> cairo_font_extents_t ) {
+  my cairo_font_extents_t $extents .= new;
+  cairo_font_extents( self._get-native-object-no-reffing, $extents);
+  $extents
 }
 
 sub cairo_font_extents (
@@ -708,8 +716,8 @@ Some functions use and alter the current point but do not otherwise change curre
   method get-current-point ( --> List )
 
 The returned list has;
-=item $x; a cairo context
-=item $y; return value for X coordinate of the current point
+=item $x; X coordinate of the current point
+=item $y; Y coordinate of the current point
 =end pod
 
 method get-current-point ( --> List ) {
@@ -1758,7 +1766,7 @@ sub cairo_rel_curve_to (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:rel-line-to:
+#TM:4:rel-line-to:
 =begin pod
 =head2 rel-line-to
 
@@ -1768,8 +1776,8 @@ It is an error to call this function with no current point. Doing so will cause 
 
   method rel-line-to ( Num() $dx, Num() $dy )
 
-=item $dx; a cairo context
-=item $dy; the X offset to the end of the new line
+=item $dx; the X offset to the end of the new line
+=item $dy; the Y offset to the end of the new line
 =end pod
 
 method rel-line-to ( Num() $dx, Num() $dy ) {
@@ -1782,7 +1790,7 @@ sub cairo_rel_line_to (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:rel-move-to:
+#TM:4:rel-move-to:
 =begin pod
 =head2 rel-move-to
 
@@ -1790,15 +1798,12 @@ Begin a new sub-path. After this call the current point will offset by (I<x>, I<
 
   method rel-move-to ( Num() $dx, Num() $dy )
 
-=item $dx; a cairo context
-=item $dy; the X offset
+=item $dx; the X offset
+=item $dy; the Y offset
 =end pod
 
 method rel-move-to ( Num() $dx, Num() $dy ) {
-
-  cairo_rel_move_to(
-    self._get-native-object-no-reffing, $dx, $dy
-  )
+  cairo_rel_move_to( self._get-native-object-no-reffing, $dx, $dy)
 }
 
 sub cairo_rel_move_to (
@@ -1818,10 +1823,7 @@ Reset the current clip region to its original, unrestricted state. That is, set 
 =end pod
 
 method reset-clip ( ) {
-
-  cairo_reset_clip(
-    self._get-native-object-no-reffing,
-  )
+  cairo_reset_clip(self._get-native-object-no-reffing)
 }
 
 sub cairo_reset_clip (
@@ -1830,7 +1832,7 @@ sub cairo_reset_clip (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:restore:
+#TM:1:restore:
 =begin pod
 =head2 restore
 
@@ -1841,10 +1843,7 @@ Restores this context to the state saved by a preceding call to C<save()> and re
 =end pod
 
 method restore ( ) {
-
-  cairo_restore(
-    self._get-native-object-no-reffing,
-  )
+  cairo_restore(self._get-native-object-no-reffing)
 }
 
 sub cairo_restore (
@@ -1857,18 +1856,15 @@ sub cairo_restore (
 =begin pod
 =head2 rotate
 
-Modifies the current transformation matrix (CTM) by rotating the user-space axes by I<angle> radians. The rotation of the axes takes places after any existing transformation of user space. The rotation direction for positive angles is from the positive X axis toward the positive Y axis.
+Modifies the current transformation matrix (CTM) by rotating the user-space axes by I<$angle> radians. The rotation of the axes takes places after any existing transformation of user space. The rotation direction for positive angles is from the positive X axis toward the positive Y axis.
 
   method rotate ( Num() $angle )
 
-=item $angle; a cairo context
+=item $angle; Angle to rotate in radians
 =end pod
 
 method rotate ( Num() $angle ) {
-
-  cairo_rotate(
-    self._get-native-object-no-reffing, $angle
-  )
+  cairo_rotate( self._get-native-object-no-reffing, $angle)
 }
 
 sub cairo_rotate (
@@ -1877,21 +1873,22 @@ sub cairo_rotate (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:save:
+#TM:1:save:
 =begin pod
 =head2 save
 
-Makes a copy of the current state of this context and saves it on an internal stack of saved states for this context. When C<restore()> is called, this context will be restored to the saved state. Multiple calls to C<save()> and C<restore()> can be nested; each call to C<restore()> restores the state from the matching paired C<save()>.  It isn't necessary to clear all saved states before a B<cairo_t> is freed. If the reference count of a B<cairo_t> drops to zero in response to a call to C<destroy()>, any saved states will be freed along with the B<cairo_t>.
+Makes a copy of the current state of this context and saves it on an internal stack of saved states for this context. When C<restore()> is called, this context will be restored to the saved state.
+
+Multiple calls to C<save()> and C<restore()> can be nested; each call to C<restore()> restores the state from the matching paired C<save()>.
+
+=comment  It isn't necessary to clear all saved states before a B<cairo_t> is freed. If the reference count of a B<cairo_t> drops to zero in response to a call to C<destroy()>, any saved states will be freed along with the B<cairo_t>.
 
   method save ( )
 
 =end pod
 
 method save ( ) {
-
-  cairo_save(
-    self._get-native-object-no-reffing,
-  )
+  cairo_save(self._get-native-object-no-reffing)
 }
 
 sub cairo_save (
@@ -1900,7 +1897,7 @@ sub cairo_save (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:scale:
+#TM:1:scale:
 =begin pod
 =head2 scale
 
@@ -1908,12 +1905,11 @@ Modifies the current transformation matrix (CTM) by scaling the X and Y user-spa
 
   method scale ( Num() $sx, Num() $sy )
 
-=item $sx; a cairo context
-=item $sy; scale factor for the X dimension
+=item $sx; scale factor for the X dimension
+=item $sy; scale factor for the Y dimension
 =end pod
 
 method scale ( Num() $sx, Num() $sy ) {
-
   cairo_scale(
     self._get-native-object-no-reffing, $sx, $sy
   )
@@ -2379,6 +2375,30 @@ sub cairo_set_source_rgba (
   { * }
 
 #-------------------------------------------------------------------------------
+#TN:4:set-source-pixbuf:
+=begin pod
+=head2 set-source-rgba
+
+Sets the given pixbuf as the source pattern for cr.
+
+=comment The pattern has an extend mode of cairo_extend_none and
+
+The image is aligned so that the origin of the I<$pixbuf> is C<($x, $y)>.
+
+=end pod
+
+method set-source-pixbuf( $pixbuf is copy, Num() $x, Num() $y ) {
+  $pixbuf .= get-native-object-no-reffing unless $pixbuf ~~ N-GObject;
+  cairo_set_source_pixbuf( $pixbuf, $x, $y);
+}
+
+sub cairo_set_source_pixbuf (
+  cairo_t $cr, N-GObject $pixbuf, gdouble $x, gdouble $y
+#) is native(&cairo-lib)
+) is native(&gdk-pixbuf-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
 #TM:0:set-source-surface:
 =begin pod
 =head2 set-source-surface
@@ -2739,7 +2759,7 @@ Note that whitespace characters do not directly contribute to the size of the re
 
   method text-extents ( Str $utf-string --> cairo_text_extents_t )
 
-=item $utf8; a B<cairo_t>
+=item $utf8;
 =item cairo_text_extents_t $extents; a NUL-terminated string of text encoded in UTF-8, or C<Any>
 =end pod
 
@@ -2806,7 +2826,7 @@ sub cairo_transform (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:translate:
+#TM:1:translate:
 =begin pod
 =head2 translate
 
@@ -2814,15 +2834,12 @@ Modifies the current transformation matrix (CTM) by translating the user-space o
 
   method translate ( Num() $tx, Num() $ty )
 
-=item $tx; a cairo context
-=item $ty; amount to translate in the X direction
+=item $tx; amount to translate in the X direction
+=item $ty; amount to translate in the Y direction
 =end pod
 
 method translate ( Num() $tx, Num() $ty ) {
-
-  cairo_translate(
-    self._get-native-object-no-reffing, $tx, $ty
-  )
+  cairo_translate( self._get-native-object-no-reffing, $tx, $ty)
 }
 
 sub cairo_translate (
@@ -2831,51 +2848,53 @@ sub cairo_translate (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:user-to-device:
+#TM:1:user-to-device:
 =begin pod
 =head2 user-to-device
 
 Transform a coordinate from user space to device space by multiplying the given point by the current transformation matrix (CTM).
 
-  method user-to-device ( Num() $x, Num() $y )
+  method user-to-device ( Num() $x is rw, Num() $y is rw )
 
-=item $x; a cairo context
-=item $y; X value of coordinate (in/out parameter)
+=item $x; X value of coordinate
+=item $y; Y value of coordinate
 =end pod
 
-method user-to-device ( Num() $x, Num() $y ) {
-
-  cairo_user_to_device(
-    self._get-native-object-no-reffing, $x, $y
-  )
+method user-to-device ( Num() $x is rw, Num() $y is rw ) {
+  my gdouble $xx = $x;
+  my gdouble $yy = $y;
+  cairo_user_to_device( self._get-native-object-no-reffing, $xx, $yy);
+  $x = $xx;
+  $y = $yy;
 }
 
 sub cairo_user_to_device (
-  cairo_t $cr, gdouble $x, gdouble $y
+  cairo_t $cr, gdouble $x is rw, gdouble $y is rw
 ) is native(&cairo-lib)
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:user-to-device-distance:
+#TM:1:user-to-device-distance:
 =begin pod
 =head2 user-to-device-distance
 
 Transform a distance vector from user space to device space. This function is similar to C<user-to-device()> except that the translation components of the CTM will be ignored when transforming (I<dx>,I<dy>).
 
-  method user-to-device-distance ( Num() $dx, Num() $dy )
+  method user-to-device-distance ( Num() $dx is rw, Num() $dy is rw )
 
-=item $dx; a cairo context
-=item $dy; X component of a distance vector (in/out parameter)
+=item $dx; X component of a distance vector
+=item $dy; Y component of a distance vector
 =end pod
 
-method user-to-device-distance ( Num() $dx, Num() $dy ) {
-
-  cairo_user_to_device_distance(
-    self._get-native-object-no-reffing, $dx, $dy
-  )
+method user-to-device-distance ( Num() $x is rw, Num() $y is rw ) {
+  my gdouble $xx = $x;
+  my gdouble $yy = $y;
+  cairo_user_to_device_distance( self._get-native-object-no-reffing, $xx, $yy);
+  $x = $xx;
+  $y = $yy;
 }
 
 sub cairo_user_to_device_distance (
-  cairo_t $cr, gdouble $dx, gdouble $dy
+  cairo_t $cr, gdouble $dx is rw, gdouble $dy is rw
 ) is native(&cairo-lib)
   { * }

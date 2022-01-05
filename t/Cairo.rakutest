@@ -41,7 +41,7 @@ subtest 'Manipulations', {
    '.set-antialias() / .get-antialias()';
 
   $c.new-path;
-  my Num ( $x, $y);
+  my Num() ( $x, $y);
   ( $x, $y) = $c.get-current-point;
   is-deeply ( $x, $y), ( 0e0, 0e0), '.new-path() / .get-current-point()';
 
@@ -58,6 +58,33 @@ subtest 'Manipulations', {
     }
   }, '.save(), .arc(), .arc-negative(), .clip(), .clip-extents(), .restore, ' ~
      '.clip-preserve()';
+
+
+  # set the scale twice as large, then check to see what (10,10) device
+  # coordinates should be in user space => half of it
+  $c.move-to( 20, 20);
+  is-deeply $c.get-current-point, ( 20e0, 20e0), '.move-to()';
+  $c.scale( 2, 2);
+  is-deeply $c.get-current-point, ( 10e0, 10e0), '.scale()';
+
+  ( $x, $y) = ( 10, 10);
+  $c.device-to-user-distance( $x, $y);
+  is-deeply ( $x, $y), ( 5e0, 5e0), '.device-to-user-distance()';
+
+  # half it again
+  $c.device-to-user( $x, $y);
+  is-deeply ( $x, $y), ( 25e-1, 25e-1), '.device-to-user()';
+
+  $c.line-to( 50, 50);
+  is-deeply $c.get-current-point, ( 50e0, 50e0), '.line-to()';
+
+  # user to device should double it with the current scale
+  ( $x, $y) = ( 25, 25);
+  $c.user-to-device( $x, $y);
+  is-deeply ( $x, $y), ( 5e1, 5e1), '.user-to-device()';
+
+  $c.user-to-device-distance( $x, $y);
+  is-deeply ( $x, $y), ( 1e2, 1e2), '.user-to-device-distance()';
 }
 
 #-------------------------------------------------------------------------------
