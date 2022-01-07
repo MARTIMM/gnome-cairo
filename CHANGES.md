@@ -2,7 +2,7 @@
 * 2021-12-16 0.2.4
   * Change generator to not insert commands for glib type system. Modules are changed. Also type casting is not used in **Gnome::Cairo::Cairo**.
   * Modified api and doc of **Gnome::Cairo** along the lines of the tutorial.
-  * Rewrite pod doc of **Gnome::Patterb**.
+  * Rewrite pod doc of **Gnome::Pattern**.
 
 <!--
   * **Gnome::Cairo::Path** is deprecated because the structure `cairo_path_t` is enough to work with. Furthermore there are no specific native functions to manipulate paths. These are all done in **Gnome::Cairo::Cairo**.
