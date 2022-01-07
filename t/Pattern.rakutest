@@ -6,6 +6,8 @@ use Gnome::Cairo::Pattern;
 use Gnome::Cairo::ImageSurface;
 use Gnome::Cairo::Types;
 use Gnome::Cairo::Enums;
+use Gnome::Cairo;
+#use Gnome::Cairo::Matrix;
 
 #use Gnome::N::X;
 #Gnome::N::debug(:on);
@@ -41,7 +43,7 @@ subtest 'ISA test', {
   $p.clear-object;
 
   $is .= new( :format(CAIRO_FORMAT_ARGB32), :width(128), :height(128));
-  $p .= new( :surface($is));
+  $p .= new(:surface($is));
   isa-ok $p, Gnome::Cairo::Pattern, '.new(:surface)';
   $p.clear-object;
 }
@@ -57,14 +59,24 @@ unless %*ENV<raku_test_all>:exists {
 subtest 'Manipulations', {
   $p .= new(:mesh);
 
-  $p.mesh-pattern-begin-patch;
-  $p.mesh-pattern-move-to( 100e0, 100e0);
-  $p.mesh-pattern-line-to( 130e0, 130e0);
-  $p.mesh-pattern-line-to( 130e0,  70e0);
-  $p.mesh-pattern-set-corner-color-rgb( 0, 1e0, 0e0, 0e0);
-  $p.mesh-pattern-set-corner-color-rgb( 1, 0e0, 1e0, 0e0);
-  $p.mesh-pattern-set-corner-color-rgb( 2, 0e0, 0e0, 1e0);
-  $p.mesh-pattern-end-patch;
+  $p.mesh-begin-patch;
+  $p.mesh-move-to( 100e0, 100e0);
+  $p.mesh-line-to( 130e0, 130e0);
+  $p.mesh-line-to( 130e0,  70e0);
+  $p.mesh-set-corner-color-rgb( 0, 1e0, 0e0, 0e0);
+  $p.mesh-set-corner-color-rgb( 1, 0e0, 1e0, 0e0);
+  $p.mesh-set-corner-color-rgb( 2, 0e0, 0e0, 1e0);
+  $p.mesh-end-patch;
+
+  is $p.get-type, CAIRO_PATTERN_TYPE_MESH, '.get-type()';
+
+#  my Gnome::Cairo::Matrix $m .= new(:native-object($p.get-matrix));
+
+  my ( $is2, $sts) = $p.get-surface;
+  ok 1, '.get-surface(): ' ~ $sts;
+#  my Gnome::Cairo $context .= new(:surface($is2));
+#  $context.write-png('t/data/pattern01.png');
+#  $is2.write-to-png('t/data/pattern01.png');
 
   $p.clear-object;
 }
