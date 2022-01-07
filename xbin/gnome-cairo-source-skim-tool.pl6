@@ -111,7 +111,7 @@ sub get-subroutines( Str:D $include-content, Str:D $source-content ) {
     $declaration ~~ s:g/ <[();]> //;
 
     # get subroutine documentation from c source
-    ( $sub-doc, $items-src-doc) = get-sub-doc($comment-doc);
+    ( $sub-doc, $items-src-doc) = get-sub-doc( $sub-name, $comment-doc);
 
 #note "Pod items: $items-src-doc.elems()\n  ", $items-src-doc.join("\n  ");
 
@@ -128,8 +128,7 @@ sub get-subroutines( Str:D $include-content, Str:D $source-content ) {
 
       if ?$arg {
         my Str $pod-doc-item-doc = $items-src-doc.shift if $items-src-doc.elems;
-note "pod info: $raku-arg-type, $arg, $pod-doc-item-doc";
-exit(1);
+#note "pod info: $raku-arg-type, $arg, $pod-doc-item-doc";
 
         # skip first argument when type is also the class name
         if $first-arg and $type-is-class {
@@ -182,16 +181,18 @@ exit(1);
             $pod-doc-item-doc ~~ s/^ \s* <[:;]> \s+ //;
             $pod-doc-item-doc ~~ s/ 'C<Any>-terminated' //;
             $pod-doc-items ~=
-              "=item $raku-arg-type \$$arg; $pod-doc-item-doc\n";
+#              "=item $raku-arg-type \$$arg; $pod-doc-item-doc\n";
+              "=item \$$arg; $pod-doc-item-doc\n";
           }
 
           else {
-            $pod-doc-items ~= "=item $raku-arg-type \$$arg; \n";
+            #$pod-doc-items ~= "=item $raku-arg-type \$$arg; \n";
+            $pod-doc-items ~= "=item \$$arg; \n";
           }
 
           $pod-doc-items ~~ s/^ \s+ $//;
         }
-note $pod-doc-items;
+#note $pod-doc-items;
 
         # add argument to list for sub declaration
         $args ~= ', ' if ?$args;
@@ -691,29 +692,28 @@ sub substitute-in-template (
 }
 
 #-------------------------------------------------------------------------------
-#sub get-sub-doc ( Str:D $sub-name, Str:D $source-content --> List ) {
-sub get-sub-doc ( Str:D $doc --> List ) {
+sub get-sub-doc ( Str:D $sub-name, Str:D $doc is copy --> List ) {
 
-#  return ( '', '') unless $source-content;
+  return ( '', []) unless $doc;
 
-#  $source-content ~~ m/ '/**' .*? $sub-name ':' $<sub-doc> = [ .*? '*/' ] /;
-#  my Str $doc = ~($<sub-doc> // '');
+  $doc ~~ m/ '/**' .*? $sub-name ':' $<sub-doc> = [ .*? '*/' ] /;
+  $doc = ~($<sub-doc> // '');
 
   my Array $items-src-doc = [];
   my Bool $gather-items-doc = True;
   my Str ( $item, $sub-doc) = ( '', '');
   for $doc.lines -> $line {
 
+    # explanation of arguments start with '@'
     if $line ~~ m/ ^ \s+ '* @' <alnum>+ ':' $<item-doc> = [ .* ] / {
-      # check if there was some item. if so save before set to new item
+      # check if there was some item. if so, save before set to new item
       # @ can be in documentation too!
-      if $gather-items-doc {
-        $items-src-doc.push(primary-doc-changes($item)) if ?$item;
-      }
+      $items-src-doc.push(primary-doc-changes($item))
+        if $gather-items-doc and ?$item;
 
       # new item. remove first space char
       $item = ~($<item-doc> // '');
-      $item ~~ s/ ^ \s+ //;
+      $item ~~ s/^ \s+ //;
     }
 
     elsif $line ~~ m/ ^ \s+ '*' \s+ $<doc> = [ .+ ] / {
@@ -742,12 +742,33 @@ sub get-sub-doc ( Str:D $doc --> List ) {
       }
     }
   }
-
+#`{{
   # in case there is no doc, we need to save the last item still
   $items-src-doc.push(primary-doc-changes($item)) if $gather-items-doc;
 
   $sub-doc ~~ s/ ^ \s+ //;
   $sub-doc ~~ s/ \n\s*Since:\s+\d+\.\d+\s*\n //;
+}}
+
+  # in case there is no doc, we still need to save the last arg item
+  if $gather-items-doc {
+    $items-src-doc.push(primary-doc-changes($item));
+  }
+
+  # cleanup documentation of sub
+  $sub-doc ~~ s/ 'Since:' \s*? \d+\.\d+ //;
+#  $sub-doc ~~ s:g/^^ \s+ //;
+#  $sub-doc ~~ s:g/ \s+ $$/\n/;
+#  $sub-doc ~~ s:g/ <[\ \t]>+ / /;
+  $sub-doc ~~ s/ \s* 'Returns:'/\n\nReturns:/;
+#  $sub-doc ~~ s/ \n $//;
+
+  $sub-doc ~~ s/^ \s+ //;
+  $sub-doc ~~ s/ \s+ $//;
+#  $sub-doc ~~ s:g/ \n\n\n* /\n\n/;
+  $sub-doc ~~ s:g/ \n\n /[=====]/;
+  $sub-doc ~~ s:g/ \s+ / /;
+  $sub-doc ~~ s:g/ '[=====]' /\n\n/;
 
   ( primary-doc-changes($sub-doc), $items-src-doc )
 }
