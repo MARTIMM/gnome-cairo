@@ -1,6 +1,6 @@
 ## Release notes
 * 2022-01- 0.2.5
-  * Reviewed doc of **Gnome::Cair::Surfaceo** and added spme tests.
+  * Reviewed doc of **Gnome::Cairo::Surface** and **Gnome::Cairo::FontOptions** and added some tests.
 
 * 2021-12-16 0.2.4
   * Change generator to not insert commands for glib type system. Modules are changed. Also type casting is not used in **Gnome::Cairo::**\*.
