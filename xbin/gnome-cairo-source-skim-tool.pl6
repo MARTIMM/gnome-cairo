@@ -1072,9 +1072,9 @@ sub podding-function ( Str:D $text is copy --> Str ) {
   # change any function() to C<function()>. first change to [[function]] to
   # prevent nested substitutions.
   $text ~~ s:g/ ([<alnum> || '_']+) \s* '()' /\[\[$/[0]\]\]/;
-  $text ~~ s/ $*base-sub-name '_' //;
+  $text ~~ s:g/ $*base-sub-name '_' //;
   $text ~~ s:g/ '_' /-/;
-  $text ~~ s:g/ '[[' ([<alnum> || '_']+ )']]' /C<$/[0]\()>/;
+  $text ~~ s:g/ '[[' ( <[\w\d\-\_]>+ )']]' /C<$/[0]\()>/;
 
   $text
 }
