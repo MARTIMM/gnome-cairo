@@ -94,10 +94,10 @@ Initially the surface contents are all 0 (transparent if contents have transpare
     Int :$width = 32, Int :$height = 32
   )
 
-=item cairo_surface_t $similar; the surface where the new surface is created from
-=item cairo_content_t $content; used to describe the content of a surface
-=item Int $width; width of the image
-=item Int $height; height of the image
+=item $similar; the surface where the new surface is created from
+=item $content; used to describe the content of a surface
+=item $width; width of the image
+=item $height; height of the image
 
 
 =head3 :image
@@ -112,10 +112,10 @@ Initially the surface contents are all 0 (transparent if contents have transpare
     Int :$width = 32, Int :$height = 32
   )
 
-=item cairo_surface_t $image; the surface where the new surface is created from
-=item cairo_format_t $format; used to identify the memory format of image
-=item Int $width; width of the image
-=item Int $height; height of the image
+=item $image; the surface where the new surface is created from
+=item $format; used to identify the memory format of image
+=item $width; width of the image
+=item $height; height of the image
 
 
 =head3 :target
@@ -131,11 +131,8 @@ The semantics of subsurfaces have not been finalized yet unless the rectangle is
     --> cairo_surface_t
   }
 
-=item cairo_surface_t $target; the surface where the new surface is created from
-=item Num $x; x, y, width and height describe the rectangle from which a part of the image is copied.
-=item Num $y;
-=item Num $width;
-=item Num $height;
+=item $target; the surface where the new surface is created from
+=item $x, $y, $width and $height describe the rectangle from which a part of the image is copied.
 
 
 =head3 :map, :rectangle
@@ -150,8 +147,8 @@ The caller must use C<unmap-image()> to destroy this image surface. This functio
     cairo_surface_t :$map, cairo_rectangle_int_t :$rectangle
   )
 
-=item cairo_surface_t $map; the surface where the new surface is created from
-=item cairo_rectangle_int_t $rectangle; an existing surface used to extract the image
+=item $map; the surface where the new surface is created from
+=item $rectangle; an existing surface used to extract the image
 
 
 =head3 :native-object
@@ -271,7 +268,8 @@ method native-object-ref ( $no ) {
 
 #-------------------------------------------------------------------------------
 method native-object-unref ( $no ) {
-  _cairo_surface_destroy($no);
+  _cairo_surface_destroy($no) if _cairo_surface_get_reference_count($no) > 0;
+#  _cairo_surface_finish($no) if _cairo_surface_get_reference_count($no) > 0;
 }
 
 #-------------------------------------------------------------------------------
@@ -279,17 +277,14 @@ method native-object-unref ( $no ) {
 =begin pod
 =head2 copy-page
 
-Emits the current page for backends that support multiple pages, but doesn't clear it, so that the contents of the current page will be retained for the next page.  Use C<show-page()> if you want to get an empty page after the emission.  There is a convenience function for this that takes a B<cairo_t>, namely C<copy-page()>.
+Emits the current page for backends that support multiple pages, but doesn't clear it, so that the contents of the current page will be retained for the next page. Use C<show-page()> if you want to get an empty page after the emission. There is a convenience function for this that takes a B<cairo_t>, namely C<copy-page()>.
 
   method copy-page ( )
 
 =end pod
 
 method copy-page ( ) {
-
-  cairo_surface_copy_page(
-    self._get-native-object-no-reffing,
-  )
+  cairo_surface_copy_page(self._get-native-object-no-reffing)
 }
 
 sub cairo_surface_copy_page (
@@ -393,26 +388,30 @@ sub _cairo_surface_destroy (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:finish:
+#TM:1:_cairo_surface_finish:
+#`{{
 =begin pod
 =head2 finish
 
-This function finishes the surface and drops all references to external resources.  For example, for the Xlib backend it means that cairo will no longer access the drawable, which can be freed. After calling C<finish()> the only valid operations on a surface are getting and setting user, referencing and destroying, and flushing and finishing it. Further drawing to the surface will not affect the surface but will instead trigger a C<CAIRO_STATUS_SURFACE_FINISHED> error.  When the last call to C<clear-object()> decreases the reference count to zero, cairo will call C<finish()> if it hasn't been called already, before freeing the resources associated with the surface.
+This function finishes the surface and drops all references to external resources.
+
+For example, for the Xlib backend it means that cairo will no longer access the drawable, which can be freed. After calling C<finish()> the only valid operations on a surface are getting and setting user, referencing and destroying, and flushing and finishing it. Further drawing to the surface will not affect the surface but will instead trigger a C<CAIRO_STATUS_SURFACE_FINISHED> error.
+
+When the last call to C<clear-object()> decreases the reference count to zero, cairo will call C<finish()> if it hasn't been called already, before freeing the resources associated with the surface.
 
   method finish ( )
 
 =end pod
 
 method finish ( ) {
-
-  cairo_surface_finish(
-    self._get-native-object-no-reffing,
-  )
+  cairo_surface_finish(self._get-native-object-no-reffing)
 }
+}}
 
-sub cairo_surface_finish (
+sub _cairo_surface_finish (
   cairo_surface_t $surface
 ) is native(&cairo-lib)
+  is symbol('cairo_surface_finish')
   { * }
 
 #-------------------------------------------------------------------------------
@@ -420,17 +419,18 @@ sub cairo_surface_finish (
 =begin pod
 =head2 flush
 
-Do any pending drawing for the surface and also restore any temporary modifications cairo has made to the surface's state. This function must be called before switching from drawing on the surface with cairo to drawing on it directly with native APIs, or accessing its memory outside of Cairo. If the surface doesn't support direct access, then this function does nothing.
+Do any pending drawing for the surface and also restore any temporary modifications cairo has made to the surface's state.
+
+=comment This function must be called before switching from drawing on the surface with cairo to drawing on it directly with native APIs, or accessing its memory outside of Cairo.
+
+If the surface doesn't support direct access, then this function does nothing.
 
   method flush ( )
 
 =end pod
 
 method flush ( ) {
-
-  cairo_surface_flush(
-    self._get-native-object-no-reffing,
-  )
+  cairo_surface_flush(self._get-native-object-no-reffing)
 }
 
 sub cairo_surface_flush (
@@ -439,21 +439,20 @@ sub cairo_surface_flush (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:get-content:
+#TM:1:get-content:
 =begin pod
 =head2 get-content
 
-This function returns the content type of I<surface> which indicates whether the surface contains color and/or alpha information. See B<cairo_content_t>.  Return value: The content type of I<surface>.
+This function returns the content type of I<surface> which indicates whether the surface contains color and/or alpha information. See B<cairo_content_t>.
 
-  method get-content ( --> Int )
+Return value: The content type of I<surface>.
+
+  method get-content ( --> cairo_content_t )
 
 =end pod
 
-method get-content ( --> Int ) {
-
-  cairo_surface_get_content(
-    self._get-native-object-no-reffing,
-  )
+method get-content ( --> cairo_content_t ) {
+  cairo_content_t(cairo_surface_get_content(self._get-native-object-no-reffing))
 }
 
 sub cairo_surface_get_content (
@@ -462,21 +461,20 @@ sub cairo_surface_get_content (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:get-device:
+#TM:1:get-device:
 =begin pod
 =head2 get-device
 
-This function returns the device for a I<surface>. See B<cairo_device_t>.  Return value: The device for I<surface> or C<Any> if the surface does not have an associated device.
+This function returns the device for a I<surface>. See B<cairo_device_t>.
+
+Return value: The device for I<surface> or C<Any> if the surface does not have an associated device.
 
   method get-device ( --> cairo_device_t )
 
 =end pod
 
 method get-device ( --> cairo_device_t ) {
-
-  cairo_surface_get_device(
-    self._get-native-object-no-reffing,
-  )
+  cairo_surface_get_device(self._get-native-object-no-reffing)
 }
 
 sub cairo_surface_get_device (
@@ -491,21 +489,25 @@ sub cairo_surface_get_device (
 
 This function returns the previous device offset set by C<set-device-offset()>.
 
-  method get-device-offset ( Num $x_offset, Num $y_offset )
+  method get-device-offset ( --> List )
 
-=item Num $x_offset; a B<cairo_surface_t>
-=item Num $y_offset; the offset in the X direction, in device units
+List returns
+=item Num; the offset in the X direction, in device units
+=item Num; the offset in the Y direction, in device units
 =end pod
 
-method get-device-offset ( Num $x_offset, Num $y_offset ) {
-
+method get-device-offset ( --> List ) {
+  my gdouble $x_offset;
+  my gdouble $y_offset;
   cairo_surface_get_device_offset(
     self._get-native-object-no-reffing, $x_offset, $y_offset
-  )
+  );
+
+  ( Num($x_offset), Num($y_offset) )
 }
 
 sub cairo_surface_get_device_offset (
-  cairo_surface_t $surface, gdouble $x_offset, gdouble $y_offset
+  cairo_surface_t $surface, gdouble $x_offset is rw, gdouble $y_offset is rw
 ) is native(&cairo-lib)
   { * }
 
@@ -516,46 +518,54 @@ sub cairo_surface_get_device_offset (
 
 This function returns the previous device offset set by C<set-device-scale()>.
 
-  method get-device-scale ( Num $x_scale, Num $y_scale )
+  method get-device-scale ( --> List )
 
-=item Num $x_scale; a B<cairo_surface_t>
-=item Num $y_scale; the scale in the X direction, in device units
+List returns
+=item Num; the scale in the X direction, in device units
+=item Num; the scale in the Y direction, in device units
 =end pod
 
-method get-device-scale ( Num $x_scale, Num $y_scale ) {
-
+method get-device-scale ( --> List ) {
+  my gdouble $x_scale;
+  my gdouble $y_scale;
   cairo_surface_get_device_scale(
     self._get-native-object-no-reffing, $x_scale, $y_scale
-  )
+  );
+
+  ( Num($x_scale), Num($y_scale) )
 }
 
 sub cairo_surface_get_device_scale (
-  cairo_surface_t $surface, gdouble $x_scale, gdouble $y_scale
+  cairo_surface_t $surface, gdouble $x_scale is rw, gdouble $y_scale is rw
 ) is native(&cairo-lib)
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:get-fallback-resolution:
+#TM:1:get-fallback-resolution:
 =begin pod
 =head2 get-fallback-resolution
 
 This function returns the previous fallback resolution set by C<set-fallback-resolution()>, or default fallback resolution if never set.
 
-  method get-fallback-resolution ( Num $x_pixels_per_inch, Num $y_pixels_per_inch )
+  method get-fallback-resolution ( --> List )
 
-=item Num $x_pixels_per_inch; a B<cairo_surface_t>
-=item Num $y_pixels_per_inch; horizontal pixels per inch
+List returns
+=item Num; horizontal pixels per inch
+=item Num; vertical pixels per inch
 =end pod
 
-method get-fallback-resolution ( Num $x_pixels_per_inch, Num $y_pixels_per_inch ) {
-
+method get-fallback-resolution ( --> List ) {
+  my gdouble $x_pixels_per_inch;
+  my gdouble $y_pixels_per_inch;
   cairo_surface_get_fallback_resolution(
     self._get-native-object-no-reffing, $x_pixels_per_inch, $y_pixels_per_inch
-  )
+  );
+
+  ( Num($x_pixels_per_inch), Num($y_pixels_per_inch) )
 }
 
 sub cairo_surface_get_fallback_resolution (
-  cairo_surface_t $surface, gdouble $x_pixels_per_inch, gdouble $y_pixels_per_inch
+  cairo_surface_t $surface, gdouble $x_pixels_per_inch is rw, gdouble $y_pixels_per_inch is rw
 ) is native(&cairo-lib)
   { * }
 
@@ -566,15 +576,18 @@ sub cairo_surface_get_fallback_resolution (
 
 Retrieves the default font rendering options for the surface. This allows display surfaces to report the correct subpixel order for rendering on them, print surfaces to disable hinting of metrics and so forth. The result can then be used with C<scaled-font-create()>.
 
-  method get-font-options ( cairo_font_options_t $options )
+  method get-font-options ( --> Gnome::Cairo::FontOptions )
 
 =item cairo_font_options_t $options; a B<cairo_surface_t>
 =end pod
 
-method get-font-options ( cairo_font_options_t $options ) {
-
-  cairo_surface_get_font_options(
-    self._get-native-object-no-reffing, $options
+method get-font-options ( --> Any ) {
+  my cairo_font_options_t $options .= new;
+  self._wrap-native-type(
+    'Gnome::Cairo::FontOptions',
+    cairo_surface_get_font_options(
+      self._get-native-object-no-reffing, $options
+    )
   )
 }
 
@@ -589,7 +602,7 @@ sub cairo_surface_get_font_options (
 =begin pod
 =head2 get-mime-data
 
-Return mime data previously attached to I<surface> using the specified mime type.  If no data has been attached with the given mime type, I<data> is set C<Any>.
+Return mime data previously attached to I<surface> using the specified mime type.  If no data has been attached with the given mime type, I<data> is set to C<Any>.
 
   method get-mime-data ( unsigned Int-pptr $data, UInt $length )
 
@@ -612,7 +625,8 @@ sub cairo_surface_get_mime_data (
 }}
 
 #-------------------------------------------------------------------------------
-#TM:0:get-reference-count:
+#TM:1:_cairo_surface_get_reference_count:
+#`{{
 =begin pod
 =head2 get-reference-count
 
@@ -628,32 +642,32 @@ method get-reference-count ( --> Int ) {
     self._get-native-object-no-reffing,
   )
 }
-
-sub cairo_surface_get_reference_count (
+}}
+sub _cairo_surface_get_reference_count (
   cairo_surface_t $surface --> guint
 ) is native(&cairo-lib)
+  is symbol('cairo_surface_get_reference_count')
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:get-type:
+#TM:1:get-type:
 =begin pod
 =head2 get-type
 
 This function returns the type of the backend used to create a surface. See B<cairo_surface_type_t> for available types.  Return value: The type of I<surface>.
 
-  method get-type ( --> Int )
+  method get-type ( --> cairo_surface_type_t )
 
 =end pod
 
-method get-type ( --> Int ) {
-
-  cairo_surface_get_type(
-    self._get-native-object-no-reffing,
+method get-type ( --> cairo_surface_type_t ) {
+  cairo_surface_type_t(
+    cairo_surface_get_type(self._get-native-object-no-reffing)
   )
 }
 
 sub cairo_surface_get_type (
-  cairo_surface_t $surface --> gint32
+  cairo_surface_t $surface --> GEnum
 ) is native(&cairo-lib)
   { * }
 
@@ -684,20 +698,24 @@ sub cairo_surface_get_user_data (
 }}
 
 #-------------------------------------------------------------------------------
-#TM:0:has-show-text-glyphs:
+#TM:1:has-show-text-glyphs:
 =begin pod
 =head2 has-show-text-glyphs
 
-Returns whether the surface supports sophisticated C<show-text-glyphs()> operations.  That is, whether it actually uses the provided text and cluster data to a C<show-text-glyphs()> call.  Note: Even if this function returns C<0>, a C<show-text-glyphs()> operation targeted at I<surface> will still succeed.  It just will act like a C<show-glyphs()> operation.  Users can use this function to avoid computing UTF-8 text and cluster mapping if the target surface does not use it.  Return value: C<1> if I<surface> supports C<show-text-glyphs()>, C<0> otherwise
+Returns whether the surface supports sophisticated C<show-text-glyphs()> operations. That is, whether it actually uses the provided text and cluster data to a C<show-text-glyphs()> call.
 
-  method has-show-text-glyphs ( --> Int )
+Note: Even if this function returns C<False>, a C<show-text-glyphs()> operation targeted at I<surface> will still succeed. It just will act like a C<show-glyphs()> operation.
+
+Users can use this function to avoid computing UTF-8 text and cluster mapping if the target surface does not use it.
+
+Return value: C<True> if I<surface> supports C<show-text-glyphs()>, C<False> otherwise.
+
+  method has-show-text-glyphs ( --> Bool )
 
 =end pod
 
-method has-show-text-glyphs ( --> Int ) {
-  cairo_surface_has_show_text_glyphs(
-    self._get-native-object-no-reffing,
-  )
+method has-show-text-glyphs ( --> Bool ) {
+  cairo_surface_has_show_text_glyphs(self._get-native-object-no-reffing).Bool
 }
 
 sub cairo_surface_has_show_text_glyphs (
@@ -715,7 +733,7 @@ Returns an image surface that is the most efficient mechanism for modifying the 
 
   method map-to-image ( cairo_rectangle_int_t $extents --> cairo_surface_t )
 
-=item cairo_rectangle_int_t $extents; an existing surface used to extract the image from
+=item $extents; an existing surface used to extract the image from
 =end pod
 
 method map-to-image ( cairo_rectangle_int_t $extents --> cairo_surface_t ) {
@@ -741,10 +759,7 @@ Tells cairo that drawing has been done to surface using means other than cairo, 
 =end pod
 
 method mark-dirty ( ) {
-
-  cairo_surface_mark_dirty(
-    self._get-native-object-no-reffing,
-  )
+  cairo_surface_mark_dirty(self._get-native-object-no-reffing)
 }
 
 sub cairo_surface_mark_dirty (
@@ -759,12 +774,14 @@ sub cairo_surface_mark_dirty (
 
 Like C<mark-dirty()>, but drawing has been done only to the specified rectangle, so that cairo can retain cached contents for other parts of the surface.  Any cached clip set on the surface will be reset by this function, to make sure that future cairo calls have the clip set that they expect.
 
-  method mark-dirty-rectangle ( Int $x, Int $y, Int $width, Int $height )
+  method mark-dirty-rectangle (
+    Int $x, Int $y, Int $width, Int $height
+  )
 
-=item Int $x; a B<cairo_surface_t>
-=item Int $y; X coordinate of dirty rectangle
-=item Int $width; Y coordinate of dirty rectangle
-=item Int $height; width of dirty rectangle
+=item $x; X coordinate of dirty rectangle
+=item $y; Y coordinate of dirty rectangle
+=item $width; width of dirty rectangle
+=item $height; height of dirty rectangle
 =end pod
 
 method mark-dirty-rectangle ( Int $x, Int $y, Int $width, Int $height ) {
@@ -812,14 +829,13 @@ sub _cairo_surface_reference (
 
 Sets an offset that is added to the device coordinates determined by the CTM when drawing to I<surface>. One use case for this function is when we want to create a B<cairo_surface_t> that redirects drawing for a portion of an onscreen surface to an offscreen surface in a way that is completely invisible to the user of the cairo API. Setting a transformation via C<translate()> isn't sufficient to do this, since functions like C<device-to-user()> will expose the hidden offset.  Note that the offset affects drawing to the surface as well as using the surface in a source pattern.
 
-  method set-device-offset ( Num $x_offset, Num $y_offset )
+  method set-device-offset ( Num() $x_offset, Num() $y_offset )
 
-=item Num $x_offset; a B<cairo_surface_t>
-=item Num $y_offset; the offset in the X direction, in device units
+=item $x_offset; the offset in the X direction, in device units
+=item $y_offset; the offset in the Y direction, in device units
 =end pod
 
-method set-device-offset ( Num $x_offset, Num $y_offset ) {
-
+method set-device-offset ( Num() $x_offset, Num() $y_offset ) {
   cairo_surface_set_device_offset(
     self._get-native-object-no-reffing, $x_offset, $y_offset
   )
@@ -837,14 +853,13 @@ sub cairo_surface_set_device_offset (
 
 Sets a scale that is multiplied to the device coordinates determined by the CTM when drawing to I<surface>. One common use for this is to render to very high resolution display devices at a scale factor, so that code that assumes 1 pixel will be a certain size will still work. Setting a transformation via C<translate()> isn't sufficient to do this, since functions like C<device-to-user()> will expose the hidden scale.  Note that the scale affects drawing to the surface as well as using the surface in a source pattern.
 
-  method set-device-scale ( Num $x_scale, Num $y_scale )
+  method set-device-scale ( Num() $x_scale, Num() $y_scale )
 
-=item Num $x_scale; a B<cairo_surface_t>
-=item Num $y_scale; a scale factor in the X direction
+=item $x_scale; a scale factor in the X direction
+=item $y_scale; a scale factor in the Y direction
 =end pod
 
-method set-device-scale ( Num $x_scale, Num $y_scale ) {
-
+method set-device-scale ( Num() $x_scale, Num() $y_scale ) {
   cairo_surface_set_device_scale(
     self._get-native-object-no-reffing, $x_scale, $y_scale
   )
@@ -856,20 +871,23 @@ sub cairo_surface_set_device_scale (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:set-fallback-resolution:
+#TM:1:set-fallback-resolution:
 =begin pod
 =head2 set-fallback-resolution
 
 Set the horizontal and vertical resolution for image fallbacks.  When certain operations aren't supported natively by a backend, cairo will fallback by rendering operations to an image and then overlaying that image onto the output. For backends that are natively vector-oriented, this function can be used to set the resolution used for these image fallbacks, (larger values will result in more detailed images, but also larger file sizes).  Some examples of natively vector-oriented backends are the ps, pdf, and svg backends.  For backends that are natively raster-oriented, image fallbacks are still possible, but they are always performed at the native device resolution. So this function has no effect on those backends.  Note: The fallback resolution only takes effect at the time of completing a page (with C<show-page()> or C<copy-page()>) so there is currently no way to have more than one fallback resolution in effect on a single page.  The default fallback resoultion is 300 pixels per inch in both dimensions.
 
-  method set-fallback-resolution ( Num $x_pixels_per_inch, Num $y_pixels_per_inch )
+  method set-fallback-resolution (
+    Num() $x_pixels_per_inch, Num() $y_pixels_per_inch
+  )
 
-=item Num $x_pixels_per_inch; a B<cairo_surface_t>
-=item Num $y_pixels_per_inch; horizontal setting for pixels per inch
+=item $x_pixels_per_inch; horizontal setting for pixels per inch
+=item $y_pixels_per_inch; vertical setting for pixels per inch
 =end pod
 
-method set-fallback-resolution ( Num $x_pixels_per_inch, Num $y_pixels_per_inch ) {
-
+method set-fallback-resolution (
+  Num() $x_pixels_per_inch, Num() $y_pixels_per_inch
+) {
   cairo_surface_set_fallback_resolution(
     self._get-native-object-no-reffing, $x_pixels_per_inch, $y_pixels_per_inch
   )
@@ -942,17 +960,14 @@ sub cairo_surface_set_user_data (
 =begin pod
 =head2 show-page
 
-Emits and clears the current page for backends that support multiple pages.  Use C<copy-page()> if you don't want to clear the page.  There is a convenience function for this that takes a B<cairo_t>, namely C<show-page()>.
+Emits and clears the current page for backends that support multiple pages.  Use C<copy-page()> if you don't want to clear the page. There is a convenience function for this that takes a B<cairo_t>, namely C<show-page()>.
 
   method show-page ( )
 
 =end pod
 
 method show-page ( ) {
-
-  cairo_surface_show_page(
-    self._get-native-object-no-reffing,
-  )
+  cairo_surface_show_page(self._get-native-object-no-reffing)
 }
 
 sub cairo_surface_show_page (
@@ -965,7 +980,8 @@ sub cairo_surface_show_page (
 =begin pod
 =head2 status
 
-Checks whether an error has previously occurred for this surface.  Return value: C<CAIRO_STATUS_SUCCESS>, C<CAIRO_STATUS_NULL_POINTER>, C<CAIRO_STATUS_NO_MEMORY>, C<CAIRO_STATUS_READ_ERROR>, C<CAIRO_STATUS_INVALID_CONTENT>, C<CAIRO_STATUS_INVALID_FORMAT>, or C<CAIRO_STATUS_INVALID_VISUAL>.
+Checks whether an error has previously occurred for this surface.
+Return value can be one of: C<CAIRO_STATUS_SUCCESS>, C<CAIRO_STATUS_NULL_POINTER>, C<CAIRO_STATUS_NO_MEMORY>, C<CAIRO_STATUS_READ_ERROR>, C<CAIRO_STATUS_INVALID_CONTENT>, C<CAIRO_STATUS_INVALID_FORMAT>, or C<CAIRO_STATUS_INVALID_VISUAL>.
 
   method status ( --> cairo_status_t )
 
@@ -1010,11 +1026,11 @@ sub cairo_surface_supports_mime_type (
 =begin pod
 =head2 unmap-image
 
-Unmaps the image surface as returned from C<map-to-image>(). The content of the image will be uploaded to the target surface. Afterwards, the image is destroyed. Using an image surface which wasn't returned by C<map-to-image()> results in undefined behavior.
+Unmaps the image surface as returned from C<map-to-image>()>. The content of the image will be uploaded to the target surface. Afterwards, the image is destroyed. Using an image surface which wasn't returned by C<map-to-image()> results in undefined behavior.
 
   method unmap-image ( cairo_surface_t $image )
 
-=item cairo_surface_t $image; the surface passed to C<map-to-image()>.
+=item $image; the currently mapped image
 =end pod
 
 method unmap-image ( $image is copy ) {
@@ -1040,7 +1056,7 @@ Writes the contents of surface to a new file filename as a PNG image.
 
   method write-to-png ( Str $filename --> cairo_status_t )
 
-=item Str $filename; PNG Support
+=item $filename; PNG Support
 
 =end pod
 

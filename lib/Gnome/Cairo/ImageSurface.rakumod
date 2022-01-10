@@ -307,9 +307,8 @@ sub _cairo_image_surface_create_from_png ( Str $filename --> cairo_surface_t )
 
 Get a pointer to the data of the image surface, for direct inspection or modification.  A call to C<cairo_surface_flush()> is required before accessing the pixel data to ensure that all pending drawing operations are finished. A call to C<cairo_surface_mark_dirty()> is required after the data is modified.  Return value: a pointer to the image data of this surface or C<Any> if I<surface> is not an image surface, or if C<cairo_surface_finish()> has been called.
 
-  method get-data ( cairo_surface_t $surface --> unsigned Int-ptr )
+  method get-data ( --> unsigned Int-ptr )
 
-=item cairo_surface_t $surface;  cairo_image_surface_get_data:
 =end pod
 
 method get-data ( cairo_surface_t $surface --> unsigned Int-ptr ) {

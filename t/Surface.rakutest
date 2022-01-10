@@ -53,10 +53,19 @@ subtest 'Manipulations', {
     '.new( :map, :rectangle)';
   't/data/Add2.png'.IO.unlink;
 
-#  $c .= new(:surface($is));
+  is $is.get-content, CAIRO_CONTENT_COLOR_ALPHA, '.get-content()';
+  nok $is.get-device.defined, '.get-device()';
+
+  $is.set-fallback-resolution( 100, 100);
+  my Num ( $xr, $yr ) = $is.get-fallback-resolution;
+  is-deeply ( $xr, $yr ), ( 100e0, 100e0),
+    '.get-fallback-resolution() / .set-fallback-resolution()';
+
+  is $is.get-type, CAIRO_SURFACE_TYPE_IMAGE, '.get-type()';
+  nok $is.has-show-text-glyphs, '.has-show-text-glyphs()';
 
   $s.unmap-image($is);
-  $s.clear-object;
+  $is.clear-object;
 }
 
 #-------------------------------------------------------------------------------

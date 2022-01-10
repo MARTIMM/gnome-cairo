@@ -1,6 +1,9 @@
 ## Release notes
+* 2022-01- 0.2.5
+  * Reviewed doc of **Gnome::Cair::Surfaceo** and added spme tests.
+
 * 2021-12-16 0.2.4
-  * Change generator to not insert commands for glib type system. Modules are changed. Also type casting is not used in **Gnome::Cairo::Cairo**.
+  * Change generator to not insert commands for glib type system. Modules are changed. Also type casting is not used in **Gnome::Cairo::**\*.
   * Modified api and doc of **Gnome::Cairo** along the lines of the tutorial.
   * Rewrite pod doc of **Gnome::Pattern**.
 
