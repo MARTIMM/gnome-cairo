@@ -1,0 +1,62 @@
+use v6;
+use NativeCall;
+use Test;
+
+use Gnome::Cairo::FontOptions;
+use Gnome::Cairo::Enums;
+
+#use Gnome::N::X;
+#Gnome::N::debug(:on);
+
+#-------------------------------------------------------------------------------
+my Gnome::Cairo::FontOptions $fo;
+#-------------------------------------------------------------------------------
+subtest 'ISA test', {
+  $fo .= new;
+  isa-ok $fo, Gnome::Cairo::FontOptions, '.new()';
+  $fo.clear-object;
+}
+
+
+#-------------------------------------------------------------------------------
+# set environment variable 'raku-test-all' if rest must be tested too.
+unless %*ENV<raku_test_all>:exists {
+  done-testing;
+  exit;
+}
+
+#-------------------------------------------------------------------------------
+subtest 'Manipulations', {
+  $fo .= new;
+  my Gnome::Cairo::FontOptions $fo2 .= new;
+  ok $fo.equal($fo2), '.equal()';
+  is $fo.get-antialias, CAIRO_ANTIALIAS_DEFAULT, '.get-antialias()';
+  is $fo.get-hint-metrics, CAIRO_HINT_METRICS_DEFAULT, '.get-hint-metrics()';
+  is $fo.get-hint-style, CAIRO_HINT_STYLE_DEFAULT, '.get-hint-style()';
+  is $fo.get-subpixel-order, CAIRO_SUBPIXEL_ORDER_DEFAULT,
+    '.get-subpixel-order()';
+
+  $fo.set-variations('wght=200,wdth=140.5');
+  is $fo.get-variations, 'wght=200,wdth=140.5',
+    '.set-variations() / .get-variations()';
+
+  nok $fo.equal($fo2), 'not .equal() anymore';
+  $fo2.merge($fo);
+  ok $fo.equal($fo2), '.merge()';
+
+  $fo.set-antialias(CAIRO_ANTIALIAS_GOOD);
+  is $fo.get-antialias, CAIRO_ANTIALIAS_GOOD, '.set-antialias()';
+  $fo.set-hint-metrics(CAIRO_HINT_METRICS_OFF);
+  is $fo.get-hint-metrics, CAIRO_HINT_METRICS_OFF, '.set-hint-metrics()';
+  $fo.set-hint-style(CAIRO_HINT_STYLE_SLIGHT);
+  is $fo.get-hint-style, CAIRO_HINT_STYLE_SLIGHT, '.set-hint-style()';
+  $fo.set-subpixel-order(CAIRO_SUBPIXEL_ORDER_RGB);
+  is $fo.get-subpixel-order, CAIRO_SUBPIXEL_ORDER_RGB, '.set-subpixel-order()';
+
+  is $fo.status, CAIRO_STATUS_SUCCESS, '.status()';
+}
+
+#-------------------------------------------------------------------------------
+done-testing;
+
+=finish
