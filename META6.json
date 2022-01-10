@@ -11,7 +11,7 @@
   "provides": {
     "Gnome::Cairo::Enums": "lib/Gnome/Cairo/Enums.rakumod",
     "Gnome::Cairo::FontFace": "lib/Gnome/Cairo/FontFace.pm6",
-    "Gnome::Cairo::FontOptions": "lib/Gnome/Cairo/FontOptions.pm6",
+    "Gnome::Cairo::FontOptions": "lib/Gnome/Cairo/FontOptions.rakumod",
     "Gnome::Cairo::ImageSurface": "lib/Gnome/Cairo/ImageSurface.rakumod",
     "Gnome::Cairo::Matrix": "lib/Gnome/Cairo/Matrix.pm6",
     "Gnome::Cairo::Path": "lib/Gnome/Cairo/Path.rakumod",
