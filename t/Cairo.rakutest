@@ -85,6 +85,8 @@ subtest 'Manipulations', {
 
   $c.user-to-device-distance( $x, $y);
   is-deeply ( $x, $y), ( 1e2, 1e2), '.user-to-device-distance()';
+
+  is $c.get-fill-rule, CAIRO_FILL_RULE_WINDING, '.get-fill-rule()';
 }
 
 #-------------------------------------------------------------------------------

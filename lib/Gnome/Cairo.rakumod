@@ -772,7 +772,6 @@ This function returns the length of the dash array in this context (0 if dashing
 =end pod
 
 method get-dash-count ( --> Int ) {
-
   cairo_get_dash_count(
     self._get-native-object-no-reffing,
   )
@@ -784,21 +783,20 @@ sub cairo_get_dash_count (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:get-fill-rule:
+#TM:1:get-fill-rule:
 =begin pod
 =head2 get-fill-rule
 
-Gets the current fill rule, as set by C<set-fill-rule()>.  Return value: the current fill rule.
+Gets the current fill rule, as set by C<set-fill-rule()>.
 
-  method get-fill-rule ( --> Int )
+Return value: the current fill rule.
+
+  method get-fill-rule ( --> cairo_fill_rule_t )
 
 =end pod
 
-method get-fill-rule ( --> Int ) {
-
-  cairo_get_fill_rule(
-    self._get-native-object-no-reffing,
-  )
+method get-fill-rule ( --> cairo_fill_rule_t ) {
+  cairo_fill_rule_t(cairo_get_fill_rule(self._get-native-object-no-reffing))
 }
 
 sub cairo_get_fill_rule (
@@ -807,20 +805,25 @@ sub cairo_get_fill_rule (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:get-font-face:
+#TM:2:get-font-face:
 =begin pod
 =head2 get-font-face
 
-Gets the current font face for a B<cairo_t>.  Return value: the current font face.  This object is owned by cairo. To keep a reference to it, you must call C<font-face-reference()>.  This function never returns C<Any>. If memory cannot be allocated, a special "nil" B<cairo_font_face_t> object will be returned on which C<font-face-status()> returns C<CAIRO_STATUS_NO_MEMORY>. Using this nil object will cause its error state to propagate to other objects it is passed to, (for example, calling C<set-font-face()> with a nil font will trigger an error that will shutdown the B<cairo_t> object).
+Gets the current font face for a B<cairo_t>.
 
-  method get-font-face ( --> cairo_font_face_t )
+Return value: the current font face.
+=comment This object is owned by cairo. To keep a reference to it, you must call C<font-face-reference()>.
+
+This function never returns C<Any>. If memory cannot be allocated, a special "nil" B<cairo_font_face_t> object will be returned on which C<font-face-status()> returns C<CAIRO_STATUS_NO_MEMORY>. Using this nil object will cause its error state to propagate to other objects it is passed to, (for example, calling C<set-font-face()> with a nil font will trigger an error that will shutdown the B<cairo_t> object).
+
+  method get-font-face ( --> Gnome::Cairo::FontFace )
 
 =end pod
 
-method get-font-face ( --> cairo_font_face_t ) {
-
-  cairo_get_font_face(
-    self._get-native-object-no-reffing,
+method get-font-face ( --> Any ) {
+  self._wrap-native-type(
+    'Gnome::Cairo::FontFace',
+    cairo_get_font_face(self._get-native-object-no-reffing)
   )
 }
 
