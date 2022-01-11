@@ -17,7 +17,7 @@
 
 Cairo is a 2D graphics library with support for multiple output devices. Currently supported output targets include the X Window System (via both Xlib and XCB), Quartz, Win32, image buffers, PostScript, PDF, and SVG file output. Experimental backends include OpenGL, BeOS, OS/2, and DirectFB.
 
-This package can be used on its own but it is meant to be used by the other Gnome package to draw in widgets. However, if you want to use it standalone to make drawings saved in a file on disk, I would advice you to use the **Cairo** package of Timo.
+This package can be used on its own but it is meant to be used by the other Gnome packages to draw in widgets. However, if you want to use it standalone to make drawings saved in a file on disk, I would advice you to use the **Cairo** package of Timo.
 
 # Documentation
 * [ 🔗 Website](https://martimm.github.io/gnome-gtk3/content-docs/reference-cairo.html)
