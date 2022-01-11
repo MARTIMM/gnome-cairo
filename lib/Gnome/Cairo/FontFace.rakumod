@@ -12,14 +12,15 @@ Base class for font faces
 
 =head1 Description
 
-B<cairo_font_face_t> represents a particular font at a particular weight, slant, and other characteristic but no size, transformation, or size.
+B<Gnome::Cairo::FontFace> represents a particular font at a particular weight, slant, and other characteristic but no size, transformation, or size.
 
-Font faces are created using I<font-backend>-specific constructors, typically of the form C<cairo_B<backend>_font_face_create( )>, or implicitly using the I<toy> text API by way of C<cairo_select_font_face()>.  The resulting face can be accessed using C<cairo_get_font_face()>.
+=comment Font faces are created using I<font-backend>-specific constructors, typically of the form C<cairo_B<backend>_font_face_create( )>, or implicitly using the I<toy> text API by way of C<cairo_select_font_face()>.  The resulting face can be accessed using C<cairo_get_font_face()>.
 
-
+=begin comment
 =head2 See Also
 
 B<cairo_scaled_font_t>
+=end comment
 
 =head1 Synopsis
 =head2 Declaration
@@ -36,6 +37,7 @@ use NativeCall;
 use Gnome::N::X;
 use Gnome::N::NativeLib;
 use Gnome::N::TopLevelClassSupport;
+use Gnome::N::GlibToRakuTypes;
 
 use Gnome::Cairo::Types;
 use Gnome::Cairo::Enums;
@@ -47,18 +49,23 @@ also is Gnome::N::TopLevelClassSupport;
 #-------------------------------------------------------------------------------
 =begin pod
 =head1 Methods
-=begin comment
+
 =head2 new
 
-=head3 new()
+There are no creation methods to get a new B<Gnome::Cairo::FontFace>. You can import it from elsewhere when a native object is returned or sometimes the Raku object can be produced like the C<Gnome::Cairo.get-font-face()> call;
 
-Create a new FontFace object.
+  my Gnome::Cairo::FontFace $ff = $context.get-font-face;
 
-  multi method new ( )
-=end comment
+
+=head3 :native-object
+
+Create a FontFace object using a native object from elsewhere. See also B<Gnome::N::TopLevelClassSupport>.
+
+  multi method new ( N-GObject :$native-object! )
+
+
 =end pod
 
-#TM:0:new():
 #TM:4:new(:native-object):Gnome::N::TopLevelClassSupport
 submethod BUILD ( *%options ) {
 
@@ -114,7 +121,7 @@ submethod BUILD ( *%options ) {
     }}
 
     # only after creating the native-object
-    self._set-class-info('CairoFontFace');
+#    self._set-class-info('CairoFontFace');
   }
 }
 
@@ -127,7 +134,7 @@ method _fallback ( $native-sub is copy --> Callable ) {
   try { $s = &::("cairo_$native-sub"); } unless ?$s;
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'cairo_' /;
 
-  self._set-class-name-of-sub('CairoFontFace');
+#  self._set-class-name-of-sub('CairoFontFace');
   $s = callsame unless ?$s;
 
   $s;
@@ -140,12 +147,13 @@ method native-object-ref ( $no ) {
 
 #-------------------------------------------------------------------------------
 method native-object-unref ( $no ) {
-  _cairo_font_face_destroy($no);
+  _cairo_font_face_destroy($no)
+    if _cairo_font_face_get_reference_count($no) > 0;
 }
 
 
 #-------------------------------------------------------------------------------
-#TM:0:_cairo_font_face_reference:
+#TM:1:_cairo_font_face_reference:
 #`{{
 =begin pod
 =head2 cairo_font_face_reference
@@ -163,7 +171,7 @@ sub _cairo_font_face_reference ( cairo_font_face_t $font_face --> cairo_font_fac
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:_cairo_font_face_destroy:
+#TM:1:_cairo_font_face_destroy:
 #`{{
 =begin pod
 =head2 cairo_font_face_destroy
@@ -175,93 +183,134 @@ Decreases the reference count on I<font_face> by one. If the result is zero, the
 =end pod
 }}
 
-sub _cairo_font_face_destroy ( cairo_font_face_t $font_face --> void )
+sub _cairo_font_face_destroy ( cairo_font_face_t $font_face )
   is native(&cairo-lib)
   is symbol('cairo_font_face_destroy')
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:cairo_font_face_get_type:
+#TM:1:_cairo_font_face_get_reference_count:
+#`{{
 =begin pod
-=head2 [cairo_font_face_] get_type
+=head2 get-reference-count
 
-This function returns the type of the backend used to create a font face. See B<cairo_font_type_t> for available types.  Return value: The type of I<font_face>.
+Returns the current reference count of I<font-face>. Return value: the current reference count of I<font-face>. If the object is a nil object, 0 will be returned.
 
-  method cairo_font_face_get_type ( --> Int )
-
+  method get-reference-count ( --> Int )
 
 =end pod
 
-sub cairo_font_face_get_type ( cairo_font_face_t $font_face --> int32 )
-  is native(&cairo-lib)
+method get-reference-count ( --> Int ) {
+
+  cairo_font_face_get_reference_count(
+    self._get-native-object-no-reffing,
+  )
+}
+}}
+
+sub _cairo_font_face_get_reference_count (
+  cairo_font_face_t $font_face --> guint
+) is native(&cairo-lib)
+  is symbol('cairo_font_face_get_reference_count')
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:cairo_font_face_get_reference_count:
+#TM:1:get-type:
 =begin pod
-=head2 [cairo_font_face_] get_reference_count
+=head2 get-type
 
-Returns the current reference count of I<font_face>.  Return value: the current reference count of I<font_face>.  If the object is a nil object, 0 will be returned.
+This function returns the type of the backend used to create a font face. See B<cairo-font-type-t> for available types. Return value: The type of I<font-face>.
 
-  method cairo_font_face_get_reference_count ( --> UInt )
-
+  method get-type ( --> cairo_font_type_t )
 
 =end pod
 
-sub cairo_font_face_get_reference_count ( cairo_font_face_t $font_face --> int32 )
-  is native(&cairo-lib)
-  { * }
+method get-type ( --> cairo_font_type_t ) {
+  cairo_font_type_t(
+    cairo_font_face_get_type(self._get-native-object-no-reffing)
+  )
+}
 
-#-------------------------------------------------------------------------------
-#TM:0:cairo_font_face_status:
-=begin pod
-=head2 cairo_font_face_status
-
-Checks whether an error has previously occurred for this font face  Return value: C<CAIRO_STATUS_SUCCESS> or another error such as C<CAIRO_STATUS_NO_MEMORY>.
-
-  method cairo_font_face_status ( --> Int )
-
-
-=end pod
-
-sub cairo_font_face_status ( cairo_font_face_t $font_face --> int32 )
-  is native(&cairo-lib)
+sub cairo_font_face_get_type (
+  cairo_font_face_t $font_face --> GEnum
+) is native(&cairo-lib)
   { * }
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:0:cairo_font_face_get_user_data:
+# TM:0:get-user-data:
 =begin pod
-=head2 [cairo_font_face_] get_user_data
+=head2 get-user-data
 
-Return user data previously attached to I<font_face> using the specified key.  If no user data has been attached with the given key this function returns C<Any>.  Return value: the user data previously attached or C<Any>.
+Return user data previously attached to I<font-face> using the specified key. If no user data has been attached with the given key this function returns C<Any>. Return value: the user data previously attached or C<Any>.
 
-  method cairo_font_face_get_user_data ( cairo_user_data_key_t $key --> OpaquePointer )
+  method get-user-data ( cairo_user_data_key_t $key )
 
-=item cairo_user_data_key_t $key; a B<cairo_font_face_t>
-
+=item $key; the address of the B<cairo-user-data-key-t> the user data was attached to
 =end pod
 
-sub cairo_font_face_get_user_data ( cairo_font_face_t $font_face, cairo_user_data_key_t $key --> OpaquePointer )
-  is native(&cairo-lib)
-  { * }
+method get-user-data ( $key is copy ) {
+  $key .= _get-native-object-no-reffing unless $key ~~ cairo_user_data_key_t;
 
-#-------------------------------------------------------------------------------
-#TM:0:cairo_font_face_set_user_data:
-=begin pod
-=head2 [cairo_font_face_] set_user_data
+  cairo_font_face_get_user_data(
+    self._get-native-object-no-reffing, $key
+  )
+}
 
-Attach user data to I<font_face>.  To remove user data from a font face, call this function with the key that was used to set it and C<Any> for I<data>.  Return value: C<CAIRO_STATUS_SUCCESS> or C<CAIRO_STATUS_NO_MEMORY> if a slot could not be allocated for the user data.
-
-  method cairo_font_face_set_user_data ( cairo_user_data_key_t $key, OpaquePointer $user_data, cairo_destroy_func_t $destroy --> Int )
-
-=item cairo_user_data_key_t $key; a B<cairo_font_face_t>
-=item OpaquePointer $user_data; the address of a B<cairo_user_data_key_t> to attach the user data to
-=item cairo_destroy_func_t $destroy; the user data to attach to the font face
-
-=end pod
-
-sub cairo_font_face_set_user_data ( cairo_font_face_t $font_face, cairo_user_data_key_t $key, OpaquePointer $user_data, cairo_destroy_func_t $destroy --> int32 )
-  is native(&cairo-lib)
+sub cairo_font_face_get_user_data (
+  cairo_font_face_t $font_face, cairo_user_data_key_t $key
+) is native(&cairo-lib)
   { * }
 }}
+
+#`{{
+#-------------------------------------------------------------------------------
+# TM:0:set-user-data:
+=begin pod
+=head2 set-user-data
+
+Attach user data to I<font-face>. To remove user data from a font face, call this function with the key that was used to set it and C<Any> for I<data>. Return value: C<CAIRO_STATUS_SUCCESS> or C<CAIRO_STATUS_NO-MEMORY> if a slot could not be allocated for the user data.
+
+  method set-user-data ( cairo_user_data_key_t $key, void-ptr $user_data, cairo_destroy_func_t $destroy --> cairo_status_t )
+
+=item $key; the address of a B<cairo-user-data-key-t> to attach the user data to
+=item $user_data; the user data to attach to the font face
+=item $destroy; a B<cairo-destroy-func-t> which will be called when the font face is destroyed or when new user data is attached using the same key.
+=end pod
+
+method set-user-data ( $key is copy, void-ptr $user_data, $destroy is copy --> cairo_status_t ) {
+  $key .= _get-native-object-no-reffing unless $key ~~ cairo_user_data_key_t;
+  $destroy .= _get-native-object-no-reffing unless $destroy ~~ cairo_destroy_func_t;
+
+  cairo_font_face_set_user_data(
+    self._get-native-object-no-reffing, $key, $user_data, $destroy
+  )
+}
+
+sub cairo_font_face_set_user_data (
+  cairo_font_face_t $font_face, cairo_user_data_key_t $key, void-ptr $user_data, cairo_destroy_func_t $destroy --> GEnum
+) is native(&cairo-lib)
+  { * }
+}}
+
+#-------------------------------------------------------------------------------
+#TM:1:status:
+=begin pod
+=head2 status
+
+Checks whether an error has previously occurred for this font face Return value: C<CAIRO_STATUS_SUCCESS> or another error such as C<CAIRO_STATUS_NO-MEMORY>.
+
+  method status ( --> cairo_status_t )
+
+=end pod
+
+method status ( --> cairo_status_t ) {
+  cairo_status_t(
+    cairo_font_face_status(self._get-native-object-no-reffing)
+  )
+}
+
+sub cairo_font_face_status (
+  cairo_font_face_t $font_face --> GEnum
+) is native(&cairo-lib)
+  { * }

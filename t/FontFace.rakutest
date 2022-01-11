@@ -1,0 +1,44 @@
+use v6;
+use NativeCall;
+use Test;
+
+use Gnome::Cairo::ImageSurface;
+use Gnome::Cairo;
+use Gnome::Cairo::FontFace;
+use Gnome::Cairo::Enums;
+
+#use Gnome::N::X;
+#Gnome::N::debug(:on);
+
+#-------------------------------------------------------------------------------
+my Gnome::Cairo $c;
+my Gnome::Cairo::FontFace $ff;
+my Gnome::Cairo::ImageSurface $is;
+#-------------------------------------------------------------------------------
+subtest 'ISA test', {
+  $is .= new( :format(CAIRO_FORMAT_ARGB32), :width(128), :height(128));
+  $c .= new(:surface($is));
+
+  $ff = $c.get-font-face;
+  is $c.status, CAIRO_STATUS_SUCCESS, '$cairo.get-font-face()';
+  $ff.clear-object;
+}
+
+#-------------------------------------------------------------------------------
+# set environment variable 'raku-test-all' if rest must be tested too.
+unless %*ENV<raku_test_all>:exists {
+  done-testing;
+  exit;
+}
+
+#-------------------------------------------------------------------------------
+subtest 'Manipulations', {
+  $ff = $c.get-font-face;
+  is $ff.get-type, CAIRO_FONT_TYPE_TOY, '.get-type()';
+  is $ff.status, CAIRO_STATUS_SUCCESS, '.status()';
+}
+
+#-------------------------------------------------------------------------------
+done-testing;
+
+=finish
