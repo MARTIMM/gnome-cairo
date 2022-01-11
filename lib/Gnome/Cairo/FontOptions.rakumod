@@ -63,7 +63,7 @@ Create a FontOptions object using a native object from elsewhere. See also B<Gno
 
 =end pod
 
-#TM:0:new():
+#TM:1:new():
 #TM:4:new(:native-object):Gnome::N::TopLevelClassSupport
 submethod BUILD ( *%options ) {
 
