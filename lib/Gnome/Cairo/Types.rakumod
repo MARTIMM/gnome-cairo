@@ -2,6 +2,7 @@ use v6;
 use NativeCall;
 
 use Gnome::Cairo::Enums;
+use Gnome::N::GlibToRakuTypes;
 
 #unit class Gnome::Cairo::Types:auth<github:MARTIMM>;
 
@@ -38,10 +39,28 @@ class cairo_pattern_t is repr('CPointer') is export { }
 #-------------------------------------------------------------------------------
 =begin pod
 =head2 cairo_matrix_t
+
+A cairo_matrix_t holds an affine transformation, such as a scale, rotation, shear, or a combination of those. The transformation of a point (x, y) is given by:
+
+=item Num $.xx; xx component of the affine transformation
+=item Num $.yx; yx component of the affine transformation
+=item Num $.xy; xy component of the affine transformation
+=item Num $.yy; yy component of the affine transformation
+=item Num $.x0; X translation component of the affine transformation
+=item Num $.y0; Y translation component of the affine transformation
+
 =end pod
 
-#TT:0:cairo_matrix_t
-class cairo_matrix_t is repr('CPointer') is export { }
+#TT:1:cairo_matrix_t
+class cairo_matrix_t is repr('CStruct') is export {
+  has gdouble $.xx;
+  has gdouble $.yx;
+  has gdouble $.xy;
+  has gdouble $.yy;
+  has gdouble $.x0;
+  has gdouble $.y0;
+}
+
 
 #-------------------------------------------------------------------------------
 =begin pod
@@ -96,8 +115,8 @@ class cairo_path_data_header_t is repr('CStruct') is export {
 
 #TT:0:cairo_path_data_point_t
 class cairo_path_data_point_t is repr('CStruct') is export {
-  has num64 $.x;
-  has num64 $.y;
+  has gdouble $.x;
+  has gdouble $.y;
 }
 
 #TT:0:cairo_path_data_t
@@ -139,12 +158,12 @@ The cairo_text_extents_t structure stores the extents of a single glyph or a str
 
 #TT:1:cairo_text_extents_t
 class cairo_text_extents_t is repr('CStruct') is export {
-  has num64 $.x_bearing;
-  has num64 $.y_bearing;
-  has num64 $.width;
-  has num64 $.height;
-  has num64 $.x_advance;
-  has num64 $.y_advance;
+  has gdouble $.x_bearing;
+  has gdouble $.y_bearing;
+  has gdouble $.width;
+  has gdouble $.height;
+  has gdouble $.x_advance;
+  has gdouble $.y_advance;
 };
 
 #`{{
@@ -202,10 +221,10 @@ A data structure for holding a rectangle using doubles this time.
 
 #TT:1:cairo_rectangle_t
 class cairo_rectangle_t is repr('CStruct') is export {
-  has num64 $.x;
-  has num64 $.y;
-  has num64 $.width;
-  has num64 $.height;
+  has gdouble $.x;
+  has gdouble $.y;
+  has gdouble $.width;
+  has gdouble $.height;
 }
 
 #-------------------------------------------------------------------------------
@@ -237,17 +256,17 @@ Note that the offsets given by x and y are not cumulative. When drawing or measu
 
 =item int64 $.index; glyph index in the font. The exact interpretation of the glyph index depends on the font technology being used.
 
-=item num64 $.x; the offset in the X direction between the origin used for drawing or measuring the string and the origin of this glyph.
+=item gdouble $.x; the offset in the X direction between the origin used for drawing or measuring the string and the origin of this glyph.
 
-=item num64 $.y; the offset in the Y direction between the origin used for drawing or measuring the string and the origin of this glyph.
+=item gdouble $.y; the offset in the Y direction between the origin used for drawing or measuring the string and the origin of this glyph.
 
 =end pod
 
 #TT:0:cairo_glyph_t
 class cairo_glyph_t is repr('CStruct') is export {
   has int64 $.index;
-  has num64 $.x;
-  has num64 $.y;
+  has gdouble $.x;
+  has gdouble $.y;
 }
 
 #-------------------------------------------------------------------------------
