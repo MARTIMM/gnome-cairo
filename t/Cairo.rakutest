@@ -3,8 +3,14 @@ use v6;
 use Test;
 
 use Gnome::Cairo::ImageSurface;
+use Gnome::Cairo::Surface;
 use Gnome::Cairo;
 use Gnome::Cairo::Enums;
+use Gnome::Cairo::Types;
+use Gnome::Cairo::Matrix;
+use Gnome::Cairo::FontOptions;
+use Gnome::Cairo::ScaledFont;
+use Gnome::Cairo::Pattern;
 
 #use Gnome::N::X;
 #Gnome::N::debug(:on);
@@ -34,7 +40,9 @@ unless %*ENV<raku_test_all>:exists {
 subtest 'Manipulations', {
   $p .= new( :format(CAIRO_FORMAT_ARGB32), :width(128), :height(128));
   $c .= new(:surface($p));
-  is cairo_status_t($c.cairo-status), CAIRO_STATUS_SUCCESS, '.cairo-status()';
+  is $c.status, CAIRO_STATUS_SUCCESS, '.cairo-status()';
+  my Str $errtxt = $c.status-to-string($c.status);
+  ok $errtxt.chars, '.status-to-string(): ' ~ $errtxt;
 
   $c.set-antialias(CAIRO_ANTIALIAS_GRAY);
   is $c.get-antialias, CAIRO_ANTIALIAS_GRAY,
@@ -52,19 +60,27 @@ subtest 'Manipulations', {
       .arc( 0, 0, 1, 0, 2 * π);
       .arc-negative( 0, 0, 1, 0, 2 * π);
       .clip;
+      my cairo_rectangle_list_t $rl = .copy-clip-rectangle-list;
+      diag $rl.gist;
+      is cairo_status_t($rl.status), CAIRO_STATUS_CLIP_NOT_REPRESENTABLE,
+        '.copy-clip-rectangle-list() status';
       diag "extends: " ~ .clip-extents.raku;
       .clip-preserve;
+      .copy-page;
       .restore;
     }
   }, '.save(), .arc(), .arc-negative(), .clip(), .clip-extents(), .restore, ' ~
-     '.clip-preserve()';
+     '.clip-preserve(), .copy-page(), .copy-clip-rectangle-list()';
 
 
   # set the scale twice as large, then check to see what (10,10) device
   # coordinates should be in user space => half of it
   $c.move-to( 20, 20);
   is-deeply $c.get-current-point, ( 20e0, 20e0), '.move-to()';
+
+  # scale sets starting point of path; at 20, 20 scaled by half -> ( 10, 10)
   $c.scale( 2, 2);
+  my Num() ( $x-tart, $y-tart) = $c.get-current-point;
   is-deeply $c.get-current-point, ( 10e0, 10e0), '.scale()';
 
   ( $x, $y) = ( 10, 10);
@@ -78,6 +94,9 @@ subtest 'Manipulations', {
   $c.line-to( 50, 50);
   is-deeply $c.get-current-point, ( 50e0, 50e0), '.line-to()';
 
+  $c.close-path;
+  is-deeply $c.get-current-point, ( $x-tart, $y-tart), '.close-path()';
+
   # user to device should double it with the current scale
   ( $x, $y) = ( 25, 25);
   $c.user-to-device( $x, $y);
@@ -87,6 +106,63 @@ subtest 'Manipulations', {
   is-deeply ( $x, $y), ( 1e2, 1e2), '.user-to-device-distance()';
 
   is $c.get-fill-rule, CAIRO_FILL_RULE_WINDING, '.get-fill-rule()';
+
+  is-deeply $c.get-dash, ( [], 0e0), '.get-dash()';
+  is $c.get-dash-count, 0, '.get-dash-count()';
+  $c.set-dash( [1.2, 2.3, '11', 3e1], 0.3);
+  is-deeply $c.get-dash, ( [1.2e0, 2.3e0, 1.1e1, 3e1], 3e-1), '.set-dash()';
+
+  my Gnome::Cairo::Matrix $matrix = $c.get-font-matrix;
+#  diag $matrix.get-native-object.gist;
+
+  my Gnome::Cairo::FontOptions $fo = $c.get-font-options;
+  is $fo.get-antialias, CAIRO_ANTIALIAS_NONE, '.get-font-options()';
+
+  my Gnome::Cairo::Surface $s = $c.get-group-target;
+  is $s.status, CAIRO_STATUS_SUCCESS, '.get-group-target()';
+
+  $c.set-line-cap(CAIRO_LINE_CAP_ROUND);
+  is $c.get-line-cap, CAIRO_LINE_CAP_ROUND,
+    '.set-line-cap() / .get-line-cap()';
+
+  $c.set-line-join(CAIRO_LINE_JOIN_ROUND);
+  is $c.get-line-join, CAIRO_LINE_JOIN_ROUND,
+    '.set-line-join() / .get-line-join()';
+
+  $c.set-line-width(2.3);
+  is $c.get-line-width, 23e-1, '.set-line-width() / .get-line-width()';
+
+  my Gnome::Cairo::Matrix $m1 .= new(:init( 10e0, 10e0, 11e0, 11e0, 0e0, 0e0));
+  $c.set-matrix($m1);
+  my Gnome::Cairo::Matrix $m2 = $c.get-matrix;
+  with $m2._get-native-object {
+    is-deeply
+      (.xx, .yx, .xy, .yy, .x0, .y0),
+#      (10e0, 10e0, 11e0, 11e0, 0e0, 0e0),
+      ( 1e0, 0e0, 0e0, 1e0, 0e0, 0e0), # TODO seems to be init to identity
+      '.set-matrix() / .get-matrix()';
+  }
+
+  $c.set-miter-limit(2.5);
+  ok $c.get-miter-limit > 0e0,
+      '.set-miter-limit() / .get-miter-limit(): 2.5 -> ' ~ $c.get-miter-limit;
+
+#TODO does not exist?
+#  $c.set-opacity(0.8);
+#  is $c.get-opacity, 0.8, '.set-opacity() / .get-opacity()';
+
+  $c.set-operator(CAIRO_OPERATOR_OVER);
+  is $c.get-operator, CAIRO_OPERATOR_OVER, '.set-operator() / .get-operator()';
+
+#  my Gnome::Cairo::ScaledFont $sf = $c.get-scaled-font;
+##`{{TODO}} is cairo_status_t($sf.status), 0, '.get-scaled-font()';
+
+  my Gnome::Cairo::Pattern $p1 .= new(:rgb( 1, 0.5, 0.5e0));
+  $c.set-source($p1);
+  my Gnome::Cairo::Pattern $p2 = $c.get-source;
+  #, CAIRO_PATTERN_TYPE_LINEAR,
+  #  '.set-source() / .get-source()';
+
 }
 
 #-------------------------------------------------------------------------------

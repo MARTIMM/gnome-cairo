@@ -40,6 +40,7 @@ use Gnome::N::GlibToRakuTypes;
 
 use Gnome::Cairo::Types;
 use Gnome::Cairo::Enums;
+#use Gnome::Cairo::Matrix;
 
 #-------------------------------------------------------------------------------
 unit class Gnome::Cairo:auth<github:MARTIMM>;
@@ -147,12 +148,12 @@ method _fallback ( $native-sub is copy --> Callable ) {
 
 #-------------------------------------------------------------------------------
 method native-object-ref ( $no ) {
-  _cairo_reference($no)
+  _cairo_reference($no);
 }
 
 #-------------------------------------------------------------------------------
 method native-object-unref ( $no ) {
-  _cairo_destroy($no);
+  _cairo_destroy($no) if _cairo_get_reference_count($no) > 0;
 }
 
 
@@ -171,7 +172,7 @@ Append the I<$path> onto the current path. Note that C<Gnome::Cairo::Path.status
 
   method append-path ( cairo_path_t $path )
 
-=item cairo_path_t $path; a cairo context
+=item $path; path to be appended
 =end pod
 
 method append-path ( $path is copy ) {
@@ -342,21 +343,24 @@ sub cairo_clip_preserve (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:close-path:
+#TM:1:close-path:
 =begin pod
 =head2 close-path
 
-Adds a line segment to the path from the current point to the beginning of the current sub-path, (the most recent point passed to C<move-to()>), and closes this sub-path. After this call the current point will be at the joined endpoint of the sub-path.  The behavior of C<close-path()> is distinct from simply calling C<line-to()> with the equivalent coordinate in the case of stroking. When a closed sub-path is stroked, there are no caps on the ends of the sub-path. Instead, there is a line join connecting the final and initial segments of the sub-path.  If there is no current point before the call to C<close-path()>, this function will have no effect.  Note: As of cairo version 1.2.4 any call to C<close-path()> will place an explicit MOVE_TO element into the path immediately after the CLOSE_PATH element, (which can be seen in C<copy-path()> for example). This can simplify path processing in some cases as it may not be necessary to save the "last move_to point" during processing as the MOVE_TO immediately after the CLOSE_PATH will provide that point.
+Adds a line segment to the path from the current point to the beginning of the current sub-path, (the most recent point passed to C<move-to()>), and closes this sub-path. After this call the current point will be at the joined endpoint of the sub-path.
+
+The behavior of C<close-path()> is distinct from simply calling C<line-to()> with the equivalent coordinate in the case of stroking. When a closed sub-path is stroked, there are no caps on the ends of the sub-path. Instead, there is a line join connecting the final and initial segments of the sub-path.
+
+If there is no current point before the call to C<close-path()>, this function will have no effect.
+
+Note: As of cairo version 1.2.4 any call to C<close-path()> will place an explicit MOVE_TO element into the path immediately after the CLOSE_PATH element, (which can be seen in C<copy-path()> for example). This can simplify path processing in some cases as it may not be necessary to save the "last move_to point" during processing as the MOVE_TO immediately after the CLOSE_PATH will provide that point.
 
   method close-path ( )
 
 =end pod
 
 method close-path ( ) {
-
-  cairo_close_path(
-    self._get-native-object-no-reffing,
-  )
+  cairo_close_path(self._get-native-object-no-reffing)
 }
 
 sub cairo_close_path (
@@ -365,13 +369,16 @@ sub cairo_close_path (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:copy-clip-rectangle-list:
+#TM:1:copy-clip-rectangle-list:
 =begin pod
 =head2 copy-clip-rectangle-list
 
-Gets the current clip region as a list of rectangles in user coordinates. Never returns C<Any>.
+Gets the current clip region as a list of rectangles in user coordinates. Never returns an undefined list.
 
-The status in the list may be C<CAIRO_STATUS_CLIP_NOT_REPRESENTABLE> to indicate that the clip region cannot be represented as a list of user-space rectangles. The status may have other values to indicate other errors.  Returns: the current clip region as a list of rectangles in user coordinates, which should be destroyed using C<rectangle-list-destroy()>.
+The status in the list may be C<CAIRO_STATUS_CLIP_NOT_REPRESENTABLE> to indicate that the clip region cannot be represented as a list of user-space rectangles. The status may have other values to indicate other errors.
+
+Returns: the current clip region as a list of rectangles in user coordinates
+=comment , which should be destroyed using C<rectangle-list-destroy()>.
 
   method copy-clip-rectangle-list ( --> cairo_rectangle_list_t )
 
@@ -387,21 +394,20 @@ sub cairo_copy_clip_rectangle_list (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:copy-page:
+#TM:1:copy-page:
 =begin pod
 =head2 copy-page
 
-Emits the current page for backends that support multiple pages, but doesn't clear it, so, the contents of the current page will be retained for the next page too.  Use C<show-page()> if you want to get an empty page after the emission.  This is a convenience function that simply calls C<surface-copy-page()> on this context's target.
+Emits the current page for backends that support multiple pages, but doesn't clear it, so, the contents of the current page will be retained for the next page too.
+
+Use C<show-page()> if you want to get an empty page after the emission. This is a convenience function that simply calls C<Gnome::Cairo::Surface.copy-page()> on this context's target.
 
   method copy-page ( )
 
 =end pod
 
 method copy-page ( ) {
-
-  cairo_copy_page(
-    self._get-native-object-no-reffing,
-  )
+  cairo_copy_page(self._get-native-object-no-reffing)
 }
 
 sub cairo_copy_page (
@@ -471,7 +477,7 @@ Creates a new B<cairo_t> with all graphics state parameters set to default value
 
   method create ( cairo_surface_t $target --> cairo_t )
 
-=item cairo_surface_t $target;  cairo_create:
+=item $target; target surface for the context
 =end pod
 
 method create ( cairo_surface_t $target --> cairo_t ) {
@@ -489,7 +495,7 @@ sub _cairo_create (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:curve-to:
+#TM:2:curve-to:
 =begin pod
 =head2 curve-to
 
@@ -497,16 +503,17 @@ Adds a cubic Bézier spline to the path from the current point to position (I<x3
 
   method curve-to ( Num() $x1, Num() $y1, Num() $x2, Num() $y2, Num() $x3, Num() $y3 )
 
-=item $x1; a cairo context
-=item $y1; the X coordinate of the first control point
-=item $x2; the Y coordinate of the first control point
-=item $y2; the X coordinate of the second control point
-=item $x3; the Y coordinate of the second control point
-=item $y3; the X coordinate of the end of the curve
+=item $x1; the X coordinate of the first control point
+=item $y1; the Y coordinate of the first control point
+=item $x2; the X coordinate of the second control point
+=item $y2; the Y coordinate of the second control point
+=item $x3; the X coordinate of the end of the curve
+=item $y3; the Y coordinate of the end of the curve
 =end pod
 
-method curve-to ( Num() $x1, Num() $y1, Num() $x2, Num() $y2, Num() $x3, Num() $y3 ) {
-
+method curve-to (
+  Num() $x1, Num() $y1, Num() $x2, Num() $y2, Num() $x3, Num() $y3
+) {
   cairo_curve_to(
     self._get-native-object-no-reffing, $x1, $y1, $x2, $y2, $x3, $y3
   )
@@ -596,7 +603,7 @@ sub cairo_device_to_user_distance (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:fill:
+#TM:4:fill:
 =begin pod
 =head2 fill
 
@@ -616,7 +623,7 @@ sub cairo_fill (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:fill-extents:
+#TM:4:fill-extents:
 =begin pod
 =head2 fill-extents
 
@@ -624,10 +631,10 @@ Computes a bounding box in user coordinates covering the area that would be affe
 
   method fill-extents ( Num() $x1, Num() $y1, Num() $x2, Num() $y2 )
 
-=item $x1; a cairo context
-=item $y1; left of the resulting extents
-=item $x2; top of the resulting extents
-=item $y2; right of the resulting extents
+=item $x1; left of the resulting extents
+=item $y1; top of the resulting extents
+=item $x2; right of the resulting extents
+=item $y2; bottom of the resulting extents
 =end pod
 
 method fill-extents ( Num() $x1, Num() $y1, Num() $x2, Num() $y2 ) {
@@ -659,6 +666,7 @@ sub cairo_fill_preserve (
 ) is native(&cairo-lib)
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:font-extents:
 =begin pod
@@ -681,6 +689,7 @@ sub cairo_font_extents (
   cairo_t $cr, cairo_font_extents_t $extents
 ) is native(&cairo-lib)
   { * }
+}}
 
 #-------------------------------------------------------------------------------
 #TM:1:get-antialias:
@@ -736,32 +745,44 @@ sub cairo_get_current_point (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:get-dash:
+#TM:1:get-dash:
 =begin pod
 =head2 get-dash
 
-Gets the current dash array.  If not C<Any>, I<dashes> should be big enough to hold at least the number of values returned by C<get-dash-count()>.
+Gets the current dash array.
 
-  method get-dash ( Num() $dashes, Num() $offset )
+  method get-dash ( --> List )
 
-=item $dashes; a B<cairo_t>
-=item $offset; return value for the dash array, or C<Any>
+List returns;
+=item Array; the dash array
+=item Num; the current dash offset, or C<Undefined>
 =end pod
 
-method get-dash ( Num() $dashes, Num() $offset ) {
+method get-dash ( --> List ) {
+  my Int $ndashes = cairo_get_dash_count(self._get-native-object-no-reffing);
+
+  my $dashes = CArray[gdouble].new( 0e0 xx $ndashes);
+  my gdouble $offset;
 
   cairo_get_dash(
     self._get-native-object-no-reffing, $dashes, $offset
-  )
+  );
+
+  my Array $d = [];
+  loop ( my $i = 0; $i < $ndashes; $i++ ) {
+    $d.push: $dashes[$i];
+  }
+
+  ( $d, $offset)
 }
 
 sub cairo_get_dash (
-  cairo_t $cr, gdouble $dashes, gdouble $offset
+  cairo_t $cr, CArray[gdouble] $dashes, gdouble $offset is rw
 ) is native(&cairo-lib)
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:get-dash-count:
+#TM:1:get-dash-count:
 =begin pod
 =head2 get-dash-count
 
@@ -772,9 +793,7 @@ This function returns the length of the dash array in this context (0 if dashing
 =end pod
 
 method get-dash-count ( --> Int ) {
-  cairo_get_dash_count(
-    self._get-native-object-no-reffing,
-  )
+  cairo_get_dash_count(self._get-native-object-no-reffing)
 }
 
 sub cairo_get_dash_count (
@@ -814,7 +833,7 @@ Gets the current font face for a B<cairo_t>.
 Return value: the current font face.
 =comment This object is owned by cairo. To keep a reference to it, you must call C<font-face-reference()>.
 
-This function never returns C<Any>. If memory cannot be allocated, a special "nil" B<cairo_font_face_t> object will be returned on which C<font-face-status()> returns C<CAIRO_STATUS_NO_MEMORY>. Using this nil object will cause its error state to propagate to other objects it is passed to, (for example, calling C<set-font-face()> with a nil font will trigger an error that will shutdown the B<cairo_t> object).
+This function never returns an undefined font face. If memory cannot be allocated, a special "nil" B<cairo_font_face_t> object will be returned on which C<Gnome::Cairo::FontFace.status()> returns C<CAIRO_STATUS_NO_MEMORY>. Using this nil object will cause its error state to propagate to other objects it is passed to, (for example, calling C<set-font-face()> with a nil font will trigger an error that will shutdown the B<cairo_t> object).
 
   method get-font-face ( --> Gnome::Cairo::FontFace )
 
@@ -833,22 +852,20 @@ sub cairo_get_font_face (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:get-font-matrix:
+#TM:1:get-font-matrix:
 =begin pod
 =head2 get-font-matrix
 
-Stores the current font matrix into I<matrix>. See C<set-font-matrix()>.
+Returns the current font matrix. See C<set-font-matrix()>.
 
-  method get-font-matrix ( cairo_matrix_t $matrix )
+  method get-font-matrix ( --> Gnome::Cairo::Matrix )
 
-=item cairo_matrix_t $matrix; a B<cairo_t>
 =end pod
 
-method get-font-matrix ( cairo_matrix_t $matrix ) {
-
-  cairo_get_font_matrix(
-    self._get-native-object-no-reffing, $matrix
-  )
+method get-font-matrix ( --> Any ) {
+  my cairo_matrix_t $matrix .= new;
+  cairo_get_font_matrix( self._get-native-object-no-reffing, $matrix);
+  self._wrap-native-type( 'Gnome::Cairo::Matrix', $matrix)
 }
 
 sub cairo_get_font_matrix (
@@ -857,7 +874,7 @@ sub cairo_get_font_matrix (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:get-font-options:
+#TM:1:get-font-options:
 =begin pod
 =head2 get-font-options
 
@@ -868,10 +885,11 @@ Retrieves font rendering options set via B<cairo_set_font_options>. Note that th
 =item cairo_font_options_t $options; a B<cairo_t>
 =end pod
 
-method get-font-options ( cairo_font_options_t $options ) {
-
-  cairo_get_font_options(
-    self._get-native-object-no-reffing, $options
+method get-font-options ( ) {
+  my cairo_font_options_t $options .= new;
+  self._wrap-native-type(
+    'Gnome::Cairo::FontOptions',
+    cairo_get_font_options( self._get-native-object-no-reffing, $options)
   )
 }
 
@@ -881,20 +899,24 @@ sub cairo_get_font_options (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:get-group-target:
+#TM:1:get-group-target:
 =begin pod
 =head2 get-group-target
 
-Gets the current destination surface for the context. This is either the original target surface as passed to C<create()> or the target surface for the current group as started by the most recent call to C<push-group()> or C<push-group-with-content()>.  This function will always return a valid pointer, but the result can be a "nil" surface if this context is already in an error state, (ie. C<status()> C<!=> C<CAIRO_STATUS_SUCCESS>). A nil surface is indicated by C<surface-status()> C<!=> C<CAIRO_STATUS_SUCCESS>.  Return value: the target surface. This object is owned by cairo. To keep a reference to it, you must call C<surface-reference()>.
+Gets the current destination surface for the context. This is either the original target surface as passed to C<new(:surface)> or the target surface for the current group as started by the most recent call to C<push-group()> or C<push-group-with-content()>.
 
-  method get-group-target ( --> cairo_surface_t )
+This function will always return a valid pointer, but the result can be a "nil" surface if this context is already in an error state, (ie. C<$context.status() ≠ CAIRO_STATUS_SUCCESS>). A nil surface is indicated by C<Gnome::Cairo::Surface.status() ≠ CAIRO_STATUS_SUCCESS>.
+
+Return value: the target surface. This object is owned by cairo. To keep a reference to it, you must call C<surface-reference()>.
+
+  method get-group-target ( --> Gnome::Cairo::Surface )
 
 =end pod
 
-method get-group-target ( --> cairo_surface_t ) {
-
-  cairo_get_group_target(
-    self._get-native-object-no-reffing,
+method get-group-target ( --> Any ) {
+  self._wrap-native-type(
+    'Gnome::Cairo::Surface',
+    cairo_get_group_target(self._get-native-object-no-reffing)
   )
 }
 
@@ -904,18 +926,20 @@ sub cairo_get_group_target (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:get-line-cap:
+#TM:1:get-line-cap:
 =begin pod
 =head2 get-line-cap
 
-Gets the current line cap style, as set by C<set-line-cap()>.  Return value: the current line cap style.
+Gets the current line cap style, as set by C<set-line-cap()>.
 
-  method get-line-cap ( --> Int )
+Return value: the current line cap style.
+
+  method get-line-cap ( --> cairo_line_cap_t )
 
 =end pod
 
-method get-line-cap ( --> Int ) {
-  cairo_get_line_cap(self._get-native-object-no-reffing)
+method get-line-cap ( --> cairo_line_cap_t ) {
+  cairo_line_cap_t(cairo_get_line_cap(self._get-native-object-no-reffing))
 }
 
 sub cairo_get_line_cap (
@@ -924,20 +948,19 @@ sub cairo_get_line_cap (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:get-line-join:
+#TM:1:get-line-join:
 =begin pod
 =head2 get-line-join
 
 Gets the current line join style, as set by C<set-line-join()>.  Return value: the current line join style.
 
-  method get-line-join ( --> Int )
+  method get-line-join ( --> cairo_line_join_t )
 
 =end pod
 
-method get-line-join ( --> Int ) {
-
-  cairo_get_line_join(
-    self._get-native-object-no-reffing,
+method get-line-join ( --> cairo_line_join_t ) {
+  cairo_line_join_t(
+    cairo_get_line_join(self._get-native-object-no-reffing)
   )
 }
 
@@ -947,21 +970,20 @@ sub cairo_get_line_join (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:get-line-width:
+#TM:1:get-line-width:
 =begin pod
 =head2 get-line-width
 
-This function returns the current line width value exactly as set by C<set-line-width()>. Note that the value is unchanged even if the CTM has changed between the calls to C<set-line-width()> and C<get-line-width()>.  Return value: the current line width.
+This function returns the current line width value exactly as set by C<set-line-width()>. Note that the value is unchanged even if the CTM has changed between the calls to C<set-line-width()> and C<get-line-width()>.
+
+Return value: the current line width.
 
   method get-line-width ( --> Num )
 
 =end pod
 
 method get-line-width ( --> Num ) {
-
-  cairo_get_line_width(
-    self._get-native-object-no-reffing,
-  )
+  cairo_get_line_width(self._get-native-object-no-reffing)
 }
 
 sub cairo_get_line_width (
@@ -970,22 +992,22 @@ sub cairo_get_line_width (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:get-matrix:
+#TM:1:get-matrix:
 =begin pod
 =head2 get-matrix
 
 Stores the current transformation matrix (CTM) into I<matrix>.
 
-  method get-matrix ( cairo_matrix_t $matrix )
+  method get-matrix ( --> Gnome::Cairo::Matrix )
 
-=item cairo_matrix_t $matrix; a cairo context
 =end pod
 
-method get-matrix ( cairo_matrix_t $matrix ) {
+method get-matrix ( --> Any ) {
+  my cairo_matrix_t $matrix .= new;
+  cairo_get_matrix( self._get-native-object-no-reffing, $matrix);
+#note $matrix.gist;
 
-  cairo_get_matrix(
-    self._get-native-object-no-reffing, $matrix
-  )
+  self._wrap-native-type( 'Gnome::Cairo::Matrix', $matrix)
 }
 
 sub cairo_get_matrix (
@@ -994,21 +1016,20 @@ sub cairo_get_matrix (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:get-miter-limit:
+#TM:1:get-miter-limit:
 =begin pod
 =head2 get-miter-limit
 
-Gets the current miter limit, as set by C<set-miter-limit()>.  Return value: the current miter limit.
+Gets the current miter limit, as set by C<set-miter-limit()>.
+
+Return value: the current miter limit.
 
   method get-miter-limit ( --> Num )
 
 =end pod
 
 method get-miter-limit ( --> Num ) {
-
-  cairo_get_miter_limit(
-    self._get-native-object-no-reffing,
-  )
+  cairo_get_miter_limit(self._get-native-object-no-reffing)
 }
 
 sub cairo_get_miter_limit (
@@ -1016,44 +1037,44 @@ sub cairo_get_miter_limit (
 ) is native(&cairo-lib)
   { * }
 
+#`{{TODO does not exist?
 #-------------------------------------------------------------------------------
-#TM:0:get-opacity:
+# TM:0:get-opacity:
 =begin pod
 =head2 get-opacity
 
-Gets the current compositing opacity for a cairo context.  Return value: the current compositing opacity.  Since: TBD
+Gets the current compositing opacity for a cairo context.
+
+Return value: the current compositing opacity.
 
   method get-opacity ( --> Num )
 
 =end pod
 
 method get-opacity ( --> Num ) {
-
-  cairo_get_opacity(
-    self._get-native-object-no-reffing,
-  )
+  cairo_get_opacity(self._get-native-object-no-reffing)
 }
 
 sub cairo_get_opacity (
   cairo_t $cr --> gdouble
 ) is native(&cairo-lib)
   { * }
+}}
 
 #-------------------------------------------------------------------------------
-#TM:0:get-operator:
+#TM:1:get-operator:
 =begin pod
 =head2 get-operator
 
 Gets the current compositing operator for a cairo context.  Return value: the current compositing operator.
 
-  method get-operator ( --> Int )
+  method get-operator ( --> cairo_operator_t )
 
 =end pod
 
-method get-operator ( --> Int ) {
-
-  cairo_get_operator(
-    self._get-native-object-no-reffing,
+method get-operator ( --> cairo_operator_t ) {
+  cairo_operator_t(
+    cairo_get_operator(self._get-native-object-no-reffing)
   )
 }
 
@@ -1063,11 +1084,16 @@ sub cairo_get_operator (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:get-reference-count:
+#TM:1:_cairo_get_reference_count:
+#`{{
 =begin pod
 =head2 get-reference-count
 
-Returns the current reference count of this context.  Return value: the current reference count of this context.  If the object is a nil object, 0 will be returned.
+Returns the current reference count of this context.
+
+Return value: the current reference count of this context.
+
+If the object is a nil object, 0 will be returned.
 
   method get-reference-count ( --> Int )
 
@@ -1079,27 +1105,34 @@ method get-reference-count ( --> Int ) {
     self._get-native-object-no-reffing,
   )
 }
+}}
 
-sub cairo_get_reference_count (
+sub _cairo_get_reference_count (
   cairo_t $cr --> guint
 ) is native(&cairo-lib)
+  is symbol('cairo_get_reference_count')
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:get-scaled-font:
+#TM:1:get-scaled-font:
 =begin pod
 =head2 get-scaled-font
 
-Gets the current scaled font for a B<cairo_t>.  Return value: the current scaled font. This object is owned by cairo. To keep a reference to it, you must call C<scaled-font-reference()>.  This function never returns C<Any>. If memory cannot be allocated, a special "nil" B<cairo_scaled_font_t> object will be returned on which C<scaled-font-status()> returns C<CAIRO_STATUS_NO_MEMORY>. Using this nil object will cause its error state to propagate to other objects it is passed to, (for example, calling C<set-scaled-font()> with a nil font will trigger an error that will shutdown the B<cairo_t> object).
+Gets the current scaled font for a B<cairo_t>.
 
-  method get-scaled-font ( --> cairo_scaled_font_t )
+Return value: the current scaled font. This object is owned by cairo.
+=comment To keep a reference to it, you must call C<scaled-font-reference()>.
+
+This function never returns C<Any>. If memory cannot be allocated, a special "nil" B<cairo_scaled_font_t> object will be returned on which C<scaled-font-status()> returns C<CAIRO_STATUS_NO_MEMORY>. Using this nil object will cause its error state to propagate to other objects it is passed to, (for example, calling C<set-scaled-font()> with a nil font will trigger an error that will shutdown the B<cairo_t> object).
+
+  method get-scaled-font ( --> Gnome::Cairo::ScaledFont )
 
 =end pod
 
-method get-scaled-font ( --> cairo_scaled_font_t ) {
-
-  cairo_get_scaled_font(
-    self._get-native-object-no-reffing,
+method get-scaled-font ( --> Any ) {
+  self._wrap-native-type(
+    'Gnome::Cairo::ScaledFont',
+    cairo_get_scaled_font(self._get-native-object-no-reffing)
   )
 }
 
@@ -1109,20 +1142,23 @@ sub cairo_get_scaled_font (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:get-source:
+#TM:1:get-source:
 =begin pod
 =head2 get-source
 
-Gets the current source pattern for this context.  Return value: the current source pattern. This object is owned by cairo. To keep a reference to it, you must call C<pattern-reference()>.
+Gets the current source pattern for this context.
 
-  method get-source ( --> cairo_pattern_t )
+Return value: the current source pattern. This object is owned by cairo.
+=comment To keep a reference to it, you must call C<pattern-reference()>.
+
+  method get-source ( --> Gnome::Cairo::Pattern )
 
 =end pod
 
-method get-source ( --> cairo_pattern_t ) {
-
-  cairo_get_source(
-    self._get-native-object-no-reffing,
+method get-source ( --> Any ) {
+  self._wrap-native-type(
+    'Gnome::Cairo::Pattern',
+    cairo_get_source(self._get-native-object-no-reffing)
   )
 }
 
@@ -1988,52 +2024,58 @@ sub cairo_set_antialias (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:set-dash:
+#TM:1:set-dash:
 =begin pod
 =head2 set-dash
 
-Sets the dash pattern to be used by C<stroke()>. A dash pattern is specified by I<dashes>, an array of positive values. Each value provides the length of alternate "on" and "off" portions of the stroke. The I<offset> specifies an offset into the pattern at which the stroke begins.  Each "on" segment will have caps applied as if the segment were a separate sub-path. In particular, it is valid to use an "on" length of 0.0 with C<CAIRO_LINE_CAP_ROUND> or C<CAIRO_LINE_CAP_SQUARE> in order to distributed dots or squares along a path.  Note: The length values are in user-space units as evaluated at the time of stroking. This is not necessarily the same as the user space at the time of C<set-dash()>.  If I<num_dashes> is 0 dashing is disabled.  If I<num_dashes> is 1 a symmetric pattern is assumed with alternating on and off portions of the size specified by the single value in I<dashes>.  If any value in I<dashes> is negative, or if all values are 0, then this context will be put into an error state with a status of C<CAIRO_STATUS_INVALID_DASH>.
+Sets the dash pattern to be used by C<stroke()>. A dash pattern is specified by I<$dashes>, an array of positive values. Each value provides the length of alternate "on" and "off" portions of the stroke. The I<$offset> specifies an offset into the pattern at which the stroke begins.  Each "on" segment will have caps applied as if the segment were a separate sub-path. In particular, it is valid to use an "on" length of 0.0 with C<CAIRO_LINE_CAP_ROUND> or C<CAIRO_LINE_CAP_SQUARE> in order to distributed dots or squares along a path.  Note: The length values are in user-space units as evaluated at the time of stroking. This is not necessarily the same as the user space at the time of C<set-dash()>.  If I<$num_dashes> is 0 dashing is disabled.  If I<num_dashes> is 1 a symmetric pattern is assumed with alternating on and off portions of the size specified by the single value in I<$dashes>.  If any value in I<$dashes> is negative, or if all values are 0, then this context will be put into an error state with a status of C<CAIRO_STATUS_INVALID_DASH>.
 
-  method set-dash ( Num() $dashes, Int $num_dashes, Num() $offset )
+  method set-dash ( Array $dashes, Num() $offset )
 
-=item $dashes; a cairo context
-=item $num_dashes; an array specifying alternate lengths of on and off stroke portions
-=item $offset; the length of the dashes array
+=item $dashes; an array specifying alternate lengths of on and off stroke portions
+=item $offset; an offset into the dash pattern at which the stroke should start
 =end pod
 
-method set-dash ( Num() $dashes, Int $num_dashes, Num() $offset ) {
+method set-dash ( Array $dashes, Num() $offset ) {
+  my $d = CArray[gdouble].new;
+  my Int $c = 0;
+  for @$dashes -> $dnum {
+    $d[$c++] = Num($dnum);
+  }
 
+  my Int $num_dashes = $dashes.elems;
   cairo_set_dash(
-    self._get-native-object-no-reffing, $dashes, $num_dashes, $offset
+    self._get-native-object-no-reffing, $d, $num_dashes, $offset
   )
 }
 
 sub cairo_set_dash (
-  cairo_t $cr, gdouble $dashes, int32 $num_dashes, gdouble $offset
+  cairo_t $cr, CArray[gdouble] $dashes, int32 $num_dashes, gdouble $offset
 ) is native(&cairo-lib)
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:set-fill-rule:
+#TM:1:set-fill-rule:
 =begin pod
 =head2 set-fill-rule
 
-Set the current fill rule within the cairo context. The fill rule is used to determine which regions are inside or outside a complex (potentially self-intersecting) path. The current fill rule affects both C<fill()> and C<clip()>. See B<cairo_fill_rule_t> for details on the semantics of each available fill rule.  The default fill rule is C<CAIRO_FILL_RULE_WINDING>.
+Set the current fill rule within the cairo context. The fill rule is used to determine which regions are inside or outside a complex (potentially self-intersecting) path. The current fill rule affects both C<fill()> and C<clip()>. See B<cairo_fill_rule_t> for details on the semantics of each available fill rule.
 
-  method set-fill-rule ( Int $fill_rule )
+The default fill rule is C<CAIRO_FILL_RULE_WINDING>.
 
-=item $fill_rule; a B<cairo_t>
+  method set-fill-rule ( cairo_fill_rule_t $fill_rule )
+
+=item $fill_rule; a fill rule type
 =end pod
 
-method set-fill-rule ( Int $fill_rule ) {
-
+method set-fill-rule ( cairo_fill_rule_t $fill_rule ) {
   cairo_set_fill_rule(
     self._get-native-object-no-reffing, $fill_rule
   )
 }
 
 sub cairo_set_fill_rule (
-  cairo_t $cr, gint32 $fill_rule
+  cairo_t $cr, GEnum $fill_rule
 ) is native(&cairo-lib)
   { * }
 
@@ -2133,7 +2175,7 @@ sub cairo_set_font_size (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:set-line-cap:
+#TM:1:set-line-cap:
 =begin pod
 =head2 set-line-cap
 
@@ -2141,14 +2183,11 @@ Sets the current line cap style within the cairo context. See B<cairo_line_cap_t
 
   method set-line-cap ( Int $line_cap )
 
-=item $line_cap; a cairo context
+=item $line_cap; a line cap style
 =end pod
 
 method set-line-cap ( Int $line_cap ) {
-
-  cairo_set_line_cap(
-    self._get-native-object-no-reffing, $line_cap
-  )
+  cairo_set_line_cap( self._get-native-object-no-reffing, $line_cap)
 }
 
 sub cairo_set_line_cap (
@@ -2157,7 +2196,7 @@ sub cairo_set_line_cap (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:set-line-join:
+#TM:1:set-line-join:
 =begin pod
 =head2 set-line-join
 
@@ -2165,14 +2204,11 @@ Sets the current line join style within the cairo context. See B<cairo_line_join
 
   method set-line-join ( Int $line_join )
 
-=item $line_join; a cairo context
+=item $line_join; a line join style
 =end pod
 
 method set-line-join ( Int $line_join ) {
-
-  cairo_set_line_join(
-    self._get-native-object-no-reffing, $line_join
-  )
+  cairo_set_line_join( self._get-native-object-no-reffing, $line_join)
 }
 
 sub cairo_set_line_join (
@@ -2181,18 +2217,21 @@ sub cairo_set_line_join (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:4:set-line-width:
+#TM:1:set-line-width:
 =begin pod
 =head2 set-line-width
 
 Sets the current line width within the cairo context. The line width value specifies the diameter of a pen that is circular in user space, (though device-space pen may be an ellipse in general due to scaling/shear/rotation of the CTM).
+
 Note: When the description above refers to user space and CTM it refers to the user space and CTM in effect at the time of the stroking operation, not the user space and CTM in effect at the time of the call to C<set-line-width()>. The simplest usage makes both of these spaces identical. That is, if there is no change to the CTM between a call to C<set-line-width()> and the stroking operation, then one can just pass user-space values to C<set-line-width()> and ignore this note.
+
 As with the other stroke parameters, the current line width is examined by C<stroke()>, C<stroke-extents()>, and C<stroke-to-path()>, but does not have any effect during path construction.
+
 The default line width value is 2.0.
 
   method set-line-width ( Num() $width )
 
-=item $width; a B<cairo_t>
+=item $width; a line width
 =end pod
 
 method set-line-width ( Num() $width ) {
@@ -2205,7 +2244,7 @@ sub cairo_set_line_width (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:set-matrix:
+#TM:1:set-matrix:
 =begin pod
 =head2 set-matrix
 
@@ -2213,14 +2252,12 @@ Modifies the current transformation matrix (CTM) by setting it equal to I<matrix
 
   method set-matrix ( cairo_matrix_t $matrix )
 
-=item cairo_matrix_t $matrix; a cairo context
+=item $matrix; a transformation matrix from user space to device space
 =end pod
 
-method set-matrix ( cairo_matrix_t $matrix ) {
-
-  cairo_set_matrix(
-    self._get-native-object-no-reffing, $matrix
-  )
+method set-matrix ( $matrix is copy ) {
+  $matrix .= get-native-object-no-reffing unless $matrix ~~ cairo_matrix_t;
+  cairo_set_matrix( self._get-native-object-no-reffing, $matrix);
 }
 
 sub cairo_set_matrix (
@@ -2229,11 +2266,19 @@ sub cairo_set_matrix (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:set-miter-limit:
+#TM:1:set-miter-limit:
 =begin pod
 =head2 set-miter-limit
 
-Sets the current miter limit within the cairo context.  If the current line join style is set to C<CAIRO_LINE_JOIN_MITER> (see C<set-line-join()>), the miter limit is used to determine whether the lines should be joined with a bevel instead of a miter. Cairo divides the length of the miter by the line width. If the result is greater than the miter limit, the style is converted to a bevel.  As with the other stroke parameters, the current line miter limit is examined by C<stroke()>, C<stroke-extents()>, and C<stroke-to-path()>, but does not have any effect during path construction.  The default miter limit value is 10.0, which will convert joins with interior angles less than 11 degrees to bevels instead of miters. For reference, a miter limit of 2.0 makes the miter cutoff at 60 degrees, and a miter limit of 1.414 makes the cutoff at 90 degrees.  A miter limit for a desired angle can be computed as: miter limit = 1/sin(angle/2)
+Sets the current miter limit within the cairo context.
+
+If the current line join style is set to C<CAIRO_LINE_JOIN_MITER> (see C<set-line-join()>), the miter limit is used to determine whether the lines should be joined with a bevel instead of a miter. Cairo divides the length of the miter by the line width. If the result is greater than the miter limit, the style is converted to a bevel.
+
+As with the other stroke parameters, the current line miter limit is examined by C<stroke()>, C<stroke-extents()>, and C<stroke-to-path()>, but does not have any effect during path construction.
+
+The default miter limit value is 10.0, which will convert joins with interior angles less than 11 degrees to bevels instead of miters. For reference, a miter limit of 2.0 makes the miter cutoff at 60 degrees, and a miter limit of 1.414 makes the cutoff at 90 degrees.
+
+A miter limit for a desired angle can be computed as: C<miter limit = 1/sin(angle/2)>.
 
   method set-miter-limit ( Num() $limit )
 
@@ -2241,10 +2286,7 @@ Sets the current miter limit within the cairo context.  If the current line join
 =end pod
 
 method set-miter-limit ( Num() $limit ) {
-
-  cairo_set_miter_limit(
-    self._get-native-object-no-reffing, $limit
-  )
+  cairo_set_miter_limit( self._get-native-object-no-reffing, $limit)
 }
 
 sub cairo_set_miter_limit (
@@ -2253,22 +2295,21 @@ sub cairo_set_miter_limit (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:set-operator:
+#TM:1:set-operator:
 =begin pod
 =head2 set-operator
 
-Sets the compositing operator to be used for all drawing operations. See B<cairo_operator_t> for details on the semantics of each available compositing operator.  The default operator is C<CAIRO_OPERATOR_OVER>.
+Sets the compositing operator to be used for all drawing operations. See B<cairo_operator_t> for details on the semantics of each available compositing operator.
 
-  method set-operator ( Int $op )
+The default operator is C<CAIRO_OPERATOR_OVER>.
 
-=item $op; a B<cairo_t>
+  method set-operator ( cairo_operator_t $op )
+
+=item $op; a compositing operator
 =end pod
 
 method set-operator ( Int $op ) {
-
-  cairo_set_operator(
-    self._get-native-object-no-reffing, $op
-  )
+  cairo_set_operator( self._get-native-object-no-reffing, $op)
 }
 
 sub cairo_set_operator (
@@ -2285,14 +2326,14 @@ Replaces the current font face, font matrix, and font options in the B<cairo_t> 
 
   method set-scaled-font ( cairo_scaled_font_t $scaled_font )
 
-=item cairo_scaled_font_t $scaled_font; a B<cairo_t>
+=item $scaled_font; a B<scaled-font-t>
 =end pod
 
-method set-scaled-font ( cairo_scaled_font_t $scaled_font ) {
+method set-scaled-font ( cairo_scaled_font_t $scaled_font is copy ) {
+  $scaled_font .= _get-native-object-no-reffing
+    unless $scaled_font ~~ cairo_scaled_font_t;
 
-  cairo_set_scaled_font(
-    self._get-native-object-no-reffing, $scaled_font
-  )
+  cairo_set_scaled_font( self._get-native-object-no-reffing, $scaled_font)
 }
 
 sub cairo_set_scaled_font (
@@ -2305,16 +2346,21 @@ sub cairo_set_scaled_font (
 =begin pod
 =head2 set-source
 
-Sets the source pattern within this context to I<source>. This pattern will then be used for any subsequent drawing operation until a new source pattern is set.  Note: The pattern's transformation matrix will be locked to the user space in effect at the time of C<set-source()>. This means that further modifications of the current transformation matrix will not affect the source pattern. See C<pattern-set-matrix()>.  The default source pattern is a solid pattern that is opaque black, (that is, it is equivalent to C<set-source-rgb( 0.0, 0.0, 0.0))>.
+Sets the source pattern within this context to I<source>. This pattern will then be used for any subsequent drawing operation until a new source pattern is set.
+
+Note: The pattern's transformation matrix will be locked to the user space in effect at the time of C<set-source()>. This means that further modifications of the current transformation matrix will not affect the source pattern. See C<pattern-set-matrix()>.
+
+The default source pattern is a solid pattern that is opaque black, (that is, it is equivalent to C<set-source-rgb( 0.0, 0.0, 0.0))>.
 
   method set-source ( cairo_pattern_t $source )
 
-=item cairo_pattern_t $source; a cairo context
+=item $source; a pattern type to be used as the source for subsequent drawing operations.
 =end pod
 
 method set-source ( $source is copy ) {
-  $source .= get-native-object-no-reffing unless $source ~~ cairo_pattern_t;
-  cairo_set_source( self._get-native-object-no-reffing, $source)
+  $source .= _get-native-object-no-reffing
+    unless $source ~~ cairo_pattern_t;
+  cairo_set_source( self._get-native-object-no-reffing, $source);
 }
 
 sub cairo_set_source (
@@ -2585,7 +2631,7 @@ sub cairo_show_text_glyphs (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:2:status:
+#TM:1:status:
 =begin pod
 =head2 status
 
@@ -2605,7 +2651,7 @@ sub cairo_status (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:2:status-to-string:
+#TM:1:status-to-string:
 =begin pod
 =head2 status-to-string
 
