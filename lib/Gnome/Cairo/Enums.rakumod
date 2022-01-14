@@ -1348,7 +1348,7 @@ enum cairo_surface_type_t is export (
 =begin pod
 =head2 enum cairo_pattern_type_t
 
-B<cairo_pattern_type_t> is used to describe the type of a given pattern. The type of a pattern is determined by the function used to create it. The C<cairo_pattern_create_rgb()> and C<cairo_pattern_create_rgba()> functions create SOLID patterns. The remaining cairo_pattern_create functions map to pattern types in obvious ways. The pattern type can be queried with C<cairo_pattern_get_type()> Most B<cairo_pattern_t> functions can be called with a pattern of any type, (though trying to change the extend or filter for a solid pattern will have no effect). A notable exception is C<cairo_pattern_add_color_stop_rgb()> and C<cairo_pattern_add_color_stop_rgba()> which must only be called with gradient patterns (either LINEAR or RADIAL). Otherwise the pattern will be shutdown and put into an error state. New entries may be added in future versions.
+B<cairo_pattern_type_t> is used to describe the type of a given pattern. The type of a pattern is determined by the function used to create it. The C<cairo_pattern_create_rgb()> and C<cairo_pattern_create_rgba()> functions create SOLID patterns. The remaining cairo_pattern_create functions map to pattern types in obvious ways. The pattern type can be queried with C<cairo_pattern_get_type()> Most B<cairo_pattern_type_t> functions can be called with a pattern of any type, (though trying to change the extend or filter for a solid pattern will have no effect). A notable exception is C<cairo_pattern_add_color_stop_rgb()> and C<cairo_pattern_add_color_stop_rgba()> which must only be called with gradient patterns (either LINEAR or RADIAL). Otherwise the pattern will be shutdown and put into an error state. New entries may be added in future versions.
 
 
 =item CAIRO_PATTERN_TYPE_SOLID: The pattern is a solid (uniform) color. It may be opaque or translucent.
@@ -1361,7 +1361,7 @@ B<cairo_pattern_type_t> is used to describe the type of a given pattern. The typ
 
 =end pod
 
-#TE:0:cairo_pattern_type_t:
+#TE:1:cairo_pattern_type_t:
 enum cairo_pattern_type_t is export (
   'CAIRO_PATTERN_TYPE_SOLID',
   'CAIRO_PATTERN_TYPE_SURFACE',
