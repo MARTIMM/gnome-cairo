@@ -134,6 +134,18 @@ method _fallback ( $native-sub is copy --> Callable ) {
   $s;
 }
 
+#-------------------------------------------------------------------------------
+method native-object-ref ( $no ) {
+#  _cairo_reference($no);
+$no
+}
+
+#-------------------------------------------------------------------------------
+method native-object-unref ( $no ) {
+#  _cairo_destroy($no) if _cairo_get_reference_count($no) > 0;
+$no
+}
+
 
 #-------------------------------------------------------------------------------
 #TM:0:cairo_scaled_font_get_type:
