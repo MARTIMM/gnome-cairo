@@ -71,6 +71,7 @@ Creates a new B<cairo_pattern_t> as if :rgb( 1, 1, 1) is used. This is a white c
 
   multi method new ( )
 
+
 =head3 new ( :rgba( red, green, blue, alpha) )
 
 Creates a new B<cairo_pattern_t> corresponding to a color with added transparency.
@@ -85,6 +86,7 @@ The caller owns the returned object and should call C<clear-object()> when finis
 =item $green; green color from 0 to 1
 =item $blue; blue color from 0 to 1
 =item $alpha; transparency from 0 to 1 (opaque)
+
 
 =head3 new ( :surface )
 
@@ -225,14 +227,26 @@ submethod BUILD ( *%options ) {
 
       # set rgba
       if %options<rgb>:exists {
-        my @rgb = map { ($_//0).Num }, %options<rgb>[^3];
-        $no = _cairo_pattern_create_rgb(|@rgb);
+        my @nums = |%options<rgb>;
+        die X::Gnome.new(
+          :message(':rgb needs 3 values')
+        ) unless @nums.elems == 3;
+
+        $no = _cairo_pattern_create_rgb(
+          @nums[0].Num, @nums[1].Num, @nums[2].Num
+        );
       }
 
       # set rgb
       elsif %options<rgba>:exists {
-        my @rgba = map { ($_//0).Num }, %options<rgba>[^4];
-        $no = _cairo_pattern_create_rgba(|@rgba);
+        my @nums = |%options<rgba>;
+        die X::Gnome.new(
+          :message(':rgb needs 4 values')
+        ) unless @nums.elems == 4;
+
+        $no = _cairo_pattern_create_rgba(
+          @nums[0].Num, @nums[1].Num, @nums[2].Num, @nums[3].Num
+        );
       }
 
       # linear gradient
@@ -597,7 +611,7 @@ List returns;
 =item cairo_status_t; values can be C<CAIRO_STATUS_SUCCESS>, or C<CAIRO_STATUS_PATTERN_TYPE_MISMATCH> if I<pattern> is not a gradient pattern.
 =end pod
 
-method get-color-stop-count ( --> cairo_status_t ) {
+method get-color-stop-count ( --> List ) {
   my gint $count;
   my GEnum $s = cairo_pattern_get_color_stop_count(
     self._get-native-object-no-reffing, $count
@@ -607,7 +621,7 @@ method get-color-stop-count ( --> cairo_status_t ) {
 }
 
 sub cairo_pattern_get_color_stop_count (
-  cairo_pattern_t $pattern, gint-ptr $count --> GEnum
+  cairo_pattern_t $pattern, gint $count is rw --> GEnum
 ) is native(&cairo-lib)
   { * }
 
@@ -1388,10 +1402,7 @@ Possible return value: C<CAIRO_STATUS_SUCCESS>, C<CAIRO_STATUS_NO_MEMORY>, C<CAI
 =end pod
 
 method status ( --> cairo_status_t ) {
-
-  cairo_pattern_status(
-    self._get-native-object-no-reffing,
-  )
+  cairo_status_t(cairo_pattern_status(self._get-native-object-no-reffing))
 }
 
 sub cairo_pattern_status (
