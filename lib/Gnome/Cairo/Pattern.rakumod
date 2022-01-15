@@ -598,7 +598,7 @@ sub _cairo_pattern_destroy (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:get-color-stop-count:
+#TM:2:get-color-stop-count:
 =begin pod
 =head2 get-color-stop-count
 
