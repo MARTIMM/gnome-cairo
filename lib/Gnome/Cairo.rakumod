@@ -1174,14 +1174,14 @@ sub cairo_get_source (
 
 Gets the target surface for the cairo context as passed to C<create()>.  This function will always return a valid pointer, but the result can be a "nil" surface if this context is already in an error state, (ie. C<status()> C<!=> C<CAIRO_STATUS_SUCCESS>). A nil surface is indicated by C<surface-status()> C<!=> C<CAIRO_STATUS_SUCCESS>.  Return value: the target surface. This object is owned by cairo. To keep a reference to it, you must call C<surface-reference()>.
 
-  method get-target ( --> cairo_surface_t )
+  method get-target ( --> Gnome::Cairo::Surface )
 
 =end pod
 
-method get-target ( --> cairo_surface_t ) {
-
-  cairo_get_target(
-    self._get-native-object-no-reffing,
+method get-target ( --> Any ) {
+  self._wrap-native-type(
+    'Gnome::Cairo::Surface',
+    cairo_get_target(self._get-native-object-no-reffing)
   )
 }
 

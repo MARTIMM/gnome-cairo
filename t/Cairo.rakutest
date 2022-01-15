@@ -17,11 +17,13 @@ use Gnome::Cairo::Pattern;
 
 #-------------------------------------------------------------------------------
 my Gnome::Cairo $c;
-my Gnome::Cairo::ImageSurface $p;
+my Gnome::Cairo::ImageSurface $surface;
+my Int $width = 128;
+my Int $height = 128;
 #-------------------------------------------------------------------------------
 subtest 'ISA test', {
-  $p .= new( :format(CAIRO_FORMAT_ARGB32), :width(128), :height(128));
-  $c .= new(:surface($p));
+  $surface .= new( :format(CAIRO_FORMAT_ARGB32), :$width, :$height);
+  $c .= new(:$surface);
   isa-ok $c, Gnome::Cairo, '.new(:surface)';
 
   ok $c.is-valid, '.is-valid()';
@@ -38,8 +40,8 @@ unless %*ENV<raku_test_all>:exists {
 
 #-------------------------------------------------------------------------------
 subtest 'Manipulations', {
-  $p .= new( :format(CAIRO_FORMAT_ARGB32), :width(128), :height(128));
-  $c .= new(:surface($p));
+  $surface .= new( :format(CAIRO_FORMAT_ARGB32), :$width, :$height);
+  $c .= new(:$surface);
   is $c.status, CAIRO_STATUS_SUCCESS, '.cairo-status()';
   my Str $errtxt = $c.status-to-string($c.status);
   ok $errtxt.chars, '.status-to-string(): ' ~ $errtxt;
@@ -132,14 +134,23 @@ subtest 'Manipulations', {
   $c.set-line-width(2.3);
   is $c.get-line-width, 23e-1, '.set-line-width() / .get-line-width()';
 
+  # set wrong matrix, non invertable
+  $surface .= new( :format(CAIRO_FORMAT_ARGB32), :$width, :$height);
+  $c .= new(:$surface);
   my Gnome::Cairo::Matrix $m1 .= new(:init( 10e0, 10e0, 11e0, 11e0, 0e0, 0e0));
+  $c.set-matrix($m1);
+  is $c.status, CAIRO_STATUS_INVALID_MATRIX, 'matrix error';
+
+  # set good matrix, invertable
+  $surface .= new( :format(CAIRO_FORMAT_ARGB32), :$width, :$height);
+  $c .= new(:$surface);
+  $m1 .= new(:init( 1e0, 10e0, 11e0, 1e0, 0e0, 0e0));
   $c.set-matrix($m1);
   my Gnome::Cairo::Matrix $m2 = $c.get-matrix;
   with $m2._get-native-object {
     is-deeply
       (.xx, .yx, .xy, .yy, .x0, .y0),
-#      (10e0, 10e0, 11e0, 11e0, 0e0, 0e0),
-      ( 1e0, 0e0, 0e0, 1e0, 0e0, 0e0), # TODO seems to be init to identity
+      (1e0, 10e0, 11e0, 1e0, 0e0, 0e0),
       '.set-matrix() / .get-matrix()';
   }
 
@@ -157,12 +168,19 @@ subtest 'Manipulations', {
 #  my Gnome::Cairo::ScaledFont $sf = $c.get-scaled-font;
 ##`{{TODO}} is cairo_status_t($sf.status), 0, '.get-scaled-font()';
 
-  my Gnome::Cairo::Pattern $p1 .= new(:rgb( 1, 0.5, 0.5e0));
+  $surface .= new( :format(CAIRO_FORMAT_ARGB32), :$width, :$height);
+  $c .= new(:$surface);
+  my Gnome::Cairo::Pattern $p1 .= new(:rgba( 1, 0.5, 0.5e0, 0.5));
+  is $p1.get-color-stop-count[1], CAIRO_STATUS_PATTERN_TYPE_MISMATCH,
+    '.get-color-stop-count(): no gradient';
+#note "ps: $p1.status()";
   $c.set-source($p1);
+#note "cs: $c.status()";
   my Gnome::Cairo::Pattern $p2 = $c.get-source;
-  #, CAIRO_PATTERN_TYPE_LINEAR,
-  #  '.set-source() / .get-source()';
+  is $p2.status(), CAIRO_STATUS_SUCCESS, '.set-source() / .get-source()';
 
+  my Gnome::Cairo::Surface $s = $c.get-target;
+  is $s.status, CAIRO_STATUS_SUCCESS, '.get-target()';
 }
 
 #-------------------------------------------------------------------------------
