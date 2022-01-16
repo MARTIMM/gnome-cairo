@@ -181,6 +181,28 @@ subtest 'Manipulations', {
 
   my Gnome::Cairo::Surface $s = $c.get-target;
   is $s.status, CAIRO_STATUS_SUCCESS, '.get-target()';
+
+  $c.set-source-surface( $surface, 10, 2);
+  $p2 = $c.get-source;
+  is $p2.status(), CAIRO_STATUS_SUCCESS, '.set-source-surface()';
+
+  $c.set-tolerance(0.05);
+  is $c.get-tolerance, 0.05, '.set-tolerance() / .get-tolerance()';
+
+  nok $c.has-current-point, '.has-current-point()';
+
+  $c.identity-matrix;
+  $m2 = $c.get-matrix;
+  with $m2._get-native-object {
+    is-deeply
+      (.xx, .yx, .xy, .yy, .x0, .y0),
+      (1e0, 0e0, 0e0, 1e0, 0e0, 0e0),
+      '.identity-matrix()';
+  }
+
+  ok $c.in-clip( 0, 0), '.in-clip()';
+  nok $c.in-fill( 0, 0), '.in-fill()';
+  nok $c.in-stroke( 0, 0), '.in-stroke()';
 }
 
 #-------------------------------------------------------------------------------

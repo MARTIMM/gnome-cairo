@@ -1168,7 +1168,7 @@ sub cairo_get_source (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:get-target:
+#TM:1:get-target:
 =begin pod
 =head2 get-target
 
@@ -1191,21 +1191,20 @@ sub cairo_get_target (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:get-tolerance:
+#TM:1:get-tolerance:
 =begin pod
 =head2 get-tolerance
 
-Gets the current tolerance value, as set by C<set-tolerance()>.  Return value: the current tolerance value.
+Gets the current tolerance value, as set by C<set-tolerance()>.
+
+Return value: the current tolerance value.
 
   method get-tolerance ( --> Num )
 
 =end pod
 
 method get-tolerance ( --> Num ) {
-
-  cairo_get_tolerance(
-    self._get-native-object-no-reffing,
-  )
+  cairo_get_tolerance(self._get-native-object-no-reffing)
 }
 
 sub cairo_get_tolerance (
@@ -1215,7 +1214,7 @@ sub cairo_get_tolerance (
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:0:get-user-data:
+# TM:0:get-user-data:
 =begin pod
 =head2 get-user-data
 
@@ -1244,16 +1243,23 @@ sub cairo_get_user_data (
 =begin pod
 =head2 glyph-extents
 
-Gets the extents for an array of glyphs. The extents describe a user-space rectangle that encloses the "inked" portion of the glyphs, (as they would be drawn by C<show-glyphs()>). Additionally, the x_advance and y_advance values indicate the amount by which the current point would be advanced by C<show-glyphs()>.  Note that whitespace glyphs do not contribute to the size of the rectangle (extents.width and extents.height).
+Gets the extents for an array of glyphs. The extents describe a user-space rectangle that encloses the "inked" portion of the glyphs, (as they would be drawn by C<show-glyphs()>). Additionally, the x_advance and y_advance values indicate the amount by which the current point would be advanced by C<show-glyphs()>.
 
-  method glyph-extents ( cairo_glyph_t $glyphs, Int $num_glyphs, cairo_text_extents_t $extents )
+Note that whitespace glyphs do not contribute to the size of the rectangle (extents.width and extents.height).
 
-=item cairo_glyph_t $glyphs; a B<cairo_t>
-=item $num_glyphs; an array of B<cairo_glyph_t> objects
-=item cairo_text_extents_t $extents; the number of elements in I<glyphs>
+  method glyph-extents (
+    cairo_glyph_t $glyphs, Int $num_glyphs,
+    cairo_text_extents_t $extents
+  )
+
+=item $glyphs; an array of B<glyph-t> objects
+=item $num_glyphs; the number of elements in I<glyphs>
+=item $extents; a B<text-extents-t> object into which the results will be stored
 =end pod
 
-method glyph-extents ( cairo_glyph_t $glyphs, Int $num_glyphs, cairo_text_extents_t $extents ) {
+method glyph-extents (
+  cairo_glyph_t $glyphs, Int $num_glyphs, cairo_text_extents_t $extents
+) {
 
   cairo_glyph_extents(
     self._get-native-object-no-reffing, $glyphs, $num_glyphs, $extents
@@ -1274,15 +1280,12 @@ Adds closed paths for the glyphs to the current path.  The generated path if fil
 
   method glyph-path ( cairo_glyph_t $glyphs, Int $num_glyphs )
 
-=item cairo_glyph_t $glyphs; a cairo context
-=item $num_glyphs; array of glyphs to show
+=item $glyphs; array of glyphs to show
+=item $num_glyphs; number of glyphs to show
 =end pod
 
 method glyph-path ( cairo_glyph_t $glyphs, Int $num_glyphs ) {
-
-  cairo_glyph_path(
-    self._get-native-object-no-reffing, $glyphs, $num_glyphs
-  )
+  cairo_glyph_path( self._get-native-object-no-reffing, $glyphs, $num_glyphs)
 }
 
 sub cairo_glyph_path (
@@ -1291,30 +1294,29 @@ sub cairo_glyph_path (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:has-current-point:
+#TM:1:has-current-point:
 =begin pod
 =head2 has-current-point
 
-Returns whether a current point is defined on the current path. See C<get-current-point()> for details on the current point.  Return value: whether a current point is defined.
+Returns whether a current point is defined on the current path. See C<get-current-point()> for details on the current point.
 
-  method has-current-point ( --> Int )
+Return value: whether a current point is defined.
+
+  method has-current-point ( --> Bool )
 
 =end pod
 
-method has-current-point ( --> Int ) {
-
-  cairo_has_current_point(
-    self._get-native-object-no-reffing,
-  )
+method has-current-point ( --> Bool ) {
+  cairo_has_current_point(self._get-native-object-no-reffing).Bool
 }
 
 sub cairo_has_current_point (
-  cairo_t $cr --> gint32
+  cairo_t $cr --> cairo_bool_t
 ) is native(&cairo-lib)
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:identity-matrix:
+#TM:1:identity-matrix:
 =begin pod
 =head2 identity-matrix
 
@@ -1325,10 +1327,7 @@ Resets the current transformation matrix (CTM) by setting it equal to the identi
 =end pod
 
 method identity-matrix ( ) {
-
-  cairo_identity_matrix(
-    self._get-native-object-no-reffing,
-  )
+  cairo_identity_matrix(self._get-native-object-no-reffing)
 }
 
 sub cairo_identity_matrix (
@@ -1337,74 +1336,76 @@ sub cairo_identity_matrix (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:in-clip:
+#TM:1:in-clip:
 =begin pod
 =head2 in-clip
 
-Tests whether the given point is inside the area that would be visible through the current clip, i.e. the area that would be filled by a C<paint()> operation.  See C<clip()>, and C<clip-preserve()>.  Return value: A non-zero value if the point is inside, or zero if outside.
+Tests whether the given point is inside the area that would be visible through the current clip, i.e. the area that would be filled by a C<paint()> operation.
 
-  method in-clip ( Num() $x, Num() $y --> Int )
+See C<clip()>, and C<clip-preserve()>.
 
-=item $x; a cairo context
-=item $y; X coordinate of the point to test
+Return value: A non-zero value if the point is inside, or zero if outside.
+
+  method in-clip ( Num() $x, Num() $y --> Bool )
+
+=item $x; X coordinate of the point to test
+=item $y; Y coordinate of the point to test
 =end pod
 
-method in-clip ( Num() $x, Num() $y --> Int ) {
-
-  cairo_in_clip(
-    self._get-native-object-no-reffing, $x, $y
-  )
+method in-clip ( Num() $x, Num() $y --> Bool ) {
+  cairo_in_clip( self._get-native-object-no-reffing, $x, $y).Bool
 }
 
 sub cairo_in_clip (
-  cairo_t $cr, gdouble $x, gdouble $y --> gint32
+  cairo_t $cr, gdouble $x, gdouble $y --> cairo_bool_t
 ) is native(&cairo-lib)
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:in-fill:
+#TM:1:in-fill:
 =begin pod
 =head2 in-fill
 
-Tests whether the given point is inside the area that would be affected by a C<fill()> operation given the current path and filling parameters. Surface dimensions and clipping are not taken into account.  See C<fill()>, C<set-fill-rule()> and C<fill-preserve()>.  Return value: A non-zero value if the point is inside, or zero if outside.
+Tests whether the given point is inside the area that would be affected by a C<fill()> operation given the current path and filling parameters. Surface dimensions and clipping are not taken into account.
 
-  method in-fill ( Num() $x, Num() $y --> Int )
+See C<fill()>, C<set-fill-rule()> and C<fill-preserve()>.
 
-=item $x; a cairo context
-=item $y; X coordinate of the point to test
+Return value: A non-zero value if the point is inside, or zero if outside.
+
+  method in-fill ( Num() $x, Num() $y --> Bool )
+
+=item $x; X coordinate of the point to test
+=item $y; Y coordinate of the point to test
 =end pod
 
-method in-fill ( Num() $x, Num() $y --> Int ) {
-
-  cairo_in_fill(
-    self._get-native-object-no-reffing, $x, $y
-  )
+method in-fill ( Num() $x, Num() $y --> Bool ) {
+  cairo_in_fill( self._get-native-object-no-reffing, $x, $y).Bool
 }
 
 sub cairo_in_fill (
-  cairo_t $cr, gdouble $x, gdouble $y --> gint32
+  cairo_t $cr, gdouble $x, gdouble $y --> cairo_bool_t
 ) is native(&cairo-lib)
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:in-stroke:
+#TM:1:in-stroke:
 =begin pod
 =head2 in-stroke
 
 Tests whether the given point is inside the area that would be affected by a C<stroke()> operation given the current path and stroking parameters. Surface dimensions and clipping are not taken into account.  See C<stroke()>, C<set-line-width()>, C<set-line-join()>, C<set-line-cap()>, C<set-dash()>, and C<stroke-preserve()>.  Return value: A non-zero value if the point is inside, or zero if outside.
 
-  method in-stroke ( Num() $x, Num() $y --> Int )
+  method in-stroke ( Num() $x, Num() $y --> Bool )
 
-=item $x; a cairo context
-=item $y; X coordinate of the point to test
+=item $x; X coordinate of the point to test
+=item $y; Y coordinate of the point to test
 =end pod
 
-method in-stroke ( Num() $x, Num() $y --> Int ) {
-  cairo_in_stroke( self._get-native-object-no-reffing, $x, $y)
+method in-stroke ( Num() $x, Num() $y --> Bool ) {
+  cairo_in_stroke( self._get-native-object-no-reffing, $x, $y).Bool
 }
 
 sub cairo_in_stroke (
-  cairo_t $cr, gdouble $x, gdouble $y --> gint32
+  cairo_t $cr, gdouble $x, gdouble $y --> cairo_bool_t
 ) is native(&cairo-lib)
   { * }
 
@@ -1417,8 +1418,8 @@ Adds a line to the path from the current point to position (I<x>, I<y>) in user-
 
   method line-to ( Num() $x, Num() $y )
 
-=item $x; a cairo context
-=item $y; the X coordinate of the end of the new line
+=item $x; the X coordinate of the end of the new line
+=item $y; the Y coordinate of the end of the new line
 =end pod
 
 method line-to ( Num() $x, Num() $y ) {
@@ -1439,7 +1440,7 @@ A drawing operator that paints the current source using the alpha channel of I<p
 
   method mask ( cairo_pattern_t $pattern )
 
-=item cairo_pattern_t $pattern; a cairo context
+=item $pattern; a pattern
 =end pod
 
 method mask ( $pattern is copy ) {
@@ -1459,11 +1460,13 @@ sub cairo_mask (
 
 A drawing operator that paints the current source using the alpha channel of I<surface> as a mask. (Opaque areas of I<surface> are painted with the source, transparent areas are not painted.)
 
-  method mask-surface ( cairo_surface_t $surface, Num() $surface_x, Num() $surface_y )
+  method mask-surface (
+    cairo_surface_t $surface, Num() $surface_x, Num() $surface_y
+  )
 
-=item cairo_surface_t $surface; a cairo context
-=item $surface_x; a B<cairo_surface_t>
-=item $surface_y; X coordinate at which to place the origin of I<surface>
+=item $surface; a surface
+=item $surface_x; X coordinate at which to place the origin of I<surface>
+=item $surface_y; Y coordinate at which to place the origin of I<surface>
 =end pod
 
 method mask-surface (
@@ -1488,8 +1491,8 @@ Begin a new sub-path. After this call the current point will be (I<x>, I<y>).
 
   method move-to ( Num() $x, Num() $y )
 
-=item $x; a cairo context
-=item $y; the X coordinate of the new position
+=item $x; the X coordinate of the new position
+=item $y; the Y coordinate of the new position
 =end pod
 
 method move-to ( Num() $x, Num() $y ) {
@@ -1526,17 +1529,20 @@ sub cairo_new_path (
 =begin pod
 =head2 new-sub-path
 
-Begin a new sub-path. Note that the existing path is not affected. After this call there will be no current point.  In many cases, this call is not needed since new sub-paths are frequently started with C<move-to()>.  A call to C<new-sub-path()> is particularly useful when beginning a new sub-path with one of the C<arc()> calls. This makes things easier as it is no longer necessary to manually compute the arc's initial coordinates for a call to C<move-to()>.
+Begin a new sub-path.
+
+Note that the existing path is not affected. After this call there will be no current point.
+
+In many cases, this call is not needed since new sub-paths are frequently started with C<move-to()>.
+
+A call to C<new-sub-path()> is particularly useful when beginning a new sub-path with one of the C<arc()> calls. This makes things easier as it is no longer necessary to manually compute the arc's initial coordinates for a call to C<move-to()>.
 
   method new-sub-path ( )
 
 =end pod
 
 method new-sub-path ( ) {
-
-  cairo_new_sub_path(
-    self._get-native-object-no-reffing,
-  )
+  cairo_new_sub_path(self._get-native-object-no-reffing)
 }
 
 sub cairo_new_sub_path (
@@ -1554,7 +1560,6 @@ A drawing operator that paints the current source everywhere within the current 
   method paint ( )
 
 =end pod
-
 method paint ( ) {
   cairo_paint(self._get-native-object-no-reffing)
 }
@@ -1573,7 +1578,7 @@ A drawing operator that paints the current source everywhere within the current 
 
   method paint-with-alpha ( Num() $alpha )
 
-=item $alpha; a cairo context
+=item $alpha; alpha value, between 0 (transparent) and 1 (opaque)
 =end pod
 
 method paint-with-alpha ( Num() $alpha ) {
@@ -2448,20 +2453,25 @@ sub cairo_set_source_pixbuf (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:set-source-surface:
+#TM:1:set-source-surface:
 =begin pod
 =head2 set-source-surface
 
-This is a convenience function for creating a pattern from I<surface> and setting it as the source in this context with C<set-source()>.  The I<x> and I<y> parameters give the user-space coordinate at which the surface origin should appear. (The surface origin is its upper-left corner before any transformation has been applied.) The I<x> and I<y> parameters are negated and then set as translation values in the pattern matrix.  Other than the initial translation pattern matrix, as described above, all other pattern attributes, (such as its extend mode), are set to the default values as in C<pattern-create-for-surface()>. The resulting pattern can be queried with C<get-source()> so that these attributes can be modified if desired, (eg. to create a repeating pattern with C<pattern-set-extend()>).
+This is a convenience function for creating a pattern from I<$surface> and setting it as the source in this context with C<set-source()>.
+
+The I<$x> and I<$y> parameters give the user-space coordinate at which the surface origin should appear. (The surface origin is its upper-left corner before any transformation has been applied). The I<$x> and I<$y> parameters are negated and then set as translation values in the pattern matrix.
+
+Other than the initial translation pattern matrix, as described above, all other pattern attributes, (such as its extend mode), are set to the default values as in C<Gnome::Cairo::Pattern.new(:surface)>. The resulting pattern can be queried with C<get-source()> so that these attributes can be modified if desired, (eg. to create a repeating pattern with C<Gnome::Cairo::Pattern.set-extend()>).
 
   method set-source-surface ( cairo_surface_t $surface, Num() $x, Num() $y )
 
-=item cairo_surface_t $surface; a cairo context
-=item $x; a surface to be used to set the source pattern
-=item $y; User-space X coordinate for surface origin
+=item $surface; a surface to be used to set the source pattern
+=item $x; User-space X coordinate for surface origin
+=item $y; User-space Y coordinate for surface origin
 =end pod
 
-method set-source-surface ( cairo_surface_t $surface, Num() $x, Num() $y ) {
+method set-source-surface ( $surface is copy, Num() $x, Num() $y ) {
+  $surface .= _get-native-object-no-reffing unless $surface ~~ cairo_surface_t;
 
   cairo_set_source_surface(
     self._get-native-object-no-reffing, $surface, $x, $y
@@ -2474,22 +2484,19 @@ sub cairo_set_source_surface (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:set-tolerance:
+#TM:1:set-tolerance:
 =begin pod
 =head2 set-tolerance
 
-Sets the tolerance used when converting paths into trapezoids. Curved segments of the path will be subdivided until the maximum deviation between the original path and the polygonal approximation is less than I<tolerance>. The default value is 0.1. A larger value will give better performance, a smaller value, better appearance. (Reducing the value from the default value of 0.1 is unlikely to improve appearance significantly.)  The accuracy of paths within Cairo is limited by the precision of its internal arithmetic, and the prescribed I<tolerance> is restricted to the smallest representable internal value.
+Sets the tolerance used when converting paths into trapezoids. Curved segments of the path will be subdivided until the maximum deviation between the original path and the polygonal approximation is less than I<$tolerance>. The default value is 0.1. A larger value will give better performance, a smaller value, better appearance. (Reducing the value from the default value of 0.1 is unlikely to improve appearance significantly.)  The accuracy of paths within Cairo is limited by the precision of its internal arithmetic, and the prescribed I<$tolerance> is restricted to the smallest representable internal value.
 
   method set-tolerance ( Num() $tolerance )
 
-=item $tolerance; a B<cairo_t>
+=item $tolerance; the tolerance, in device units
 =end pod
 
 method set-tolerance ( Num() $tolerance ) {
-
-  cairo_set_tolerance(
-    self._get-native-object-no-reffing, $tolerance
-  )
+  cairo_set_tolerance( self._get-native-object-no-reffing, $tolerance)
 }
 
 sub cairo_set_tolerance (
@@ -2499,7 +2506,7 @@ sub cairo_set_tolerance (
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:0:set-user-data:
+# TM:0:set-user-data:
 =begin pod
 =head2 set-user-data
 
