@@ -67,11 +67,13 @@ subtest 'Manipulations', {
       is cairo_status_t($rl.status), CAIRO_STATUS_CLIP_NOT_REPRESENTABLE,
         '.copy-clip-rectangle-list() status';
       .clip-preserve;
+      .reset-clip;
       .copy-page;
       .restore;
     }
   }, '.save(), .arc(), .arc-negative(), .clip(), .restore, ' ~
-     '.clip-preserve(), .copy-page(), .copy-clip-rectangle-list()';
+     '.clip-preserve(), .reset-clip(), .copy-page(), ' ~
+     '.copy-clip-rectangle-list()';
 
 
   # set the scale twice as large, then check to see what (10,10) device
@@ -113,8 +115,12 @@ subtest 'Manipulations', {
   $c.set-dash( [1.2, 2.3, '11', 3e1], 0.3);
   is-deeply $c.get-dash, ( [1.2e0, 2.3e0, 1.1e1, 3e1], 3e-1), '.set-dash()';
 
-  my Gnome::Cairo::Matrix $matrix = $c.get-font-matrix;
-#  diag $matrix.get-native-object.gist;
+  lives-ok {
+    my Gnome::Cairo::Matrix $matrix = $c.get-font-matrix;
+    $matrix.invert;
+    $c.set-font-matrix($matrix);
+    diag $matrix.get-native-object.gist;
+  }, '.set-font-matrix() / .get-font-matrix()';
 
   my Gnome::Cairo::FontOptions $fo = $c.get-font-options;
   is $fo.get-antialias, CAIRO_ANTIALIAS_NONE, '.get-font-options()';
@@ -178,7 +184,7 @@ subtest 'Manipulations', {
   my Gnome::Cairo::Pattern $p2 = $c.get-source;
   is $p2.status(), CAIRO_STATUS_SUCCESS, '.set-source() / .get-source()';
 
-  my Gnome::Cairo::Surface $s = $c.get-target;
+  $s = $c.get-target;
   is $s.status, CAIRO_STATUS_SUCCESS, '.get-target()';
 
   $c.set-source-surface( $surface, 10, 2);
@@ -206,13 +212,25 @@ subtest 'Manipulations', {
   $surface .= new( :format(CAIRO_FORMAT_ARGB32), :$width, :$height);
   with $c .= new(:$surface) {
     .move-to( 20, 20);
-    .line-to( 10, 0);
-    .line-to( 0, 10);
+    .rel-line-to( 10, 0);
+    .rel-line-to( 0, 10);
     .close-path;
 
-    is-deeply .path-extents, ( 0e0, 0e0, 2e1, 2e1), '.path-extents()';
+    is-deeply .path-extents, ( 2e1, 2e1, 3e1, 3e1), '.path-extents()';
     is-deeply .clip-extents, ( 0e0, 0e0, 1.28e2, 1.28e2), '.clip-extents()';
-    is-deeply .fill-extents, ( 0e0, 0e0, 2e1, 2e1), '.fill-extents()';
+    is-deeply .fill-extents, ( 2e1, 2e1, 3e1, 3e1), '.fill-extents()';
+
+    .rectangle( 21, 21, 10, 11);
+    is-deeply .path-extents, ( 2e1, 2e1, 3.1e1, 3.2e1), '.rectangle()';
+
+    .rotate(0 * π);
+    is-deeply .path-extents, ( 2e1, 2e1, 3.1e1, 3.2e1), '.rotate()';
+
+    lives-ok {.push-group-with-content(CAIRO_CONTENT_COLOR_ALPHA);},
+      '.push-group-with-content()';
+
+    lives-ok {.rel-curve-to( 1, 2, 3, 4, 5, 6);},
+      '.rel-curve-to()';
   }
 }
 

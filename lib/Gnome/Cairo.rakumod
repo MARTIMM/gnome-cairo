@@ -1746,33 +1746,32 @@ sub cairo_push_group (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:push-group-with-content:
+#TM:1:push-group-with-content:
 =begin pod
 =head2 push-group-with-content
 
 Temporarily redirects drawing to an intermediate surface known as a group. The redirection lasts until the group is completed by a call to C<pop-group()> or C<pop-group-to-source()>. These calls provide the result of any drawing to the group as a pattern, (either as an explicit object, or set as the source pattern).
 
-The group will have a content type of I<content>. The ability to control this content type is the only distinction between this function and C<push-group()> which you should see for a more detailed description of group rendering.
+The group will have a content type of I<$content>. The ability to control this content type is the only distinction between this function and C<push-group()> which you should see for a more detailed description of group rendering.
 
-  method push-group-with-content ( Int $content )
+  method push-group-with-content ( cairo_content_t $content )
 
-=item $content; a cairo context
+=item $content; a B<content-t> indicating the type of group that will be created
 =end pod
 
-method push-group-with-content ( Int $content ) {
-
+method push-group-with-content ( cairo_content_t $content ) {
   cairo_push_group_with_content(
     self._get-native-object-no-reffing, $content
   )
 }
 
 sub cairo_push_group_with_content (
-  cairo_t $cr, gint32 $content
+  cairo_t $cr, GEnum $content
 ) is native(&cairo-lib)
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:rectangle:
+#TM:1:rectangle:
 =begin pod
 =head2 rectangle
 
@@ -1792,10 +1791,10 @@ Adds a closed sub-path rectangle of the given size to the current path at positi
   method rectangle ( Num() $x, Num() $y, Num() $width, Num() $height )
 =end code
 
-=item $x; a cairo context
-=item $y; the X coordinate of the top left corner of the rectangle
-=item $width; the Y coordinate to the top left corner of the rectangle
-=item $height; the width of the rectangle
+=item $x; the X coordinate of the top left corner of the rectangle
+=item $y; the Y coordinate to the top left corner of the rectangle
+=item $width; the width of the rectangle
+=item $height; the height of the rectangle
 =end pod
 
 method rectangle ( Num() $x, Num() $y, Num() $width, Num() $height ) {
@@ -1840,20 +1839,28 @@ sub _cairo_reference (
 =begin pod
 =head2 rel-curve-to
 
-Relative-coordinate version of C<curve-to()>. All offsets are relative to the current point. Adds a cubic Bézier spline to the path from the current point to a point offset from the current point by (I<dx3>, I<dy3>), using points offset by (I<dx1>, I<dy1>) and (I<dx2>, I<dy2>) as the control points. After this call the current point will be offset by (I<dx3>, I<dy3>).  Given a current point of (x, y), cairo_rel_curve_to(this context, I<dx1>, I<dy1>, I<dx2>, I<dy2>, I<dx3>, I<dy3>) is logically equivalent to cairo_curve_to(this context, x+I<dx1>, y+I<dy1>, x+I<dx2>, y+I<dy2>, x+I<dx3>, y+I<dy3>).  It is an error to call this function with no current point. Doing so will cause this context to shutdown with a status of C<CAIRO_STATUS_NO_CURRENT_POINT>.
+Relative-coordinate version of C<curve-to()>. All offsets are relative to the current point. Adds a cubic Bézier spline to the path from the current point to a point offset from the current point by (I<$dx3, $dy3>), using points offset by (I<$dx1, $dy1>) and (I<$dx2, $dy2>) as the control points. After this call the current point will be offset by (I<$dx3, $dy3>).
 
-  method rel-curve-to ( Num() $dx1, Num() $dy1, Num() $dx2, Num() $dy2, Num() $dx3, Num() $dy3 )
+Given a current point of C<($x, $y)>, then C<rel-curve-to( $dx1, $dy1, $dx2, $dy2, $dx3, $dy3)> is logically equivalent to C<curve-to( $x + $dx1, $y + $dy1, $x + $dx2, $y + $dy2, $x + dx3, $y + $dy3)>.
 
-=item $dx1; a cairo context
-=item $dy1; the X offset to the first control point
-=item $dx2; the Y offset to the first control point
-=item $dy2; the X offset to the second control point
-=item $dx3; the Y offset to the second control point
-=item $dy3; the X offset to the end of the curve
+It is an error to call this function with no current point. Doing so will cause this context to shutdown with a status of C<CAIRO_STATUS_NO_CURRENT_POINT>.
+
+  method rel-curve-to (
+    Num() $dx1, Num() $dy1, Num() $dx2, Num() $dy2,
+    Num() $dx3, Num() $dy3
+  )
+
+=item $dx1; the X offset to the first control point
+=item $dy1; the Y offset to the first control point
+=item $dx2; the X offset to the second control point
+=item $dy2; the Y offset to the second control point
+=item $dx3; the X offset to the end of the curve
+=item $dy3; the Y offset to the end of the curve
 =end pod
 
-method rel-curve-to ( Num() $dx1, Num() $dy1, Num() $dx2, Num() $dy2, Num() $dx3, Num() $dy3 ) {
-
+method rel-curve-to (
+  Num() $dx1, Num() $dy1, Num() $dx2, Num() $dy2, Num() $dx3, Num() $dy3
+) {
   cairo_rel_curve_to(
     self._get-native-object-no-reffing, $dx1, $dy1, $dx2, $dy2, $dx3, $dy3
   )
@@ -1870,7 +1877,9 @@ sub cairo_rel_curve_to (
 =head2 rel-line-to
 
 Relative-coordinate version of C<line-to()>. Adds a line to the path from the current point to a point that is offset from the current point by (I<$dx>, I<$dy>) in user space. After this call the current point will be offset by (I<$dx>, I<$dy>).
-Given a current point of (x, y), cairo_rel_line_to(this context, I<$dx>, I<$dy>) is logically equivalent to cairo_line_to(this context, x + I<$dx>, y + I<$dy>).
+
+Given a current point of C<($x, $y)>, C<rel-line-to( $dx, $dy)> is logically equivalent to C<line_to( $x + $dx, $y + $dy)>.
+
 It is an error to call this function with no current point. Doing so will cause this context to shutdown with a status of C<CAIRO_STATUS_NO_CURRENT_POINT>.
 
   method rel-line-to ( Num() $dx, Num() $dy )
@@ -1893,7 +1902,9 @@ sub cairo_rel_line_to (
 =begin pod
 =head2 rel-move-to
 
-Begin a new sub-path. After this call the current point will offset by (I<x>, I<y>).  Given a current point of (x, y), cairo_rel_move_to(this context, I<dx>, I<dy>) is logically equivalent to cairo_move_to(this context, x + I<dx>, y + I<dy>).  It is an error to call this function with no current point. Doing so will cause this context to shutdown with a status of C<CAIRO_STATUS_NO_CURRENT_POINT>.
+Begin a new sub-path. After this call the current point will offset by C<( $x, $y)>.  Given a current point of C<($x, $y)>, C<rel-move-to( $dx, $dy)> is logically equivalent to C<move-to( $x + $dx, $y + $dy)>.
+
+It is an error to call this function with no current point. Doing so will cause this context to shutdown with a status of C<CAIRO_STATUS_NO_CURRENT_POINT>.
 
   method rel-move-to ( Num() $dx, Num() $dy )
 
@@ -1911,11 +1922,13 @@ sub cairo_rel_move_to (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:reset-clip:
+#TM:1:reset-clip:
 =begin pod
 =head2 reset-clip
 
-Reset the current clip region to its original, unrestricted state. That is, set the clip region to an infinitely large shape containing the target surface. Equivalently, if infinity is too hard to grasp, one can imagine the clip region being reset to the exact bounds of the target surface.  Note that code meant to be reusable should not call C<reset-clip()> as it will cause results unexpected by higher-level code which calls C<clip()>. Consider using C<save()> and C<restore()> around C<clip()> as a more robust means of temporarily restricting the clip region.
+Reset the current clip region to its original, unrestricted state. That is, set the clip region to an infinitely large shape containing the target surface. Equivalently, if infinity is too hard to grasp, one can imagine the clip region being reset to the exact bounds of the target surface.
+
+Note that code meant to be reusable should not call C<reset-clip()> as it will cause results unexpected by higher-level code which calls C<clip()>. Consider using C<save()> and C<restore()> around C<clip()> as a more robust means of temporarily restricting the clip region.
 
   method reset-clip ( )
 
@@ -1951,11 +1964,11 @@ sub cairo_restore (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:rotate:
+#TM:1:rotate:
 =begin pod
 =head2 rotate
 
-Modifies the current transformation matrix (CTM) by rotating the user-space axes by I<$angle> radians. The rotation of the axes takes places after any existing transformation of user space. The rotation direction for positive angles is from the positive X axis toward the positive Y axis.
+Modifies the current transformation matrix (CTM) by rotating the user-space axes by I<$angle> radians. The rotation of the axes takes place after any existing transformation of user space. The rotation direction for positive angles is from the positive X axis toward the positive Y axis.
 
   method rotate ( Num() $angle )
 
@@ -2046,9 +2059,9 @@ If text is drawn without a call to C<select-font-face()>, (nor C<set-font-face()
     cairo_font_weight_t $weight
   )
 
-=item $family; a B<cairo_t>
-=item $slant; a font family name
-=item $weight; the slant for the font
+=item $family; a font family name, encoded in UTF-8
+=item $slant; the slant for the font
+=item $weight; the weight for the font
 =end pod
 
 method select-font-face ( Str $family, Int $slant, Int $weight ) {
@@ -2067,19 +2080,23 @@ sub cairo_select_font_face (
 =begin pod
 =head2 set-antialias
 
-Set the antialiasing mode of the rasterizer used for drawing shapes. This value is a hint, and a particular backend may or may not support a particular value.  At the current time, no backend supports C<CAIRO_ANTIALIAS_SUBPIXEL> when drawing shapes.  Note that this option does not affect text rendering, instead see C<font-options-set-antialias()>.
+Set the antialiasing mode of the rasterizer used for drawing shapes. This value is a hint, and a particular backend may or may not support a particular value.
 
-  method set-antialias ( Int $antialias )
+At the current time, no backend supports C<CAIRO_ANTIALIAS_SUBPIXEL> when drawing shapes.
 
-=item $antialias; a B<cairo_t>
+Note that this option does not affect text rendering, instead see C<font-options-set-antialias()>.
+
+  method set-antialias ( cairo_antialias_t $antialias )
+
+=item $antialias; the new antialiasing mode
 =end pod
 
-method set-antialias ( Int $antialias ) {
+method set-antialias ( cairo_antialias_t $antialias ) {
   cairo_set_antialias( self._get-native-object-no-reffing, $antialias)
 }
 
 sub cairo_set_antialias (
-  cairo_t $cr, gint32 $antialias
+  cairo_t $cr, GEnum $antialias
 ) is native(&cairo-lib)
   { * }
 
@@ -2088,7 +2105,13 @@ sub cairo_set_antialias (
 =begin pod
 =head2 set-dash
 
-Sets the dash pattern to be used by C<stroke()>. A dash pattern is specified by I<$dashes>, an array of positive values. Each value provides the length of alternate "on" and "off" portions of the stroke. The I<$offset> specifies an offset into the pattern at which the stroke begins.  Each "on" segment will have caps applied as if the segment were a separate sub-path. In particular, it is valid to use an "on" length of 0.0 with C<CAIRO_LINE_CAP_ROUND> or C<CAIRO_LINE_CAP_SQUARE> in order to distributed dots or squares along a path.  Note: The length values are in user-space units as evaluated at the time of stroking. This is not necessarily the same as the user space at the time of C<set-dash()>.  If I<$num_dashes> is 0 dashing is disabled.  If I<num_dashes> is 1 a symmetric pattern is assumed with alternating on and off portions of the size specified by the single value in I<$dashes>.  If any value in I<$dashes> is negative, or if all values are 0, then this context will be put into an error state with a status of C<CAIRO_STATUS_INVALID_DASH>.
+Sets the dash pattern to be used by C<stroke()>. A dash pattern is specified by I<$dashes>, an array of positive values. Each value provides the length of alternate "on" and "off" portions of the stroke. The I<$offset> specifies an offset into the pattern at which the stroke begins.
+
+Each "on" segment will have caps applied as if the segment were a separate sub-path. In particular, it is valid to use an "on" length of 0.0 with C<CAIRO_LINE_CAP_ROUND> or C<CAIRO_LINE_CAP_SQUARE> in order to distributed dots or squares along a path.
+
+Note: The length values are in user-space units as evaluated at the time of stroking. This is not necessarily the same as the user space at the time of C<set-dash()>.  If I<$num_dashes> is 0 dashing is disabled.  If I<num_dashes> is 1 a symmetric pattern is assumed with alternating on and off portions of the size specified by the single value in I<$dashes>.
+
+If any value in I<$dashes> is negative, or if all values are 0, then this context will be put into an error state with a status of C<CAIRO_STATUS_INVALID_DASH>.
 
   method set-dash ( Array $dashes, Num() $offset )
 
@@ -2103,7 +2126,7 @@ method set-dash ( Array $dashes, Num() $offset ) {
     $d[$c++] = Num($dnum);
   }
 
-  my Int $num_dashes = $dashes.elems;
+  my int32 $num_dashes = $dashes.elems;
   cairo_set_dash(
     self._get-native-object-no-reffing, $d, $num_dashes, $offset
   )
@@ -2148,14 +2171,11 @@ Replaces the current B<cairo_font_face_t> object in the B<cairo_t> with I<font_f
 
   method set-font-face ( cairo_font_face_t $font_face )
 
-=item cairo_font_face_t $font_face; a B<cairo_t>
+=item $font_face; a B<font-face-t>, or C<Any> to restore to the default font
 =end pod
 
 method set-font-face ( cairo_font_face_t $font_face ) {
-
-  cairo_set_font_face(
-    self._get-native-object-no-reffing, $font_face
-  )
+  cairo_set_font_face( self._get-native-object-no-reffing, $font_face)
 }
 
 sub cairo_set_font_face (
@@ -2175,11 +2195,9 @@ Sets the current font matrix to I<matrix>. The font matrix gives a transformatio
 =item cairo_matrix_t $matrix; a B<cairo_t>
 =end pod
 
-method set-font-matrix ( cairo_matrix_t $matrix ) {
-
-  cairo_set_font_matrix(
-    self._get-native-object-no-reffing, $matrix
-  )
+method set-font-matrix ( $matrix is copy ) {
+  $matrix .= _get-native-object-no-reffing unless $matrix ~~ cairo_matrix_t;
+  cairo_set_font_matrix( self._get-native-object-no-reffing, $matrix)
 }
 
 sub cairo_set_font_matrix (
