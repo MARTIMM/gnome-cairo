@@ -627,22 +627,33 @@ sub cairo_fill (
 =begin pod
 =head2 fill-extents
 
-Computes a bounding box in user coordinates covering the area that would be affected, (the "inked" area), by a C<fill()> operation given the current path and fill parameters. If the current path is empty, returns an empty rectangle ((0,0), (0,0)). Surface dimensions and clipping are not taken into account.  Contrast with C<path-extents()>, which is similar, but returns non-zero extents for some paths with no inked area, (such as a simple line segment).  Note that C<fill-extents()> must necessarily do more work to compute the precise inked areas in light of the fill rule, so C<path-extents()> may be more desirable for sake of performance if the non-inked path extents are desired.  See C<fill()>, C<set-fill-rule()> and C<fill-preserve()>.
+Computes a bounding box in user coordinates covering the area that would be affected, (the "inked" area), by a C<fill()> operation given the current path and fill parameters. If the current path is empty, returns an empty rectangle ((0,0), (0,0)). Surface dimensions and clipping are not taken into account.  Contrast with C<path-extents()>, which is similar, but returns non-zero extents for some paths with no inked area, (such as a simple line segment).  Note that C<fill-extents()> must necessarily do more work to compute the precise inked areas in light of the fill rule, so C<path-extents()> may be more desirable for sake of performance if the non-inked path extents are desired.
 
-  method fill-extents ( Num() $x1, Num() $y1, Num() $x2, Num() $y2 )
+See C<fill()>, C<set-fill-rule()> and C<fill-preserve()>.
 
-=item $x1; left of the resulting extents
-=item $y1; top of the resulting extents
-=item $x2; right of the resulting extents
-=item $y2; bottom of the resulting extents
+  method fill-extents ( --> List )
+
+List returns
+=item Num; left of the resulting extents
+=item Num; top of the resulting extents
+=item Num; right of the resulting extents
+=item Num; bottom of the resulting extents
 =end pod
 
-method fill-extents ( Num() $x1, Num() $y1, Num() $x2, Num() $y2 ) {
-  cairo_fill_extents( self._get-native-object-no-reffing, $x1, $y1, $x2, $y2)
+method fill-extents ( --> List ) {
+  my gdouble $x1;
+  my gdouble $y1;
+  my gdouble $x2;
+  my gdouble $y2;
+
+  cairo_fill_extents( self._get-native-object-no-reffing, $x1, $y1, $x2, $y2);
+
+  ( $x1.Num, $y1.Num, $x2.Num, $y2.Num);
 }
 
 sub cairo_fill_extents (
-  cairo_t $cr, gdouble $x1, gdouble $y1, gdouble $x2, gdouble $y2
+  cairo_t $cr, gdouble $x1 is rw, gdouble $y1 is rw,
+  gdouble $x2 is rw, gdouble $y2 is rw
 ) is native(&cairo-lib)
   { * }
 
@@ -1591,29 +1602,42 @@ sub cairo_paint_with_alpha (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:path-extents:
+#TM:1:path-extents:
 =begin pod
 =head2 path-extents
 
-Computes a bounding box in user-space coordinates covering the points on the current path. If the current path is empty, returns an empty rectangle ((0,0), (0,0)). Stroke parameters, fill rule, surface dimensions and clipping are not taken into account.  Contrast with C<fill-extents()> and C<stroke-extents()> which return the extents of only the area that would be "inked" by the corresponding drawing operations.  The result of C<path-extents()> is defined as equivalent to the limit of C<stroke-extents()> with C<CAIRO_LINE_CAP_ROUND> as the line width approaches 0.0, (but never reaching the empty-rectangle returned by C<stroke-extents()> for a line width of 0.0).  Specifically, this means that zero-area sub-paths such as C<move-to()>;C<line-to()> segments, (even degenerate cases where the coordinates to both calls are identical), will be considered as contributing to the extents. However, a lone C<move-to()> will not contribute to the results of C<path-extents()>.
+Computes a bounding box in user-space coordinates covering the points on the current path. If the current path is empty, returns an empty rectangle ((0,0), (0,0)). Stroke parameters, fill rule, surface dimensions and clipping are not taken into account.
 
-  method path-extents ( Num() $x1, Num() $y1, Num() $x2, Num() $y2 )
+Contrast with C<fill-extents()> and C<stroke-extents()> which return the extents of only the area that would be "inked" by the corresponding drawing operations.
 
-=item $x1; a cairo context
-=item $y1; left of the resulting extents
-=item $x2; top of the resulting extents
-=item $y2; right of the resulting extents
+The result of C<path-extents()> is defined as equivalent to the limit of C<stroke-extents()> with C<CAIRO_LINE_CAP_ROUND> as the line width approaches 0.0, (but never reaching the empty-rectangle returned by C<stroke-extents()> for a line width of 0.0).
+
+Specifically, this means that zero-area sub-paths such as C<move-to(); line-to()> segments, (even degenerate cases where the coordinates to both calls are identical), will be considered as contributing to the extents. However, a lone C<move-to()> will not contribute to the results of C<path-extents()>.
+
+  method path-extents ( --> List )
+
+List returns;
+=item Num; left of the resulting extents
+=item Num; top of the resulting extents
+=item Num; right of the resulting extents
+=item Num; bottom of the resulting extents
 =end pod
 
-method path-extents ( Num() $x1, Num() $y1, Num() $x2, Num() $y2 ) {
+method path-extents ( --> List ) {
 
-  cairo_path_extents(
-    self._get-native-object-no-reffing, $x1, $y1, $x2, $y2
-  )
+  my gdouble $x1;
+  my gdouble $y1;
+  my gdouble $x2;
+  my gdouble $y2;
+
+  cairo_path_extents( self._get-native-object-no-reffing, $x1, $y1, $x2, $y2);
+
+  ( $x1.Num, $y1.Num, $x2.Num, $y2.Num)
 }
 
 sub cairo_path_extents (
-  cairo_t $cr, gdouble $x1, gdouble $y1, gdouble $x2, gdouble $y2
+  cairo_t $cr, gdouble $x1 is rw, gdouble $y1 is rw,
+  gdouble $x2 is rw, gdouble $y2 is rw
 ) is native(&cairo-lib)
   { * }
 
@@ -1622,16 +1646,20 @@ sub cairo_path_extents (
 =begin pod
 =head2 pop-group
 
-Terminates the redirection begun by a call to C<push-group()> or C<push-group-with-content()> and returns a new pattern containing the results of all drawing operations performed to the group.  The C<pop-group()> function calls C<restore()>, (balancing a call to C<save()> by the push_group function), so that any changes to the graphics state will not be visible outside the group.  Return value: a newly created (surface) pattern containing the results of all drawing operations performed to the group. The caller owns the returned object and should call C<pattern-destroy()> when finished with it.
+Terminates the redirection begun by a call to C<push-group()> or C<push-group-with-content()> and returns a new pattern containing the results of all drawing operations performed to the group.
 
-  method pop-group ( --> cairo_pattern_t )
+The C<pop-group()> function calls C<restore()>, (balancing a call to C<save()> by the push_group function), so that any changes to the graphics state will not be visible outside the group.
+
+Return value: a newly created (surface) pattern containing the results of all drawing operations performed to the group. The caller owns the returned object and should call C<clear-object()> when finished with it.
+
+  method pop-group ( --> Gnome::Cairo::Pattern )
 
 =end pod
 
-method pop-group ( --> cairo_pattern_t ) {
-
-  cairo_pop_group(
-    self._get-native-object-no-reffing,
+method pop-group ( --> Any ) {
+  self._wrap-native-type(
+    'Gnome::Cairo::Pattern',
+    cairo_pop_group(self._get-native-object-no-reffing)
   )
 }
 
@@ -1645,21 +1673,24 @@ sub cairo_pop_group (
 =begin pod
 =head2 pop-group-to-source
 
-Terminates the redirection begun by a call to C<push-group()> or C<push-group-with-content()> and installs the resulting pattern as the source pattern in the given cairo context.  The behavior of this function is equivalent to the sequence of operations:
+Terminates the redirection begun by a call to C<push-group()> or C<push-group-with-content()> and installs the resulting pattern as the source pattern in the given cairo context.
 
- cairo_pattern_t *group = cairo_pop_group (cr); cairo_set_source (cr, group); cairo_pattern_destroy (group);
+The behavior of this function is equivalent to the sequence of operations:
 
-   but is more convenient as their is no need for a variable to store the short-lived pointer to the pattern.  The C<pop-group()> function calls C<restore()>, (balancing a call to C<save()> by the push_group function), so that any changes to the graphics state will not be visible outside the group.
+  my Gnome::Cairo::Pattern $group = $cairo.pop-group;
+  $cairo.set-source($group);
+  $group.clear-object;
+
+but is more convenient as there is no need for a variable to store the short-lived pointer to the pattern.
+
+The C<pop-group()> function calls C<restore()>, (balancing a call to C<save()> by the push_group function), so that any changes to the graphics state will not be visible outside the group.
 
   method pop-group-to-source ( )
 
 =end pod
 
 method pop-group-to-source ( ) {
-
-  cairo_pop_group_to_source(
-    self._get-native-object-no-reffing,
-  )
+  cairo_pop_group_to_source(self._get-native-object-no-reffing)
 }
 
 sub cairo_pop_group_to_source (
@@ -1672,21 +1703,41 @@ sub cairo_pop_group_to_source (
 =begin pod
 =head2 push-group
 
-Temporarily redirects drawing to an intermediate surface known as a group. The redirection lasts until the group is completed by a call to C<pop-group()> or C<pop-group-to-source()>. These calls provide the result of any drawing to the group as a pattern, (either as an explicit object, or set as the source pattern).  This group functionality can be convenient for performing intermediate compositing. One common use of a group is to render objects as opaque within the group, (so that they occlude each other), and then blend the result with translucence onto the destination.  Groups can be nested arbitrarily deep by making balanced calls to C<push-group()>/C<pop-group()>. Each call pushes/pops the new target group onto/from a stack.  The C<push-group()> function calls C<save()> so that any changes to the graphics state will not be visible outside the group, (the pop_group functions call C<restore()>).  By default the intermediate group will have a content type of C<CAIRO_CONTENT_COLOR_ALPHA>. Other content types can be chosen for the group by using C<push-group-with-content()> instead.  As an example, here is how one might fill and stroke a path with translucence, but without any portion of the fill being visible under the stroke:
+Temporarily redirects drawing to an intermediate surface known as a group. The redirection lasts until the group is completed by a call to C<pop-group()> or C<pop-group-to-source()>. These calls provide the result of any drawing to the group as a pattern, (either as an explicit object, or set as the source pattern).
 
- cairo_push_group (cr); cairo_set_source (cr, fill_pattern); cairo_fill_preserve (cr); cairo_set_source (cr, stroke_pattern); cairo_stroke (cr); cairo_pop_group_to_source (cr); cairo_paint_with_alpha (cr, alpha);
+This group functionality can be convenient for performing intermediate compositing. One common use of a group is to render objects as opaque within the group, (so that they occlude each other), and then blend the result with translucence onto the destination.
 
+Groups can be nested arbitrarily deep by making balanced calls to C<push-group()>/C<pop-group()>. Each call pushes/pops the new target group onto/from a stack.
 
+The C<push-group()> function calls C<save()> so that any changes to the graphics state will not be visible outside the group, (the pop_group functions call C<restore()>).
 
+By default the intermediate group will have a content type of C<CAIRO_CONTENT_COLOR_ALPHA>. Other content types can be chosen for the group by using C<push-group-with-content()> instead.
+
+As an example, here is how one might fill and stroke a path with translucence, but without any portion of the fill being visible under the stroke:
+
+=begin code
+  my Gnome::Cairo::Pattern $fill-pattern = …
+  my Gnome::Cairo::Pattern $stroke-pattern = …
+  my Num() $alpha = 0.8;
+
+  with $cairo {
+    .push-group;
+    .set-source($fill-pattern);
+    .fill-preserve;
+    .set-source($stroke-pattern);
+    .stroke;
+    .pop-group-to-source;
+    .paint-with-alpha($alpha);
+  }
+=end code
+
+=begin code
   method push-group ( )
-
+=end code
 =end pod
 
 method push-group ( ) {
-
-  cairo_push_group(
-    self._get-native-object-no-reffing,
-  )
+  cairo_push_group(self._get-native-object-no-reffing)
 }
 
 sub cairo_push_group (
@@ -1699,7 +1750,9 @@ sub cairo_push_group (
 =begin pod
 =head2 push-group-with-content
 
-Temporarily redirects drawing to an intermediate surface known as a group. The redirection lasts until the group is completed by a call to C<pop-group()> or C<pop-group-to-source()>. These calls provide the result of any drawing to the group as a pattern, (either as an explicit object, or set as the source pattern).  The group will have a content type of I<content>. The ability to control this content type is the only distinction between this function and C<push-group()> which you should see for a more detailed description of group rendering.
+Temporarily redirects drawing to an intermediate surface known as a group. The redirection lasts until the group is completed by a call to C<pop-group()> or C<pop-group-to-source()>. These calls provide the result of any drawing to the group as a pattern, (either as an explicit object, or set as the source pattern).
+
+The group will have a content type of I<content>. The ability to control this content type is the only distinction between this function and C<push-group()> which you should see for a more detailed description of group rendering.
 
   method push-group-with-content ( Int $content )
 
@@ -1726,11 +1779,13 @@ sub cairo_push_group_with_content (
 Adds a closed sub-path rectangle of the given size to the current path at position (I<$x>, I<$y>) in user-space coordinates. This method is logically equivalent to:
 
 =begin code
-  $cairo.move-to( $x, $y);
-  $cairo.rel-line-to( $width, 0);
-  $cairo.rel-line-to( 0, $height);
-  $cairo.rel-line-to( -$width, 0);
-  $cairo.close.path;
+  with $cairo {
+    .move-to( $x, $y);
+    .rel-line-to( $width, 0);
+    .rel-line-to( 0, $height);
+    .rel-line-to( -$width, 0);
+    .close.path;
+  }
 =end code
 
 =begin code

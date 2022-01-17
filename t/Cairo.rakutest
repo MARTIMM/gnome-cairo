@@ -66,12 +66,11 @@ subtest 'Manipulations', {
       diag $rl.gist;
       is cairo_status_t($rl.status), CAIRO_STATUS_CLIP_NOT_REPRESENTABLE,
         '.copy-clip-rectangle-list() status';
-      diag "extends: " ~ .clip-extents.raku;
       .clip-preserve;
       .copy-page;
       .restore;
     }
-  }, '.save(), .arc(), .arc-negative(), .clip(), .clip-extents(), .restore, ' ~
+  }, '.save(), .arc(), .arc-negative(), .clip(), .restore, ' ~
      '.clip-preserve(), .copy-page(), .copy-clip-rectangle-list()';
 
 
@@ -203,6 +202,18 @@ subtest 'Manipulations', {
   ok $c.in-clip( 0, 0), '.in-clip()';
   nok $c.in-fill( 0, 0), '.in-fill()';
   nok $c.in-stroke( 0, 0), '.in-stroke()';
+
+  $surface .= new( :format(CAIRO_FORMAT_ARGB32), :$width, :$height);
+  with $c .= new(:$surface) {
+    .move-to( 20, 20);
+    .line-to( 10, 0);
+    .line-to( 0, 10);
+    .close-path;
+
+    is-deeply .path-extents, ( 0e0, 0e0, 2e1, 2e1), '.path-extents()';
+    is-deeply .clip-extents, ( 0e0, 0e0, 1.28e2, 1.28e2), '.clip-extents()';
+    is-deeply .fill-extents, ( 0e0, 0e0, 2e1, 2e1), '.fill-extents()';
+  }
 }
 
 #-------------------------------------------------------------------------------
