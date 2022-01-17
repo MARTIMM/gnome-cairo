@@ -33,7 +33,7 @@ class cairo_surface_t is repr('CPointer') is export { }
 =head2 cairo_pattern_t
 =end pod
 
-#TT:0:cairo_pattern_t
+#TT:1:cairo_pattern_t
 class cairo_pattern_t is repr('CPointer') is export { }
 
 #-------------------------------------------------------------------------------
@@ -67,7 +67,7 @@ class cairo_matrix_t is repr('CStruct') is export {
 =head2 cairo_font_face_t
 =end pod
 
-#TT:0:cairo_font_face_t
+#TT:1:cairo_font_face_t
 class cairo_font_face_t is repr('CPointer') is export { }
 
 #-------------------------------------------------------------------------------
@@ -75,7 +75,7 @@ class cairo_font_face_t is repr('CPointer') is export { }
 =head2 cairo_font_options_t
 =end pod
 
-#TT:0:cairo_font_options_t
+#TT:1:cairo_font_options_t
 class cairo_font_options_t is repr('CPointer') is export { }
 
 #-------------------------------------------------------------------------------
@@ -92,7 +92,13 @@ class cairo_scaled_font_t is repr('CPointer') is export { }
 =end pod
 
 #TT:0:cairo_font_extents_t
-class cairo_font_extents_t is repr('CPointer') is export { }
+class cairo_font_extents_t is repr('CStruct') is export {
+  has gdouble $.ascent;
+  has gdouble $.descent;
+  has gdouble $.height;
+  has gdouble $.max_x_advance;
+  has gdouble $.max_y_advance;
+}
 
 #-------------------------------------------------------------------------------
 =begin pod
@@ -107,19 +113,19 @@ class cairo_device_t is repr('CPointer') is export { }
 =head2 cairo_path_data_t
 =end pod
 
-#TT:0:cairo_path_data_header_t
+#TT:1:cairo_path_data_header_t
 class cairo_path_data_header_t is repr('CStruct') is export {
   has uint32 $.type;                  # enum cairo_path_data_type_t
   has int32 $.length;                 # nbr points following header
 }
 
-#TT:0:cairo_path_data_point_t
+#TT:1:cairo_path_data_point_t
 class cairo_path_data_point_t is repr('CStruct') is export {
   has gdouble $.x;
   has gdouble $.y;
 }
 
-#TT:0:cairo_path_data_t
+#TT:1:cairo_path_data_t
 class cairo_path_data_t is repr('CUnion') is export {
   HAS cairo_path_data_header_t $.header;
   HAS cairo_path_data_point_t $.point;
