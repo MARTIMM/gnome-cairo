@@ -2184,7 +2184,7 @@ sub cairo_set_font_face (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:set-font-matrix:
+#TM:1:set-font-matrix:
 =begin pod
 =head2 set-font-matrix
 
@@ -2192,7 +2192,7 @@ Sets the current font matrix to I<matrix>. The font matrix gives a transformatio
 
   method set-font-matrix ( cairo_matrix_t $matrix )
 
-=item cairo_matrix_t $matrix; a B<cairo_t>
+=item $matrix; a B<matrix-t> describing a transform to be applied to the current font.
 =end pod
 
 method set-font-matrix ( $matrix is copy ) {
@@ -2214,14 +2214,14 @@ Sets a set of custom font rendering options for the B<cairo_t>. Rendering option
 
   method set-font-options ( cairo_font_options_t $options )
 
-=item cairo_font_options_t $options; a B<cairo_t>
+=item $options; font options to use
 =end pod
 
-method set-font-options ( cairo_font_options_t $options ) {
+method set-font-options ( $options is copy ) {
+  $options .= _get-native-object-no-reffing
+    unless $options ~~ cairo_font_options_t;
 
-  cairo_set_font_options(
-    self._get-native-object-no-reffing, $options
-  )
+  cairo_set_font_options( self._get-native-object-no-reffing, $options)
 }
 
 sub cairo_set_font_options (
@@ -2404,10 +2404,10 @@ Replaces the current font face, font matrix, and font options in the B<cairo_t> 
 
   method set-scaled-font ( cairo_scaled_font_t $scaled_font )
 
-=item $scaled_font; a B<scaled-font-t>
+=item $scaled_font; a scaled font
 =end pod
 
-method set-scaled-font ( cairo_scaled_font_t $scaled_font is copy ) {
+method set-scaled-font ( $scaled_font is copy ) {
   $scaled_font .= _get-native-object-no-reffing
     unless $scaled_font ~~ cairo_scaled_font_t;
 
@@ -2447,19 +2447,51 @@ sub cairo_set_source (
   { * }
 
 #-------------------------------------------------------------------------------
+#TN:4:set-source-pixbuf:
+=begin pod
+=head2 set-source-pixbuf
+
+Sets the given pixbuf as the source pattern for this context.
+
+=comment The pattern has an extend mode of cairo_extend_none and
+
+The image is aligned so that the origin of the I<$pixbuf> is C<($x, $y)>.
+
+  method set-source-pixbuf( $pixbuf is copy, Num() $x, Num() $y ) {
+
+=item $pixbuf; The pixel buffer
+=item $x; x origin
+=item $y; y origin
+
+=end pod
+
+method set-source-pixbuf( $pixbuf is copy, Num() $x, Num() $y ) {
+  $pixbuf .= get-native-object-no-reffing unless $pixbuf ~~ N-GObject;
+  cairo_set_source_pixbuf( $pixbuf, $x, $y);
+}
+
+sub cairo_set_source_pixbuf (
+  cairo_t $cr, N-GObject $pixbuf, gdouble $x, gdouble $y
+#) is native(&cairo-lib)
+) is native(&gdk-pixbuf-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
 #TM:4:set-source-rgb:
 =begin pod
 =head2 set-source-rgb
 
 Sets the source pattern within this context to an opaque color. This opaque color will then be used for any subsequent drawing operation until a new source pattern is set.
+
 The color components are floating point numbers in the range 0 to 1. If the values passed in are outside that range, they will be clamped.
+
 The default source pattern is opaque black, (that is, it is equivalent to C<set-source-rgb( 0.0, 0.0, 0.0)>).
 
   method set-source-rgb ( Num() $red, Num() $green, Num() $blue )
 
-=item $red; a cairo context
-=item $green; red component of color
-=item $blue; green component of color
+=item $red; red component of color
+=item $green; green component of color
+=item $blue; blue component of color
 =end pod
 
 method set-source-rgb ( Num() $red, Num() $green, Num() $blue ) {
@@ -2478,16 +2510,20 @@ sub cairo_set_source_rgb (
 =begin pod
 =head2 set-source-rgba
 
-Sets the source pattern within this context to a translucent color. This color will then be used for any subsequent drawing operation until a new source pattern is set.  The color and alpha components are floating point numbers in the range 0 to 1. If the values passed in are outside that range, they will be clamped.  The default source pattern is opaque black, (that is, it is equivalent to C<set-source-rgba( 0.0, 0.0, 0.0, 1.0))>.
+Sets the source pattern within this context to a translucent color. This color will then be used for any subsequent drawing operation until a new source pattern is set.
+
+The color and alpha components are floating point numbers in the range 0 to 1. If the values passed in are outside that range, they will be clamped.
+
+The default source pattern is opaque black, (that is, it is equivalent to C<set-source-rgba( 0.0, 0.0, 0.0, 1.0))>.
 
   method set-source-rgba (
     Num() $red, Num() $green, Num() $blue, Num() $alpha
   )
 
-=item $red; a cairo context
-=item $green; red component of color
-=item $blue; green component of color
-=item $alpha; blue component of color
+=item $red; red component of color
+=item $green; green component of color
+=item $blue; blue component of color
+=item $alpha; alpha component of color
 =end pod
 
 method set-source-rgba ( Num() $red, Num() $green, Num() $blue, Num() $alpha ) {
@@ -2499,30 +2535,6 @@ method set-source-rgba ( Num() $red, Num() $green, Num() $blue, Num() $alpha ) {
 sub cairo_set_source_rgba (
   cairo_t $cr, gdouble $red, gdouble $green, gdouble $blue, gdouble $alpha
 ) is native(&cairo-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TN:4:set-source-pixbuf:
-=begin pod
-=head2 set-source-rgba
-
-Sets the given pixbuf as the source pattern for cr.
-
-=comment The pattern has an extend mode of cairo_extend_none and
-
-The image is aligned so that the origin of the I<$pixbuf> is C<($x, $y)>.
-
-=end pod
-
-method set-source-pixbuf( $pixbuf is copy, Num() $x, Num() $y ) {
-  $pixbuf .= get-native-object-no-reffing unless $pixbuf ~~ N-GObject;
-  cairo_set_source_pixbuf( $pixbuf, $x, $y);
-}
-
-sub cairo_set_source_pixbuf (
-  cairo_t $cr, N-GObject $pixbuf, gdouble $x, gdouble $y
-#) is native(&cairo-lib)
-) is native(&gdk-pixbuf-lib)
   { * }
 
 #-------------------------------------------------------------------------------
@@ -2561,7 +2573,9 @@ sub cairo_set_source_surface (
 =begin pod
 =head2 set-tolerance
 
-Sets the tolerance used when converting paths into trapezoids. Curved segments of the path will be subdivided until the maximum deviation between the original path and the polygonal approximation is less than I<$tolerance>. The default value is 0.1. A larger value will give better performance, a smaller value, better appearance. (Reducing the value from the default value of 0.1 is unlikely to improve appearance significantly.)  The accuracy of paths within Cairo is limited by the precision of its internal arithmetic, and the prescribed I<$tolerance> is restricted to the smallest representable internal value.
+Sets the tolerance used when converting paths into trapezoids. Curved segments of the path will be subdivided until the maximum deviation between the original path and the polygonal approximation is less than I<$tolerance>. The default value is 0.1. A larger value will give better performance, a smaller value, better appearance. (Reducing the value from the default value of 0.1 is unlikely to improve appearance significantly.)
+
+The accuracy of paths within Cairo is limited by the precision of its internal arithmetic, and the prescribed I<$tolerance> is restricted to the smallest representable internal value.
 
   method set-tolerance ( Num() $tolerance )
 
@@ -2612,21 +2626,28 @@ sub cairo_set_user_data (
 
 A drawing operator that generates the shape from an array of glyphs, rendered according to the current font face, font size (font matrix), and font options.
 
-  method show-glyphs ( cairo_glyph_t $glyphs, Int $num_glyphs )
+  method show-glyphs ( Array $glyphs )
 
-=item cairo_glyph_t $glyphs; a cairo context
-=item $num_glyphs; array of glyphs to show
+=item $glyphs; array of glyphs to show
+=item $num_glyphs; number of glyphs to show
 =end pod
 
-method show-glyphs ( cairo_glyph_t $glyphs, Int $num_glyphs ) {
+method show-glyphs ( Array $glyphs ) {
+  my $gls = CArray[cairo_glyph_t].new;
+  my int32 $num_glyphs = $glyphs.elems;
+
+  my Int $i = 0;
+  for @$glyphs -> $g {
+    $gls[$i++] = $g;
+  }
 
   cairo_show_glyphs(
-    self._get-native-object-no-reffing, $glyphs, $num_glyphs
-  )
+    self._get-native-object-no-reffing, $gls, $num_glyphs
+  );
 }
 
 sub cairo_show_glyphs (
-  cairo_t $cr, cairo_glyph_t $glyphs, int32 $num_glyphs
+  cairo_t $cr, CArray[cairo_glyph_t] $glyphs, int32 $num_glyphs
 ) is native(&cairo-lib)
   { * }
 
@@ -2635,17 +2656,16 @@ sub cairo_show_glyphs (
 =begin pod
 =head2 show-page
 
-Emits and clears the current page for backends that support multiple pages.  Use C<copy-page()> if you don't want to clear the page.  This is a convenience function that simply calls C<surface-show-page()> on this context's target.
+Emits and clears the current page for backends that support multiple pages.  Use C<copy-page()> if you don't want to clear the page.
+
+This is a convenience function that simply calls C<Gnome::Cairo::Surface.show-page()> on this context's target surface.
 
   method show-page ( )
 
 =end pod
 
 method show-page ( ) {
-
-  cairo_show_page(
-    self._get-native-object-no-reffing,
-  )
+  cairo_show_page(self._get-native-object-no-reffing)
 }
 
 sub cairo_show_page (
@@ -2685,28 +2705,52 @@ sub cairo_show_text (
 =begin pod
 =head2 show-text-glyphs
 
-This operation has rendering effects similar to C<show-glyphs()> but, if the target surface supports it, uses the provided text and cluster mapping to embed the text for the glyphs shown in the output. If the target does not support the extended attributes, this function acts like the basic C<show-glyphs()> as if it had been passed I<glyphs> and I<num_glyphs>.  The mapping between I<utf8> and I<glyphs> is provided by an array of I<clusters>.  Each cluster covers a number of text bytes and glyphs, and neighboring clusters cover neighboring areas of I<utf8> and I<glyphs>.  The clusters should collectively cover I<utf8> and I<glyphs> in entirety.  The first cluster always covers bytes from the beginning of I<utf8>. If I<cluster_flags> do not have the C<CAIRO_TEXT_CLUSTER_FLAG_BACKWARD> set, the first cluster also covers the beginning of I<glyphs>, otherwise it covers the end of the I<glyphs> array and following clusters move backward.  See B<cairo_text_cluster_t> for constraints on valid clusters.
+This operation has rendering effects similar to C<show-glyphs()> but, if the target surface supports it, uses the provided text and cluster mapping to embed the text for the glyphs shown in the output. If the target does not support the extended attributes, this function acts like the basic C<show-glyphs()> as if it had been passed I<glyphs> and I<num_glyphs>.
 
-  method show-text-glyphs ( Int $utf8_len, cairo_glyph_t $glyphs, Int $num_glyphs, cairo_text_cluster_t $clusters, Int $num_clusters, Int $cluster_flags )
+The mapping between I<utf8> and I<glyphs> is provided by an array of I<clusters>.  Each cluster covers a number of text bytes and glyphs, and neighboring clusters cover neighboring areas of I<utf8> and I<glyphs>.
 
-=item $utf8; a cairo context
-=item $utf8_len; a string of text encoded in UTF-8
-=item cairo_glyph_t $glyphs; length of I<utf8> in bytes, or -1 if it is NUL-terminated
-=item $num_glyphs; array of glyphs to show
-=item cairo_text_cluster_t $clusters; number of glyphs to show
-=item $num_clusters; array of cluster mapping information
-=item $cluster_flags; number of clusters in the mapping
+The clusters should collectively cover I<utf8> and I<glyphs> in entirety.
+
+The first cluster always covers bytes from the beginning of I<utf8>. If I<cluster_flags> do not have the C<CAIRO_TEXT_CLUSTER_FLAG_BACKWARD> set, the first cluster also covers the beginning of I<glyphs>, otherwise it covers the end of the I<glyphs> array and following clusters move backward.
+
+See B<cairo_text_cluster_t> for constraints on valid clusters.
+
+  method show-text-glyphs (
+    Str $utf8, Array $glyphs, Array $clusters,
+    cairo_text_cluster_flags_t $cluster_flags
+  )
+
+=item $utf8; a string of text encoded in UTF-8.
+=item $glyphs; array of glyphs to show. Element type cairo_glyph_t.
+=item $clusters; array of cluster mapping information. Element type cairo_text_cluster_t.
+=item $cluster_flags; cluster mapping flags.
 =end pod
 
-method show-text-glyphs ( Int $utf8_len, cairo_glyph_t $glyphs, Int $num_glyphs, cairo_text_cluster_t $clusters, Int $num_clusters, Int $cluster_flags ) {
+method show-text-glyphs (
+  Str $utf8, $glyphs, $clusters, Int $cluster_flags
+) {
+  my $gls = CArray[cairo_glyph_t].new;
+  my $cls = CArray[cairo_text_cluster_t].new;
+  my int32 $utf8_len = -1;
+  my int32 $num_glyphs = $glyphs.elems;
+  my int32 $num_clusters = $clusters.elems;
+
+  loop ( my $i = 0; $i < $num_glyphs; $i++ ) {
+    $gls[$i] = $glyphs[$i];
+  }
+
+  loop ( $i = 0; $i < $num_clusters; $i++ ) {
+    $cls[$i] = $clusters[$i];
+  }
 
   cairo_show_text_glyphs(
-    self._get-native-object-no-reffing, my gint $utf8, $utf8_len, $glyphs, $num_glyphs, $clusters, $num_clusters, $cluster_flags
+    self._get-native-object-no-reffing, $utf8, $utf8_len,
+    $gls, $num_glyphs, $cls, $num_clusters, $cluster_flags
   )
 }
 
 sub cairo_show_text_glyphs (
-  cairo_t $cr, gchar-ptr $utf8, int32 $utf8_len, cairo_glyph_t $glyphs, int32 $num_glyphs, cairo_text_cluster_t $clusters, int32 $num_clusters, gint32 $cluster_flags
+  cairo_t $cr, gchar-ptr $utf8, int32 $utf8_len, CArray[cairo_glyph_t] $glyphs, int32 $num_glyphs, CArray[cairo_text_cluster_t] $clusters, int32 $num_clusters, GEnum $cluster_flags
 ) is native(&cairo-lib)
   { * }
 
@@ -2715,7 +2759,9 @@ sub cairo_show_text_glyphs (
 =begin pod
 =head2 status
 
-Checks whether an error has previously occurred for this context.  Returns: the current status of this context, see B<cairo_status_t>
+Checks whether an error has previously occurred for this context.
+
+Returns: the current status of this context, see B<cairo_status_t>
 
   method status ( --> cairo_status_t )
 
@@ -2757,6 +2803,7 @@ sub cairo_status_to_string ( int32 $status --> Str )
 A drawing operator that strokes the current path according to the current line width, line join, line cap, and dash settings. After C<stroke()>, the current path will be cleared from the cairo context. See C<set-line-width()>, C<set-line-join()>, C<cset-line-cap()>, C<set-dash()>, and C<stroke-preserve()>.
 
 Note: Degenerate segments and sub-paths are treated specially and provide a useful result. These can result in two different situations:
+
 =item Zero-length "on" segments set in C<set-dash()>. If the cap style is C<CAIRO_LINE_CAP_ROUND> or C<CAIRO_LINE_CAP_SQUARE> then these segments will be drawn as circular dots or squares respectively. In the case of C<CAIRO_LINE_CAP_SQUARE>, the orientation of the squares is determined by the direction of the underlying path.
 =item A sub-path created by C<move-to()> followed by either a C<close-path()> or one or more calls to C<line-to()> to the same coordinate as the C<move-to()>. If the cap style is C<CAIRO_LINE_CAP_ROUND> then these sub-paths will be drawn as circular dots.
 
@@ -2767,10 +2814,7 @@ Note that in the case of C<CAIRO_LINE_CAP_SQUARE> a degenerate sub-path will not
 =end pod
 
 method stroke ( ) {
-
-  cairo_stroke(
-    self._get-native-object-no-reffing,
-  )
+  cairo_stroke(self._get-native-object-no-reffing)
 }
 
 sub cairo_stroke (
@@ -2779,25 +2823,37 @@ sub cairo_stroke (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:stroke-extents:
+#TM:1:stroke-extents:
 =begin pod
 =head2 stroke-extents
 
-Computes a bounding box in user coordinates covering the area that would be affected, (the "inked" area), by a C<stroke()> operation given the current path and stroke parameters. If the current path is empty, returns an empty rectangle ((0,0), (0,0)). Surface dimensions and clipping are not taken into account.  Note that if the line width is set to exactly zero, then C<stroke-extents()> will return an empty rectangle. Contrast with C<path-extents()> which can be used to compute the non-empty bounds as the line width approaches zero.  Note that C<stroke-extents()> must necessarily do more work to compute the precise inked areas in light of the stroke parameters, so C<path-extents()> may be more desirable for sake of performance if non-inked path extents are desired.  See C<stroke()>, C<set-line-width()>, C<set-line-join()>, C<set-line-cap()>, C<set-dash()>, and C<stroke-preserve()>.
+Computes a bounding box in user coordinates covering the area that would be affected, (the "inked" area), by a C<stroke()> operation given the current path and stroke parameters. If the current path is empty, returns an empty rectangle ((0,0), (0,0)). Surface dimensions and clipping are not taken into account.
 
-  method stroke-extents ( Num() $x1, Num() $y1, Num() $x2, Num() $y2 )
+Note that if the line width is set to exactly zero, then C<stroke-extents()> will return an empty rectangle. Contrast with C<path-extents()> which can be used to compute the non-empty bounds as the line width approaches zero.
 
-=item $x1; a cairo context
-=item $y1; left of the resulting extents
-=item $x2; top of the resulting extents
-=item $y2; right of the resulting extents
+Note that C<stroke-extents()> must necessarily do more work to compute the precise inked areas in light of the stroke parameters, so C<path-extents()> may be more desirable for sake of performance if non-inked path extents are desired.  See C<stroke()>, C<set-line-width()>, C<set-line-join()>, C<set-line-cap()>, C<set-dash()>, and C<stroke-preserve()>.
+
+  method stroke-extents ( --> List )
+
+List returns;
+=item Num; left of the resulting extents
+=item Num; top of the resulting extents
+=item Num; right of the resulting extents
+=item Num; bottom of the resulting extents
 =end pod
 
-method stroke-extents ( Num() $x1, Num() $y1, Num() $x2, Num() $y2 ) {
+method stroke-extents ( --> List ) {
+
+  my gdouble $x1;
+  my gdouble $y1;
+  my gdouble $x2;
+  my gdouble $y2;
 
   cairo_stroke_extents(
     self._get-native-object-no-reffing, $x1, $y1, $x2, $y2
-  )
+  );
+
+  ( $x1.Num, $y1.Num, $x2.Num, $y2.Num)
 }
 
 sub cairo_stroke_extents (
@@ -2806,21 +2862,20 @@ sub cairo_stroke_extents (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:stroke-preserve:
+#TM:1:stroke-preserve:
 =begin pod
 =head2 stroke-preserve
 
-A drawing operator that strokes the current path according to the current line width, line join, line cap, and dash settings. Unlike C<stroke()>, C<stroke-preserve()> preserves the path within the cairo context.  See C<set-line-width()>, C<set-line-join()>, C<set-line-cap()>, C<set-dash()>, and C<stroke-preserve()>.
+A drawing operator that strokes the current path according to the current line width, line join, line cap, and dash settings. Unlike C<stroke()>, C<stroke-preserve()> preserves the path within the cairo context.
+
+See C<set-line-width()>, C<set-line-join()>, C<set-line-cap()>, C<set-dash()>, and C<stroke-preserve()>.
 
   method stroke-preserve ( )
 
 =end pod
 
 method stroke-preserve ( ) {
-
-  cairo_stroke_preserve(
-    self._get-native-object-no-reffing,
-  )
+  cairo_stroke_preserve(self._get-native-object-no-reffing)
 }
 
 sub cairo_stroke_preserve (
@@ -2833,19 +2888,34 @@ sub cairo_stroke_preserve (
 =begin pod
 =head2 tag-begin
 
-Create a destination for a hyperlink. Destination tag attributes are detailed at [Destinations][dests].   CAIRO_TAG_LINK:  Create hyperlink. Link tag attributes are detailed at [Links][links].  Since: 1.16 cairo_tag_begin:  Marks the beginning of the I<tag_name> structure. Call C<tag-end()> with the same I<tag_name> to mark the end of the structure.  The attributes string is of the form "key1=value2 key2=value2 ...". Values may be boolean (true/false or 1/0), integer, float, string, or an array.  String values are enclosed in single quotes ('). Single quotes and backslashes inside the string should be escaped with a backslash.  Boolean values may be set to true by only specifying the key. eg the attribute string "key" is the equivalent to "key=true".  Arrays are enclosed in '[]'. eg "rect=[1.2 4.3 2.0 3.0]".  If no attributes are required, I<attributes> can be an empty string or NULL.  See [Tags and Links Description][cairo-Tags-and-Links.description] for the list of tags and attributes.  Invalid nesting of tags or invalid attributes will cause this context to shutdown with a status of C<CAIRO_STATUS_TAG_ERROR>.  See C<tag-end()>.  Since: 1.16
+Marks the beginning of the I<t$ag-name> structure. Call C<tag-end()> with the same I<$tag-name> to mark the end of the structure.
 
-  method tag-begin ( )
+The C<$attributes> string is of the form "key1=value2 key2=value2 ...". Values may be boolean (true/false or 1/0), integer, float, string, or an array. String values are enclosed in single quotes ('). Single quotes and backslashes inside the string should be escaped with a backslash. Boolean values may be set to true by only specifying the key. E.g. the attribute string "key" is the equivalent to "key=true". Arrays are enclosed in '[]'. E.g. "rect=[1.2 4.3 2.0 3.0]".
 
-=item $tag_name;
-=item $attributes;
+If no attributes are required, I<attributes> can be an empty string or NULL. Invalid nesting of tags or invalid attributes will cause this context to shutdown with a status of C<CAIRO_STATUS_TAG_ERROR>.
+
+For example;
+
+  with $cairo {
+    .tag-begin( CAIRO_TAG_LINK, "uri='https://cairographics.org'");
+    .move-to( 50, 50);
+    .show-text('This is a link to the cairo website.');
+    .tag-end(CAIRO_TAG_LINK);
+  }
+
+See C<tag-end()>.
+
+  method tag-begin ( Str $tag_name, Str $attributes )
+
+=item $tag-name; The tag name. This can only be one of C<CAIRO_TAG_LINK> or C<CAIRO_TAG_DEST>.
+=item $attributes; tag attributes.
 =end pod
 
-method tag-begin ( ) {
+constant CAIRO_TAG_LINK is export = 'Link';
+constant CAIRO_TAG_DEST is export = 'cairo.dest';
 
-  cairo_tag_begin(
-    self._get-native-object-no-reffing, my gint $tag_name, my gint $attributes
-  )
+method tag-begin ( Str $tag_name, Str $attributes ) {
+  cairo_tag_begin( self._get-native-object-no-reffing, $tag_name, $attributes)
 }
 
 sub cairo_tag_begin (
@@ -2860,16 +2930,13 @@ sub cairo_tag_begin (
 
 Marks the end of the I<tag_name> structure.  Invalid nesting of tags will cause this context to shutdown with a status of C<CAIRO_STATUS_TAG_ERROR>.  See C<tag-begin()>.
 
-  method tag-end ( )
+  method tag-end ( Str $tag_name )
 
-=item $tag_name; a cairo context
+=item $tag_name; tag name. This can only be one of C<CAIRO_TAG_LINK> or C<CAIRO_TAG_DEST>.
 =end pod
 
-method tag-end ( ) {
-
-  cairo_tag_end(
-    self._get-native-object-no-reffing, my gint $tag_name
-  )
+method tag-end ( Str $tag_name ) {
+  cairo_tag_end( self._get-native-object-no-reffing, $tag_name)
 }
 
 sub cairo_tag_end (
@@ -2911,18 +2978,25 @@ sub cairo_text_extents (
 =begin pod
 =head2 text-path
 
-Adds closed paths for text to the current path.  The generated path if filled, achieves an effect similar to that of C<show-text()>.  Text conversion and positioning is done similar to C<show-text()>.  Like C<show-text()>, After this call the current point is moved to the origin of where the next glyph would be placed in this same progression.  That is, the current point will be at the origin of the final glyph offset by its advance values. This allows for chaining multiple calls to to C<text-path()> without having to set current point in between.  Note: The C<text-path()> function call is part of what the cairo designers call the "toy" text API. It is convenient for short demos and simple programs, but it is not expected to be adequate for serious text-using applications. See C<glyph-path()> for the "real" text path API in cairo.
+Adds closed paths for text to the current path.
 
-  method text-path ( )
+The generated path if filled, achieves an effect similar to that of C<show-text()>.
 
-=item $utf8; a cairo context
+Text conversion and positioning is done similar to C<show-text()>.
+
+Like C<show-text()>, After this call the current point is moved to the origin of where the next glyph would be placed in this same progression.
+
+That is, the current point will be at the origin of the final glyph offset by its advance values. This allows for chaining multiple calls to to C<text-path()> without having to set current point in between.
+
+Note: The C<text-path()> function call is part of what the cairo designers call the "toy" text API. It is convenient for short demos and simple programs, but it is not expected to be adequate for serious text-using applications. See C<glyph-path()> for the "real" text path API in cairo.
+
+  method text-path ( Str $utf8 )
+
+=item $utf8; a string of text encoded in UTF-8.
 =end pod
 
-method text-path ( ) {
-
-  cairo_text_path(
-    self._get-native-object-no-reffing, my gint $utf8
-  )
+method text-path ( Str $utf8 ) {
+  cairo_text_path( self._get-native-object-no-reffing, $utf8)
 }
 
 sub cairo_text_path (
@@ -2939,14 +3013,11 @@ Modifies the current transformation matrix (CTM) by applying I<matrix> as an add
 
   method transform ( cairo_matrix_t $matrix )
 
-=item cairo_matrix_t $matrix; a cairo context
+=item $matrix; a transformation to be applied to the user-space axes
 =end pod
 
 method transform ( cairo_matrix_t $matrix ) {
-
-  cairo_transform(
-    self._get-native-object-no-reffing, $matrix
-  )
+  cairo_transform( self._get-native-object-no-reffing, $matrix)
 }
 
 sub cairo_transform (

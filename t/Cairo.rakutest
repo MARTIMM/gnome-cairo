@@ -63,16 +63,17 @@ subtest 'Manipulations', {
       .arc-negative( 0, 0, 1, 0, 2 * π);
       .clip;
       my cairo_rectangle_list_t $rl = .copy-clip-rectangle-list;
-      diag $rl.gist;
+#      diag $rl.gist;
       is cairo_status_t($rl.status), CAIRO_STATUS_CLIP_NOT_REPRESENTABLE,
         '.copy-clip-rectangle-list() status';
       .clip-preserve;
+      .stroke-preserve;
       .reset-clip;
       .copy-page;
       .restore;
     }
   }, '.save(), .arc(), .arc-negative(), .clip(), .restore, ' ~
-     '.clip-preserve(), .reset-clip(), .copy-page(), ' ~
+     '.clip-preserve(), .stroke-preserve(), .reset-clip(), .copy-page(), ' ~
      '.copy-clip-rectangle-list()';
 
 
@@ -119,7 +120,7 @@ subtest 'Manipulations', {
     my Gnome::Cairo::Matrix $matrix = $c.get-font-matrix;
     $matrix.invert;
     $c.set-font-matrix($matrix);
-    diag $matrix.get-native-object.gist;
+#    diag $matrix.get-native-object.gist;
   }, '.set-font-matrix() / .get-font-matrix()';
 
   my Gnome::Cairo::FontOptions $fo = $c.get-font-options;
@@ -219,6 +220,7 @@ subtest 'Manipulations', {
     is-deeply .path-extents, ( 2e1, 2e1, 3e1, 3e1), '.path-extents()';
     is-deeply .clip-extents, ( 0e0, 0e0, 1.28e2, 1.28e2), '.clip-extents()';
     is-deeply .fill-extents, ( 2e1, 2e1, 3e1, 3e1), '.fill-extents()';
+    is-deeply .stroke-extents, ( 0e0, 0e0, 0e0, 0e0), '.stroke-extents()';
 
     .rectangle( 21, 21, 10, 11);
     is-deeply .path-extents, ( 2e1, 2e1, 3.1e1, 3.2e1), '.rectangle()';
