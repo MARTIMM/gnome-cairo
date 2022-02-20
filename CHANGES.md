@@ -1,4 +1,7 @@
 ## Release notes
+* 2022-01- 0.2.6
+  * Bugfixes in **Gnome::Cairo**.
+
 * 2022-01- 0.2.5
   * Reviewed doc of **Gnome::Cairo::Surface**, **Gnome::Cairo::FontFace**, **Gnome::Cairo::Matrix** and **Gnome::Cairo::FontOptions** and added some tests.
 
