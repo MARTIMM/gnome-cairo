@@ -889,13 +889,14 @@ sub cairo_get_font_matrix (
 =begin pod
 =head2 get-font-options
 
-Retrieves font rendering options set via B<cairo_set_font_options>. Note that the returned options do not include any options derived from the underlying surface; they are literally the options passed to C<set-font-options()>.
+Retrieves font rendering options set via C<set-font-options()>. Note that the returned options do not include any options derived from the underlying surface; they are literally the options passed to C<set-font-options()>.
 
-  method get-font-options ( cairo_font_options_t $options )
+  method get-font-options ( cairo_font_options_t $options --> N-GObject )
 
 =item cairo_font_options_t $options; a B<cairo_t>
 =end pod
 
+#`{{
 method get-font-options ( ) {
   my cairo_font_options_t $options .= new;
   self._wrap-native-type(
@@ -903,9 +904,16 @@ method get-font-options ( ) {
     cairo_get_font_options( self._get-native-object-no-reffing, $options)
   )
 }
+}}
+
+method get-font-options ( --> Any ) {
+  my cairo_font_options_t $options .= new;
+  cairo_get_font_options( self._get-native-object-no-reffing, $options);
+  self._wrap-native-type( 'Gnome::Cairo::FontOptions', $options)
+}
 
 sub cairo_get_font_options (
-  cairo_t $cr, cairo_font_options_t $options
+  cairo_t $cr, cairo_font_options_t $options is rw
 ) is native(&cairo-lib)
   { * }
 
@@ -2857,7 +2865,7 @@ method stroke-extents ( --> List ) {
 }
 
 sub cairo_stroke_extents (
-  cairo_t $cr, gdouble $x1, gdouble $y1, gdouble $x2, gdouble $y2
+  cairo_t $cr, gdouble $x1 is rw, gdouble $y1 is rw, gdouble $x2 is rw, gdouble $y2 is rw
 ) is native(&cairo-lib)
   { * }
 

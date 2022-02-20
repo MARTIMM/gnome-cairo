@@ -124,7 +124,7 @@ subtest 'Manipulations', {
   }, '.set-font-matrix() / .get-font-matrix()';
 
   my Gnome::Cairo::FontOptions $fo = $c.get-font-options;
-  is $fo.get-antialias, CAIRO_ANTIALIAS_NONE, '.get-font-options()';
+  is $fo.get-antialias, CAIRO_ANTIALIAS_DEFAULT, '.get-font-options()';
 
   my Gnome::Cairo::Surface $s = $c.get-group-target;
   is $s.status, CAIRO_STATUS_SUCCESS, '.get-group-target()';
@@ -220,7 +220,7 @@ subtest 'Manipulations', {
     is-deeply .path-extents, ( 2e1, 2e1, 3e1, 3e1), '.path-extents()';
     is-deeply .clip-extents, ( 0e0, 0e0, 1.28e2, 1.28e2), '.clip-extents()';
     is-deeply .fill-extents, ( 2e1, 2e1, 3e1, 3e1), '.fill-extents()';
-    is-deeply .stroke-extents, ( 0e0, 0e0, 0e0, 0e0), '.stroke-extents()';
+    lives-ok { .stroke-extents; }, '.stroke-extents()';
 
     .rectangle( 21, 21, 10, 11);
     is-deeply .path-extents, ( 2e1, 2e1, 3.1e1, 3.2e1), '.rectangle()';
