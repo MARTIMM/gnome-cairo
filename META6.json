@@ -1,7 +1,7 @@
 {
   "description": "Raku Gnome Cairo api, Please install Gnome::Gtk3",
   "name": "Gnome::Cairo",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "authors": [ "Marcel Timmerman"],
   "tags": [ "drawing", "cairo", "gtk", "gdk"],
 
@@ -13,10 +13,10 @@
     "Gnome::Cairo::FontFace": "lib/Gnome/Cairo/FontFace.rakumod",
     "Gnome::Cairo::FontOptions": "lib/Gnome/Cairo/FontOptions.rakumod",
     "Gnome::Cairo::ImageSurface": "lib/Gnome/Cairo/ImageSurface.rakumod",
-    "Gnome::Cairo::Matrix": "lib/Gnome/Cairo/Matrix.pm6",
+    "Gnome::Cairo::Matrix": "lib/Gnome/Cairo/Matrix.rakumod",
     "Gnome::Cairo::Path": "lib/Gnome/Cairo/Path.rakumod",
     "Gnome::Cairo::Pattern": "lib/Gnome/Cairo/Pattern.rakumod",
-    "Gnome::Cairo::ScaledFont": "lib/Gnome/Cairo/ScaledFont.pm6",
+    "Gnome::Cairo::ScaledFont": "lib/Gnome/Cairo/ScaledFont.rakumod",
     "Gnome::Cairo::Surface": "lib/Gnome/Cairo/Surface.rakumod",
     "Gnome::Cairo::Types": "lib/Gnome/Cairo/Types.rakumod",
 
