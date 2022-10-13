@@ -1,4 +1,7 @@
 ## Release notes
+* 2022-10-13 0.2.7
+  * File extensions renamed
+
 * 2022-01- 0.2.6
   * Bugfixes in **Gnome::Cairo**.
 
