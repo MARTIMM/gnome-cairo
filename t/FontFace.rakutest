@@ -7,6 +7,8 @@ use Gnome::Cairo;
 use Gnome::Cairo::FontFace;
 use Gnome::Cairo::Enums;
 
+#use Gnome::N::GlibToRakuTypes;
+#use Gnome::N::N-GObject;
 #use Gnome::N::X;
 #Gnome::N::debug(:on);
 
@@ -40,5 +42,4 @@ subtest 'Manipulations', {
 
 #-------------------------------------------------------------------------------
 done-testing;
-
 =finish
