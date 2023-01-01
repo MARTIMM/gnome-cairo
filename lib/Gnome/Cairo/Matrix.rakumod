@@ -246,10 +246,35 @@ submethod BUILD ( *%options ) {
 # no pod. user does not have to know about it.
 method _fallback ( $native-sub is copy --> Callable ) {
 
+  my Str $new-patt = $native-sub.subst( '_', '-', :g);
+
   my Callable $s;
   try { $s = &::("cairo_matrix_$native-sub"); };
-  try { $s = &::("cairo_$native-sub"); } unless ?$s;
-  try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'cairo_' /;
+  if ?$s {
+    Gnome::N::deprecate(
+      "cairo_matrix_$native-sub", $new-patt, '0.2.8', '0.3.0'
+    );
+  }
+
+  else {
+    try { $s = &::("cairo_$native-sub"); } unless ?$s;
+    if ?$s {
+      Gnome::N::deprecate(
+        "cairo_$native-sub", $new-patt.subst('matrix-'),
+        '0.2.8', '0.3.0'
+      );
+    }
+
+    else {
+      try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'cairo_' /;
+      if ?$s {
+        Gnome::N::deprecate(
+          "$native-sub", $new-patt.subst('cairo-matrix-'),
+          '0.2.8', '0.3.0'
+        );
+      }
+    }
+  }
 
   $s = callsame unless ?$s;
 
@@ -307,9 +332,10 @@ method init (
 }
 }}
 
-sub cairo_matrix_init (
+sub _cairo_matrix_init (
   cairo_matrix_t $matrix, gdouble $xx, gdouble $yx, gdouble $xy, gdouble $yy, gdouble $x0, gdouble $y0
 ) is native(&cairo-lib)
+  is symbol('cairo_matrix_init')
   { * }
 
 #-------------------------------------------------------------------------------
@@ -329,9 +355,11 @@ method init-identity ( ) {
 }
 }}
 
-sub cairo_matrix_init_identity (
+sub _cairo_matrix_init_identity (
   cairo_matrix_t $matrix
 ) is native(&cairo-lib)
+  is symbol('cairo_matrix_init_identity')
+
   { * }
 
 #-------------------------------------------------------------------------------
@@ -355,9 +383,10 @@ method init-rotate ( Num() $radians ) {
 }
 }}
 
-sub cairo_matrix_init_rotate (
+sub _cairo_matrix_init_rotate (
   cairo_matrix_t $matrix, gdouble $radians
 ) is native(&cairo-lib)
+  is symbol('cairo_matrix_init_rotate')
   { * }
 
 #-------------------------------------------------------------------------------
