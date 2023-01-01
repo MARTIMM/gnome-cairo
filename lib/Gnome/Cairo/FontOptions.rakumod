@@ -124,10 +124,35 @@ submethod BUILD ( *%options ) {
 # no pod. user does not have to know about it.
 method _fallback ( $native-sub is copy --> Callable ) {
 
+  my Str $new-patt = $native-sub.subst( '_', '-', :g);
+
   my Callable $s;
   try { $s = &::("cairo_font_options_$native-sub"); };
-  try { $s = &::("cairo_$native-sub"); } unless ?$s;
-  try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'cairo_' /;
+  if ?$s {
+    Gnome::N::deprecate(
+      "cairo_font_options_$native-sub", $new-patt, '0.2.8', '0.3.0'
+    );
+  }
+
+  else {
+    try { $s = &::("cairo_$native-sub"); } unless ?$s;
+    if ?$s {
+      Gnome::N::deprecate(
+        "cairo_$native-sub", $new-patt.subst('font-options-'),
+        '0.2.8', '0.3.0'
+      );
+    }
+
+    else {
+      try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'cairo_' /;
+      if ?$s {
+        Gnome::N::deprecate(
+          "$native-sub", $new-patt.subst('cairo-font-options-'),
+          '0.2.8', '0.3.0'
+        );
+      }
+    }
+  }
 
   $s = callsame unless ?$s;
 
