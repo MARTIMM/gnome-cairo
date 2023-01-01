@@ -1,4 +1,7 @@
 ## Release notes
+* 2023-01-01 0.2.8
+  * Add deprecation messages of old code in **Gnome::Cairo::FontFace**,  **Gnome::Cairo::FontOptions**, **Gnome::Cairo::ImageSurface**, **Gnome::Cairo::Matrix**.
+
 * 2022-10-13 0.2.7
   * File extensions renamed
 
