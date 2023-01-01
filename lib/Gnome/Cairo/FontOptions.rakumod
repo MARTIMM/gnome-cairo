@@ -80,7 +80,7 @@ submethod BUILD ( *%options ) {
 
     else {
       my $no;
-      if ? %options<> {
+      if ? %options<___xxx___> {
 #        $no = %options<>;
 #        $no .= _get-native-object-no-reffing unless $no ~~ cairo_font_options_t;
 #        $no = _.cairo_font_options_new_..($no);
@@ -197,7 +197,7 @@ sub _cairo_font_options_create ( --> cairo_font_options_t )
 
 Allocates a new font options object copying the option values from I<original>.
 
-Return value: a newly allocated B<cairo_font_options_t>. Free with C<cairo_font_options_destroy()>. This function always returns a valid pointer; if memory cannot be allocated, then a special error object is returned where all operations on the object do nothing. You can check for this with C<cairo_font_options_status()>.
+Return value: a newly allocated B<cairo_font_options_t>. Free with C<cairo_font_options_destroy()>. This function always returns a valid pointer; if memory cannot be allocated, then a special error object is returned where all operations on the object do nothing. You can check for this with C<.status()>.
 
   method cairo_font_options_copy ( --> cairo_font_options_t )
 
