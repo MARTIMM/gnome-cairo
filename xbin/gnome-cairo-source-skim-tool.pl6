@@ -13,17 +13,8 @@ my @cairodirlist = "$root-dir/xbin/cairo-list.txt".IO.slurp.lines;
 $root-dir = '/home/marcel/Languages/Raku/Projects/gnome-gtk3';
 my @enum-list = "$root-dir/Design-docs/skim-tool-enum-list".IO.slurp.lines;
 
-#my Bool $class-is-leaf;
-#my Bool $class-is-role; # is leaf implicitly
-#my Bool $class-is-top;
 #-------------------------------------------------------------------------------
-sub MAIN (
-  Str:D $base-name, Bool :$main = False,
-  Bool :$sub = False, Bool :$types = False, Bool :$test = False,
-
-# force true because cairo doesn't do casting...
-#  Bool :$leaf = True
-) {
+sub MAIN ( Str:D $base-name ) {
 
   my Str $*base-sub-name;
   my Str $*library = '';
@@ -32,26 +23,24 @@ sub MAIN (
   my Str $*raku-class-name;
   my Str $*no-type-name;
   my Str $*output-file;
-
-  my Bool $do-all = !( [or] $main, $sub, $types, $test );
-#  $class-is-leaf = $leaf;
+  my Str $*cairo-version = "1.17.6";
 
   $*base-sub-name = $*base-sub-name // $base-name;
 
-  my Bool $file-found;
   my Str ( $include-content, $source-content);
   $*base-sub-name = $*base-sub-name // $base-name;
 
   ( $include-content, $source-content) = setup-names($base-name);
 
+  # test for dir 'xt'
   mkdir( 'xt', 0o766) unless 'xt'.IO.e;
   mkdir( 'xt/NewModules', 0o766) unless 'xt/NewModules'.IO.e;
 
   ( $section-doc, $short-description, $see-also) = get-section($source-content);
 
-  substitute-in-template( $do-all, $main, $types, $include-content);
-  get-subroutines( $include-content, $source-content) if $do-all or $sub;
-  generate-test if $test or $do-all;
+  substitute-in-template( $include-content);
+  get-subroutines( $include-content, $source-content);
+  generate-test;
 }
 
 
@@ -230,69 +219,33 @@ sub get-subroutines( Str:D $include-content, Str:D $source-content ) {
 
     # process new subroutines. they will be sorted to the end and do not get a
     # method because they are accessed from BUILD. Also doc is commented out.
-#    if $class-is-leaf {
-      $pod-doc-key = $pod-sub-name;
+  $pod-doc-key = $pod-sub-name;
 
-      $sub = Q:qq:to/EOSUB/;
+  $sub = Q:qq:to/EOSUB/;
 
-        $start-comment#-------------------------------------------------------------------------------
-        #TM:0:$pod-sub-name:
-        =begin pod
-        =head2 $pod-sub-name
+    $start-comment#-------------------------------------------------------------------------------
+    #TM:0:$pod-sub-name:
+    =begin pod
+    =head2 $pod-sub-name
 
-        $sub-doc
+    $sub-doc
 
-          method $pod-sub-name ($pod-args$pod-returns )
+      method $pod-sub-name ($pod-args$pod-returns )
 
-        $pod-doc-items=end pod
+    $pod-doc-items=end pod
 
-        method $pod-sub-name ($method-args$pod-returns ) \{
-        $convert-lines
-          $sub-name\(
-            self\._get-native-object-no-reffing,$call-args
-          )$return-conversion$return-dot-comma
-        \}
+    method $pod-sub-name ($method-args$pod-returns ) \{
+    $convert-lines
+      $sub-name\(
+        self\._get-native-object-no-reffing,$call-args
+      )$return-conversion$return-dot-comma
+    \}
 
-        sub $sub-name (
-          $args $returns
-        ) is native($*library)
-          \{ * \}$end-comment
-        EOSUB
-#    }
-
-#`{{
-    # process methods in other classes. they do need casting
-    else {
-      $pod-doc-key = $pod-sub-name;
-#note "get sub as $pod-sub-name";
-
-      $sub = Q:qq:to/EOSUB/;
-
-        $start-comment#-------------------------------------------------------------------------------
-        #TM:0:$pod-sub-name:
-        =begin pod
-        =head2 $pod-sub-name
-
-        $sub-doc
-
-          method $pod-sub-name ($pod-args$pod-returns )
-
-        $pod-doc-items=end pod
-
-        method $pod-sub-name ($method-args$pod-returns ) \{
-        $convert-lines
-          $sub-name\(
-            self\._f\('$*lib-class-name'),$call-args
-          )$return-conversion$return-dot-comma
-        \}
-
-        sub $sub-name (
-          $args $returns
-        ) is native($*library)
-          \{ * \}$end-comment
-        EOSUB
-    }
-}}
+    sub $sub-name (
+      $args $returns
+    ) is native($*library)
+      \{ * \}$end-comment
+    EOSUB
 #    note $sub;
 
     $sub-documents{$pod-doc-key} = $sub;
@@ -442,7 +395,7 @@ sub setup-names ( Str:D $*base-sub-name --> List ) {
 
   my Str ( $include-content, $source-content) = ( '', '');
   my Bool $file-found = False;
-  my $path = "$source-root/cairo-1.16.0/src";
+  my $path = "$source-root/cairo-$*cairo-version/src";
 
 #note "Include $path/$include-file.h";
   if "$path/$include-file.h".IO.r {
@@ -469,6 +422,10 @@ sub setup-names ( Str:D $*base-sub-name --> List ) {
   if $file-found {
     $*library = "&cairo-lib";
     $*raku-lib-name = 'Cairo';
+  }
+
+  else {
+    die "source files not found";
   }
 
 #note "Library: $library, $lib-class, $*raku-lib-name";
@@ -506,9 +463,7 @@ sub pod-sub-name ( Str:D $sub-name --> Str ) {
 }
 
 #-------------------------------------------------------------------------------
-sub substitute-in-template (
-  Bool $do-all, Bool $main, Bool $types, Str $include-content
-) {
+sub substitute-in-template ( Str $include-content ) {
 
   my Str $template-text = Q:q:to/EOTEMPLATE/;
     #TL:0:Gnome::LIBRARYMODULE:
@@ -588,107 +543,105 @@ sub substitute-in-template (
 
   $*output-file.IO.spurt($template-text);
 
-  get-vartypes($include-content) if $do-all or $types;
+  get-vartypes($include-content);
 
-  if $do-all or $main {
-    $template-text = Q:q:to/EOTEMPLATE/;
-      #-------------------------------------------------------------------------------
-      =begin pod
-      =end pod
-      #TT:0:NO-TYPE-NAME
-      class NO-TYPE-NAME
-        is repr('CPointer')
-        is export
-        { }
+  $template-text = Q:q:to/EOTEMPLATE/;
+    #-------------------------------------------------------------------------------
+    =begin pod
+    =end pod
+    #TT:0:NO-TYPE-NAME
+    class NO-TYPE-NAME
+      is repr('CPointer')
+      is export
+      { }
 
-      #-------------------------------------------------------------------------------
-      =begin pod
-      =head1 Methods
-      =head2 new
+    #-------------------------------------------------------------------------------
+    =begin pod
+    =head1 Methods
+    =head2 new
 
-      =head3 default, no options
+    =head3 default, no options
 
-      Create a new RAKU-CLASS-NAME object.
+    Create a new RAKU-CLASS-NAME object.
 
-        multi method new ( )
+      multi method new ( )
 
 
-      =head3 :native-object
+    =head3 :native-object
 
-      Create a RAKU-CLASS-NAME object using a native object from elsewhere. See also B<Gnome::N::TopLevelClassSupport>.
+    Create a RAKU-CLASS-NAME object using a native object from elsewhere. See also B<Gnome::N::TopLevelClassSupport>.
 
-        multi method new ( N-GObject :$native-object! )
+      multi method new ( N-GObject :$native-object! )
 
-      =end pod
+    =end pod
 
-      #TM:0:new():
-      #TM:4:new(:native-object):Gnome::N::TopLevelClassSupport
-      submethod BUILD ( *%options ) {
+    #TM:0:new():
+    #TM:4:new(:native-object):Gnome::N::TopLevelClassSupport
+    submethod BUILD ( *%options ) {
 
-        # prevent creating wrong native-objects
-        if self.^name eq 'Gnome::LIBRARYMODULE' #`{{ or %options<LIBCLASSNAME> }} {
+      # prevent creating wrong native-objects
+      if self.^name eq 'Gnome::LIBRARYMODULE' #`{{ or %options<LIBCLASSNAME> }} {
 
-          # check if native object is set by a parent class
-          if self.is-valid { }
+        # check if native object is set by a parent class
+        if self.is-valid { }
 
-          # process all options
+        # process all options
 
-          # check if common options are handled by some parent
-          elsif %options<native-object>:exists { }
+        # check if common options are handled by some parent
+        elsif %options<native-object>:exists { }
 
-          #`{{ if there are options
-          else {
-            my $no;
-            if ? %options<> {
-              $no = %options<>;
-              $no .= _get-native-object-no-reffing unless $no ~~ BASE-SUBNAME_t;
-              $no = _.BASE-SUBNAME_new_..($no);
-            }
+        #`{{ if there are options
+        else {
+          my $no;
+          if ? %options<> {
+            $no = %options<>;
+            $no .= _get-native-object-no-reffing unless $no ~~ BASE-SUBNAME_t;
+            $no = _.BASE-SUBNAME_new_..($no);
+          }
 
-            #`{{ use this when the module is not made inheritable
-            # check if there are unknown options
-            elsif %options.elems {
-              die X::Gnome.new(
-                :message(
-                  'Unsupported, undefined, incomplete or wrongly typed options for ' ~
-                  self.^name ~ ': ' ~ %options.keys.join(', ')
-                )
-              );
-            }
-            }}
-
-            #`{{ when there are no defaults use this
-            # check if there are any options
-            elsif %options.elems == 0 {
-              die X::Gnome.new(:message('No options specified ' ~ self.^name));
-            }
-            }}
-
-            #`{{ when there are defaults use this instead
-            # create default object
-            else {
-              $no = _BASE-SUBNAME_new();
-            }
-            }}
-
-            self.set-native-object($no);
+          #`{{ use this when the module is not made inheritable
+          # check if there are unknown options
+          elsif %options.elems {
+            die X::Gnome.new(
+              :message(
+                'Unsupported, undefined, incomplete or wrongly typed options for ' ~
+                self.^name ~ ': ' ~ %options.keys.join(', ')
+              )
+            );
           }
           }}
 
-          # only after creating the native-object
-      #    self._set-class-info('LIBCLASSNAME');
+          #`{{ when there are no defaults use this
+          # check if there are any options
+          elsif %options.elems == 0 {
+            die X::Gnome.new(:message('No options specified ' ~ self.^name));
+          }
+          }}
+
+          #`{{ when there are defaults use this instead
+          # create default object
+          else {
+            $no = _BASE-SUBNAME_new();
+          }
+          }}
+
+          self.set-native-object($no);
         }
+        }}
+
+        # only after creating the native-object
+    #    self._set-class-info('LIBCLASSNAME');
       }
+    }
 
-      EOTEMPLATE
+    EOTEMPLATE
 
-    $template-text ~~ s:g/ 'NO-TYPE-NAME' /$*no-type-name/;
-    $template-text ~~ s:g/ 'RAKU-CLASS-NAME' /$*raku-class-name/;
-    $template-text ~~ s:g/ 'LIBRARYMODULE' /{$*raku-lib-name}::{$*raku-class-name}/;
-    $template-text ~~ s:g/ 'BASE-SUBNAME' /$*base-sub-name/;
-    $template-text ~~ s:g/ 'LIBCLASSNAME' /$*lib-class-name/;
-    $*output-file.IO.spurt( $template-text, :append);
-  }
+  $template-text ~~ s:g/ 'NO-TYPE-NAME' /$*no-type-name/;
+  $template-text ~~ s:g/ 'RAKU-CLASS-NAME' /$*raku-class-name/;
+  $template-text ~~ s:g/ 'LIBRARYMODULE' /{$*raku-lib-name}::{$*raku-class-name}/;
+  $template-text ~~ s:g/ 'BASE-SUBNAME' /$*base-sub-name/;
+  $template-text ~~ s:g/ 'LIBCLASSNAME' /$*lib-class-name/;
+  $*output-file.IO.spurt( $template-text, :append);
 }
 
 #-------------------------------------------------------------------------------
@@ -1125,6 +1078,8 @@ sub generate-test ( ) {
     use Gnome::Cairo::Types;
     use Gnome::Cairo::Enums;
 
+    #use Gnome::N::GlibToRakuTypes;
+    #use Gnome::N::N-GObject;
     #use Gnome::N::X;
     #Gnome::N::debug(:on);
 
