@@ -83,7 +83,7 @@ class cairo_font_options_t is repr('CPointer') is export { }
 =head2 cairo_scaled_font_t
 =end pod
 
-#TT:0:cairo_scaled_font_t
+#TT:1:cairo_scaled_font_t
 class cairo_scaled_font_t is repr('CPointer') is export { }
 
 #-------------------------------------------------------------------------------
