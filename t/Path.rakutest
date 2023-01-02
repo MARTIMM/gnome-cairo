@@ -19,8 +19,8 @@ my Gnome::Cairo::Path $p;
 subtest 'ISA test', {
   $is .= new( :format(CAIRO_FORMAT_RGB24), :width(128), :height(128));
   $c .= new(:surface($is));
-
   $p .= new(:native-object($c.copy-path));
+
   isa-ok $p, Gnome::Cairo::Path, '.new(:native-object)';
   $p.clear-object;
 }
@@ -79,6 +79,11 @@ subtest 'Manipulations', {
   $c.append-path($p);
   $p .= new(:native-object($c.copy-path));
   is $p.length, 8, '.append-path()';
+
+#my cairo_path_t $np = $p.get-native-object-no-reffing;
+#note $np.status;
+#note $np.data[0];
+#note $np.num_data;
 
   $p.walk-path( PathParts.new, 'move', 'line', 'curve', 'close');
 }
