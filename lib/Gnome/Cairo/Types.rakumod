@@ -115,8 +115,8 @@ class cairo_device_t is repr('CPointer') is export { }
 
 #TT:1:cairo_path_data_header_t
 class cairo_path_data_header_t is repr('CStruct') is export {
-  has uint32 $.type;                  # enum cairo_path_data_type_t
-  has int32 $.length;                 # nbr points following header
+  has guint32 $.type;                  # enum cairo_path_data_type_t
+  has gint32 $.length;                 # nbr points following header
 }
 
 #TT:1:cairo_path_data_point_t
@@ -138,9 +138,9 @@ class cairo_path_data_t is repr('CUnion') is export {
 
 #TT:1:cairo_path_t
 class cairo_path_t is repr('CStruct') is export {
-  has uint32 $.status;                # enum cairo_status_t
-  has Pointer[cairo_path_data_t] $.data;
-  has int32 $.num_data;
+  has guint32 $.status;                # enum cairo_status_t
+  has gpointer[cairo_path_data_t] $.data;
+  has gint32 $.num_data;
 }
 
 #-------------------------------------------------------------------------------
@@ -186,7 +186,7 @@ C<cairo_user_data_key_t> is used for attaching user data to cairo data structure
 
 # TT:0:cairo_user_data_key_t
 class cairo_user_data_key_t is repr('CStruct') is export {
-  has int32 $.unused;
+  has gint32 $.unused;
 }
 }}
 
@@ -205,10 +205,10 @@ A data structure for holding a rectangle with integer coordinates.
 
 #TT:1:cairo_rectangle_int_t
 class cairo_rectangle_int_t is repr('CStruct') is export {
-  has int32 $.x;
-  has int32 $.y;
-  has int32 $.width;
-  has int32 $.height;
+  has gint32 $.x;
+  has gint32 $.y;
+  has gint32 $.width;
+  has gint32 $.height;
 }
 
 #-------------------------------------------------------------------------------
@@ -246,9 +246,9 @@ A data structure for holding a dynamically allocated array of rectangles.
 
 #TT:0:cairo_rectangle_list_t
 class cairo_rectangle_list_t is repr('CStruct') is export {
-  has int32 $.status;          # cairo_status_t
+  has gint32 $.status;          # cairo_status_t
   has CArray $.rectangles;     # array of cairo_rectangle_t
-  has int32 $.num_rectangles;
+  has gint32 $.num_rectangles;
 }
 
 #-------------------------------------------------------------------------------
@@ -285,15 +285,15 @@ For a cluster to be valid, both num_bytes and num_glyphs should be non-negative,
 
 See C<cairo_show_text_glyphs()> for how clusters are used in advanced text operations.
 
-=item int32 $.num_bytes; the number of bytes of UTF-8 text covered by cluster
-=item int32 $.num_glyphs; the number of glyphs covered by cluster
+=item gint32 $.num_bytes; the number of bytes of UTF-8 text covered by cluster
+=item gint32 $.num_glyphs; the number of glyphs covered by cluster
 
 =end pod
 
 #TT:0:cairo_text_cluster_t
 class cairo_text_cluster_t is repr('CStruct') is export {
-  has int32 $.num_bytes;
-  has int32 $.num_glyphs;
+  has gint32 $.num_bytes;
+  has gint32 $.num_glyphs;
 }
 
 
