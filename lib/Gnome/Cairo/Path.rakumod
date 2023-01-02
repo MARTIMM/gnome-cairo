@@ -127,10 +127,35 @@ submethod BUILD ( *%options ) {
 # no pod. user does not have to know about it.
 method _fallback ( $native-sub is copy --> Callable ) {
 
+  my Str $new-patt = $native-sub.subst( '_', '-', :g);
+
   my Callable $s;
   try { $s = &::("cairo_path_$native-sub"); };
-  try { $s = &::("cairo_$native-sub"); } unless ?$s;
-  try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'cairo_' /;
+  if ?$s {
+    Gnome::N::deprecate(
+      "cairo_path_$native-sub", $new-patt, '0.2.8', '0.3.0'
+    );
+  }
+
+  else {
+    try { $s = &::("cairo_$native-sub"); } unless ?$s;
+    if ?$s {
+      Gnome::N::deprecate(
+        "cairo_$native-sub", $new-patt.subst('path-'),
+        '0.2.8', '0.3.0'
+      );
+    }
+
+    else {
+      try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'cairo_' /;
+      if ?$s {
+        Gnome::N::deprecate(
+          "$native-sub", $new-patt.subst('cairo-path-'),
+          '0.2.8', '0.3.0'
+        );
+      }
+    }
+  }
 
 #  self._set-class-name-of-sub('Path');
   $s = callsame unless ?$s;
@@ -161,6 +186,21 @@ Return the length of the data array in the C<cairo_path_t> structure.
 
 method length ( --> UInt ) {
   self._get-native-object-no-reffing.num_data
+}
+
+#-------------------------------------------------------------------------------
+#TM:1:status:
+=begin pod
+=head2 status
+
+Return status from the path structure C<cairo_path_t>.
+
+  method status ( --> cairo_status_t )
+
+=end pod
+
+method status ( --> cairo_status_t ) {
+  cairo_status_t(self._get-native-object-no-reffing.status)
 }
 
 #-----------------------------------------------------------------------------
@@ -227,22 +267,7 @@ method walk-path (
 }
 
 #-------------------------------------------------------------------------------
-#TM:1:status:
-=begin pod
-=head2 status
-
-Return status from the path structure C<cairo_path_t>.
-
-  method status ( --> cairo_status_t )
-
-=end pod
-
-method status ( --> cairo_status_t ) {
-  cairo_status_t(self._get-native-object-no-reffing.status)
-}
-
-#-------------------------------------------------------------------------------
-#TM:0:_cairo_path_destroy:
+#TM:1:_cairo_path_destroy:
 #`{{
 =begin pod
 =head2 cairo_path_destroy

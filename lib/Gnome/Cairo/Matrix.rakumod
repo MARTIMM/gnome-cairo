@@ -167,7 +167,7 @@ submethod BUILD ( *%options ) {
 
         $no .= new;
 
-        cairo_matrix_init(
+        _cairo_matrix_init(
           $no, @nums[0].Num, @nums[1].Num, @nums[2].Num,
                @nums[3].Num, @nums[4].Num, @nums[5].Num
         );
@@ -175,7 +175,7 @@ submethod BUILD ( *%options ) {
 
       elsif ? %options<init-identity> {
         $no .= new;
-        cairo_matrix_init_identity($no);
+        _cairo_matrix_init_identity($no);
       }
 
       elsif ? %options<init-rotate> {
@@ -186,7 +186,7 @@ submethod BUILD ( *%options ) {
 
         $no .= new;
 
-        cairo_matrix_init_rotate( $no, @nums[0].Num);
+        _cairo_matrix_init_rotate( $no, @nums[0].Num);
       }
 
       elsif ? %options<init-scale> {
@@ -197,7 +197,7 @@ submethod BUILD ( *%options ) {
 
         $no .= new;
 
-        cairo_matrix_init_scale( $no, @nums[0].Num, @nums[1].Num);
+        _cairo_matrix_init_scale( $no, @nums[0].Num, @nums[1].Num);
       }
 
       elsif ? %options<init-translate> {
@@ -208,7 +208,7 @@ submethod BUILD ( *%options ) {
 
         $no .= new;
 
-        cairo_matrix_init_translate( $no, @nums[0].Num, @nums[1].Num)
+        _cairo_matrix_init_translate( $no, @nums[0].Num, @nums[1].Num)
       }
 
       ##`{{ use this when the module is not made inheritable
@@ -239,6 +239,8 @@ submethod BUILD ( *%options ) {
 
       self._set-native-object($no);
     }
+
+#  self._set-class-name-of-sub('CairoMatrix');
   }
 }
 
@@ -408,10 +410,11 @@ method init-scale ( Num() $sx, Num() $sy ) {
 }
 }}
 
-sub cairo_matrix_init_scale (
+sub _cairo_matrix_init_scale (
   cairo_matrix_t $matrix, gdouble $sx, gdouble $sy
 ) is native(&cairo-lib)
-  { * }
+  is symbol('cairo_matrix_init_scale')
+ { * }
 
 #-------------------------------------------------------------------------------
 #TM:1:init-translate:
@@ -432,9 +435,10 @@ method init-translate ( Num() $tx, Num() $ty ) {
 }
 }}
 
-sub cairo_matrix_init_translate (
+sub _cairo_matrix_init_translate (
   cairo_matrix_t $matrix, gdouble $tx, gdouble $ty
 ) is native(&cairo-lib)
+  is symbol('cairo_matrix_init_translate')
   { * }
 
 #-------------------------------------------------------------------------------
@@ -508,7 +512,7 @@ sub cairo_matrix_rotate (
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:scale:
+#TM:1:scale:
 =begin pod
 =head2 scale
 
