@@ -1,5 +1,7 @@
 use v6;
 
+unit class Gnome::Cairo::Enums:auth<github:MARTIMM>:api<1>;
+
 
 #-------------------------------------------------------------------------------
 =begin pod
@@ -732,7 +734,7 @@ enum cairo_text_cluster_flags_t is export (
 
 
 =finish
-#unit class Gnome::Cairo::Enums:auth<github:MARTIMM>;
+#unit class Gnome::Cairo::Enums:auth<github:MARTIMM>:api<1>;
 
 #-------------------------------------------------------------------------------
 =begin pod
