@@ -15,6 +15,8 @@ This package can be used on its own but it is meant to be used by the other Gnom
 
 Note that all modules are now in `:api<1>`. This is done to prevent clashes with future distributions having the same class names only differing in this api string. So, add this string to your import statements and dependency modules of these classes in META6.json. Furthermore add this api string also when installing with zef.
 
+I found out while developing the api<2> version, that it is possible to use the Cairo version of Timo. An example of this will be given later. So in some time, this package **Gnome::Cairo** will be deprecated.
+
 # Documentation
 <!--
 * [ 🔗 Website](https://martimm.github.io/gnome-gtk3/content-docs/reference-cairo.html)
