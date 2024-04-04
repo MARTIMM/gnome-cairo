@@ -1,4 +1,7 @@
 ## Release notes
+* 2024-04-04 0.3.0
+  * Add `:api<1>` to all class names. Use statements loading the gnome libs have also the api<1> added. Api 1 is also added the 'META6.json' as well as to the dependencies of other gnome modules.
+
 * 2023-01-01 0.2.8
   * Add deprecation messages of old code in **Gnome::Cairo::FontFace**,  **Gnome::Cairo::FontOptions**, **Gnome::Cairo::ImageSurface**, **Gnome::Cairo::Matrix**.
 

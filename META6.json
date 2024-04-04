@@ -1,11 +1,16 @@
 {
   "description": "Raku Gnome Cairo api, Please install Gnome::Gtk3",
   "name": "Gnome::Cairo",
-  "version": "0.2.8",
+  "version": "0.3.0",
+  "auth": "cpan:MARTIMM",
+  "author": "Marcel Timmerman",
   "authors": [ "Marcel Timmerman"],
-  "tags": [ "drawing", "cairo", "gtk", "gdk"],
+  "tags": [ "gnome", "drawing", "cairo"],
+  "api": "1",
 
-  "perl": "6",
+  "meta-version": "2",
+  "perl": "6.d",
+  "raku": "6.d",
   "license": "Artistic-2.0",
 
   "provides": {
@@ -25,7 +30,7 @@
 
   "source-url": "git://github.com/MARTIMM/gnome-cairo.git",
 
-  "depends": [ "Gnome::N" ],
+  "depends": [ "Gnome::N:api<1>" ],
   "test-depends": [ ],
   "build-depends": [ ],
   "resources": [ ]
