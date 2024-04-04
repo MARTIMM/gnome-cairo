@@ -5,28 +5,28 @@ use v6;
 #use lib '../gnome-gtk3/lib';
 #use lib '../gnome-gdk3/lib';
 
-use Gnome::Cairo::ImageSurface;
+use Gnome::Cairo::ImageSurface:api<1>;
 use Gnome::Cairo;
-use Gnome::Cairo::Pattern;
-use Gnome::Cairo::Enums;
-use Gnome::Cairo::Types;
-use Gnome::Cairo::Surface;
+use Gnome::Cairo::Pattern:api<1>;
+use Gnome::Cairo::Enums:api<1>;
+use Gnome::Cairo::Types:api<1>;
+use Gnome::Cairo::Surface:api<1>;
 
-use Gnome::Glib::Error;
+use Gnome::Glib::Error:api<1>;
 
-use Gnome::Gdk3::Events;
-use Gnome::Gdk3::Window;
-use Gnome::Gdk3::Pixbuf;
+use Gnome::Gdk3::Events:api<1>;
+use Gnome::Gdk3::Window:api<1>;
+use Gnome::Gdk3::Pixbuf:api<1>;
 
-use Gnome::Gtk3::Main;
-#use Gnome::Gtk3::Widget;
-use Gnome::Gtk3::Frame;
-use Gnome::Gtk3::Grid;
-use Gnome::Gtk3::Window;
-use Gnome::Gtk3::Button;
-use Gnome::Gtk3::DrawingArea;
+use Gnome::Gtk3::Main:api<1>;
+#use Gnome::Gtk3::Widget:api<1>;
+use Gnome::Gtk3::Frame:api<1>;
+use Gnome::Gtk3::Grid:api<1>;
+use Gnome::Gtk3::Window:api<1>;
+use Gnome::Gtk3::Button:api<1>;
+use Gnome::Gtk3::DrawingArea:api<1>;
 
-use Gnome::N::X;
+use Gnome::N::X:api<1>;
 #Gnome::N::debug(:on);
 
 #-------------------------------------------------------------------------------

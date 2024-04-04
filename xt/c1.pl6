@@ -2,13 +2,13 @@ use v6;
 #use lib '../gnome-native/lib';
 #use NativeCall;
 
-use Gnome::Cairo::ImageSurface;
+use Gnome::Cairo::ImageSurface:api<1>;
 use Gnome::Cairo;
-use Gnome::Cairo::Pattern;
-use Gnome::Cairo::Enums;
-use Gnome::Cairo::Types;
+use Gnome::Cairo::Pattern:api<1>;
+use Gnome::Cairo::Enums:api<1>;
+use Gnome::Cairo::Types:api<1>;
 
-#use Gnome::N::X;
+#use Gnome::N::X:api<1>;
 #Gnome::N::debug(:on);
 
 # See also https://www.cairographics.org/tutorial/

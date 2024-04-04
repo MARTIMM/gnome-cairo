@@ -40,15 +40,15 @@ Paths are the most basic drawing tools and are primarily used to implicitly gene
 #-------------------------------------------------------------------------------
 use NativeCall;
 
-use Gnome::N::X;
-use Gnome::N::NativeLib;
-use Gnome::N::TopLevelClassSupport;
+use Gnome::N::X:api<1>:api<1>;
+use Gnome::N::NativeLib:api<1>;
+use Gnome::N::TopLevelClassSupport:api<1>;
 
-use Gnome::Cairo::Types;
-use Gnome::Cairo::Enums;
+use Gnome::Cairo::Types:api<1>;
+use Gnome::Cairo::Enums:api<1>;
 
 #-------------------------------------------------------------------------------
-unit class Gnome::Cairo::Path:auth<github:MARTIMM>;
+unit class Gnome::Cairo::Path:auth<github:MARTIMM>:api<1>;
 also is Gnome::N::TopLevelClassSupport;
 
 #-------------------------------------------------------------------------------

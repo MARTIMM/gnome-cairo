@@ -1,10 +1,10 @@
 use v6;
 use NativeCall;
 
-use Gnome::Cairo::Enums;
-use Gnome::N::GlibToRakuTypes;
+use Gnome::Cairo::Enums:api<1>;
+use Gnome::N::GlibToRakuTypes:api<1>;
 
-#unit class Gnome::Cairo::Types:auth<github:MARTIMM>;
+#unit class Gnome::Cairo::Types:auth<github:MARTIMM>:api<1>;
 
 # TODO Must I ?? Rename all classes which are the same as N-Cairo. Using
 # TopLevelClassSupport the same way as Gtk/Gdk/GObject by storing a N-GObject.

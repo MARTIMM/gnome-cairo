@@ -32,15 +32,15 @@ B<cairo_surface_t>
 #-------------------------------------------------------------------------------
 use NativeCall;
 
-use Gnome::N::X;
-use Gnome::N::N-GObject;
-use Gnome::N::NativeLib;
-use Gnome::N::TopLevelClassSupport;
-use Gnome::N::GlibToRakuTypes;
+use Gnome::N::X:api<1>;
+use Gnome::N::N-GObject:api<1>;
+use Gnome::N::NativeLib:api<1>;
+use Gnome::N::TopLevelClassSupport:api<1>;
+use Gnome::N::GlibToRakuTypes:api<1>;
 
-use Gnome::Cairo::Types;
-use Gnome::Cairo::Enums;
-#use Gnome::Cairo::Matrix;
+use Gnome::Cairo::Types:api<1>;
+use Gnome::Cairo::Enums:api<1>;
+#use Gnome::Cairo::Matrix:api<1>;
 
 #-------------------------------------------------------------------------------
 unit class Gnome::Cairo:auth<github:MARTIMM>:api<1>;
@@ -873,10 +873,11 @@ Returns the current font matrix. See C<set-font-matrix()>.
 
 =end pod
 
-method get-font-matrix ( --> Any ) {
+method get-font-matrix ( --> cairo_matrix_t ) {
   my cairo_matrix_t $matrix .= new;
   cairo_get_font_matrix( self._get-native-object-no-reffing, $matrix);
-  self._wrap-native-type( 'Gnome::Cairo::Matrix', $matrix)
+#  self._wrap-native-type( 'Gnome::Cairo::Matrix', $matrix)
+  $matrix
 }
 
 sub cairo_get_font_matrix (

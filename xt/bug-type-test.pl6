@@ -1,10 +1,10 @@
 use v6;
 
-use Gnome::Cairo::ImageSurface;
+use Gnome::Cairo::ImageSurface:api<1>;
 use Gnome::Cairo;
-use Gnome::Cairo::Types;
-use Gnome::Cairo::Enums;
-use Gnome::Cairo::Path;
+use Gnome::Cairo::Types:api<1>;
+use Gnome::Cairo::Enums:api<1>;
+use Gnome::Cairo::Path:api<1>;
 
 say ' ';
 

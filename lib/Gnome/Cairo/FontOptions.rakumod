@@ -31,16 +31,16 @@ B<cairo_scaled_font_t>
 #-------------------------------------------------------------------------------
 use NativeCall;
 
-use Gnome::N::X;
-use Gnome::N::NativeLib;
-use Gnome::N::TopLevelClassSupport;
-use Gnome::N::GlibToRakuTypes;
+use Gnome::N::X:api<1>;
+use Gnome::N::NativeLib:api<1>;
+use Gnome::N::TopLevelClassSupport:api<1>;
+use Gnome::N::GlibToRakuTypes:api<1>;
 
-use Gnome::Cairo::Types;
-use Gnome::Cairo::Enums;
+use Gnome::Cairo::Types:api<1>;
+use Gnome::Cairo::Enums:api<1>;
 
 #-------------------------------------------------------------------------------
-unit class Gnome::Cairo::FontOptions:auth<github:MARTIMM>;
+unit class Gnome::Cairo::FontOptions:auth<github:MARTIMM>:api<1>;
 also is Gnome::N::TopLevelClassSupport;
 
 #-------------------------------------------------------------------------------

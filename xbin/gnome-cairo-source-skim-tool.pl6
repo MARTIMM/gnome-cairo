@@ -496,23 +496,23 @@ sub substitute-in-template ( Str $include-content ) {
     #-------------------------------------------------------------------------------
     use NativeCall;
 
-    use Gnome::N::X;
-    use Gnome::N::NativeLib;
-    use Gnome::N::TopLevelClassSupport;
-    use Gnome::N::GlibToRakuTypes;
+    use Gnome::N::X:api<1>;
+    use Gnome::N::NativeLib:api<1>;
+    use Gnome::N::TopLevelClassSupport:api<1>;
+    use Gnome::N::GlibToRakuTypes:api<1>;
 
-    use Gnome::Cairo::Types;
-    use Gnome::Cairo::Enums;
+    use Gnome::Cairo::Types:api<1>;
+    use Gnome::Cairo::Enums:api<1>;
 
     #-------------------------------------------------------------------------------
-    unit class Gnome::LIBRARYMODULE:auth<github:MARTIMM>;
+    unit class Gnome::LIBRARYMODULE:auth<github:MARTIMM>:api<1>;
     also is Gnome::N::TopLevelClassSupport;
     EOTEMPLATE
 
   # All cairo modules are quite flat. Inheritng only from TopLevelClassSupport
   my Str ( $t1, $t2) = ( '', '');
 #  if $raku-parentlib-name and $raku-parentclass-name {
-#    $t1 = 'use Gnome::N::TopLevelClassSupport;';
+#    $t1 = 'use Gnome::N::TopLevelClassSupport:api<1>;';
 #    $t2 = 'also is Gnome::N::TopLevelClassSupport;';
 #  }
 
@@ -1075,12 +1075,12 @@ sub generate-test ( ) {
 
     use $class;
 
-    use Gnome::Cairo::Types;
-    use Gnome::Cairo::Enums;
+    use Gnome::Cairo::Types:api<1>;
+    use Gnome::Cairo::Enums:api<1>;
 
-    #use Gnome::N::GlibToRakuTypes;
-    #use Gnome::N::N-GObject;
-    #use Gnome::N::X;
+    #use Gnome::N::GlibToRakuTypes:api<1>;
+    #use Gnome::N::N-GObject:api<1>;
+    #use Gnome::N::X:api<1>;
     #Gnome::N::debug(:on);
 
     #-------------------------------------------------------------------------------
