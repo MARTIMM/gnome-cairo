@@ -123,7 +123,7 @@ subtest 'Manipulations', {
 #    diag $matrix.get-native-object.gist;
   }, '.set-font-matrix() / .get-font-matrix()';
 
-  my Gnome::Cairo::FontOptions $fo = $c.get-font-options;
+  my Gnome::Cairo::FontOptions() $fo = $c.get-font-options;
   is $fo.get-antialias, CAIRO_ANTIALIAS_DEFAULT, '.get-font-options()';
 
   my Gnome::Cairo::Surface $s = $c.get-group-target;

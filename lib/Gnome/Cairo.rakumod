@@ -43,7 +43,7 @@ use Gnome::Cairo::Enums;
 #use Gnome::Cairo::Matrix;
 
 #-------------------------------------------------------------------------------
-unit class Gnome::Cairo:auth<github:MARTIMM>;
+unit class Gnome::Cairo:auth<github:MARTIMM>:api<1>;
 also is Gnome::N::TopLevelClassSupport;
 
 #-------------------------------------------------------------------------------
@@ -891,29 +891,29 @@ sub cairo_get_font_matrix (
 
 Retrieves font rendering options set via C<set-font-options()>. Note that the returned options do not include any options derived from the underlying surface; they are literally the options passed to C<set-font-options()>.
 
-  method get-font-options ( cairo_font_options_t $options --> N-GObject )
+  method get-font-options ( --> cairo_font_options_t )
 
-=item cairo_font_options_t $options; a B<cairo_t>
+Returns cairo_font_options_t structure
 =end pod
 
-#`{{
-method get-font-options ( ) {
-  my cairo_font_options_t $options .= new;
-  self._wrap-native-type(
-    'Gnome::Cairo::FontOptions',
-    cairo_get_font_options( self._get-native-object-no-reffing, $options)
-  )
-}
-}}
+=begin pod
+=head3 Example
 
-method get-font-options ( --> Any ) {
+  my Gnome::Cairo::FontOptions() $fo = $c.get-font-options;
+  if $fo.get-antialias ~~ CAIRO_ANTIALIAS_DEFAULT {
+    …
+  }
+
+=end pod
+
+method get-font-options ( --> cairo_font_options_t ) {
   my cairo_font_options_t $options .= new;
   cairo_get_font_options( self._get-native-object-no-reffing, $options);
-  self._wrap-native-type( 'Gnome::Cairo::FontOptions', $options)
+  $options
 }
 
 sub cairo_get_font_options (
-  cairo_t $cr, cairo_font_options_t $options is rw
+  cairo_t $cr, cairo_font_options_t $options
 ) is native(&cairo-lib)
   { * }
 
