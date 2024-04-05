@@ -28,7 +28,7 @@ I found out while developing the api<2> version, that it is possible to use the 
 # Installation
 As mentioned above, this package can be used on its own. But better install **Gnome::Gtk3:api<1>** instead.
 
-`zef install Gnome::Cairo:api<1>`
+`zef install 'Gnome::Cairo:api<1>'`
 
 
 # Author
